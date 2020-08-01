@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/Monopoly.iml" filepath="$PROJECT_DIR$/.idea/Monopoly.iml" />
+      <module fileurl="file://$USER_HOME$/Desktop/pycharm codes/.idea/pycharm codes.iml" filepath="$USER_HOME$/Desktop/pycharm codes/.idea/pycharm codes.iml" />
+    </modules>
+  </component>
+</project>
