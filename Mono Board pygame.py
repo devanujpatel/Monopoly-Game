@@ -5,8 +5,8 @@ os.environ['SDL_VIDEO_CENTERED'] = '1' # You have to call this before pygame.ini
 
 pygame.init()
 
-info = pygame.display.Info() # You have to call this before pygame.display.set_mode()
-screen_width,screen_height = info.current_w,info.current_h
+information = pygame.display.information() # You have to call this before pygame.display.set_mode()
+screen_width,screen_height = information.current_w,information.current_h
 
 grey = (211,211,211)
 brown = (139,69,19)
