@@ -1,7 +1,7 @@
 
 import tkinter
 import keyboard
-from PIL import ImageTk,Image
+#from PIL import ImageTk,Image
 window = tkinter.Tk()
 
 keyboard.add_hotkey('shift+z', lambda: roll_dice())
@@ -47,17 +47,17 @@ tkinter.Frame(window,width = 140,height = 60,relief = tkinter.RIDGE,bg = "pink",
 tkinter.Frame(window,width = 140,height = 60,relief = tkinter.RIDGE,bg = "pink",highlightbackground = "black",highlightthickness=1).grid(row=10,column=10)
 
 # lower row lane
-just = tkinter.Frame(window,width = 140,height = 80,bg = "pink",relief = tkinter.RIDGE,highlightbackground = "black",highlightthickness=1).grid(row=22,column=0)
-tkinter.Frame(window,width = 120,height = 80,relief = tkinter.RIDGE,bg = "pink",highlightbackground = "black",highlightthickness=1).grid(row=22,column=1)
-tkinter.Frame(window,width = 120,height = 80,relief = tkinter.RIDGE,bg = "pink",highlightbackground = "black",highlightthickness=1).grid(row=22,column=2)
-tkinter.Frame(window,width = 120,height = 80,relief = tkinter.RIDGE,bg = "pink",highlightbackground = "black",highlightthickness=1).grid(row=22,column=3)
-tkinter.Frame(window,width = 120,height = 80,relief = tkinter.RIDGE,bg = "pink",highlightbackground = "black",highlightthickness=1).grid(row=22,column=4)
-tkinter.Frame(window,width = 120,height = 80,relief = tkinter.RIDGE,bg = "pink",highlightbackground = "black",highlightthickness=1).grid(row=22,column=5)
-tkinter.Frame(window,width = 120,height = 80,relief = tkinter.RIDGE,bg = "pink",highlightbackground = "black",highlightthickness=1).grid(row=22,column=6)
-tkinter.Frame(window,width = 120,height = 80,relief = tkinter.RIDGE,bg = "pink",highlightbackground = "black",highlightthickness=1).grid(row=22,column=7)
-tkinter.Frame(window,width = 120,height = 80,relief = tkinter.RIDGE,bg = "pink",highlightbackground = "black",highlightthickness=1).grid(row=22,column=8)
-tkinter.Frame(window,width = 120,height = 80,relief = tkinter.RIDGE,bg = "pink",highlightbackground = "black",highlightthickness=1).grid(row=22,column=9)
-go_box = tkinter.Frame(window,width = 140,height = 80,relief = tkinter.RIDGE,bg = "brown",highlightbackground = "black",highlightthickness=1).grid(row=22,column=10)
+just = tkinter.Frame(window,width = 140,height = 80,bg = "pink",relief = tkinter.RIDGE,highlightbackground = "black",highlightthickness=1).grid(row=11,column=0)
+tkinter.Frame(window,width = 120,height = 80,relief = tkinter.RIDGE,bg = "pink",highlightbackground = "black",highlightthickness=1).grid(row=11,column=1)
+tkinter.Frame(window,width = 120,height = 80,relief = tkinter.RIDGE,bg = "pink",highlightbackground = "black",highlightthickness=1).grid(row=11,column=2)
+tkinter.Frame(window,width = 120,height = 80,relief = tkinter.RIDGE,bg = "pink",highlightbackground = "black",highlightthickness=1).grid(row=11,column=3)
+tkinter.Frame(window,width = 120,height = 80,relief = tkinter.RIDGE,bg = "pink",highlightbackground = "black",highlightthickness=1).grid(row=11,column=4)
+tkinter.Frame(window,width = 120,height = 80,relief = tkinter.RIDGE,bg = "pink",highlightbackground = "black",highlightthickness=1).grid(row=11,column=5)
+tkinter.Frame(window,width = 120,height = 80,relief = tkinter.RIDGE,bg = "pink",highlightbackground = "black",highlightthickness=1).grid(row=11,column=6)
+tkinter.Frame(window,width = 120,height = 80,relief = tkinter.RIDGE,bg = "pink",highlightbackground = "black",highlightthickness=1).grid(row=11,column=7)
+tkinter.Frame(window,width = 120,height = 80,relief = tkinter.RIDGE,bg = "pink",highlightbackground = "black",highlightthickness=1).grid(row=11,column=8)
+tkinter.Frame(window,width = 120,height = 80,relief = tkinter.RIDGE,bg = "pink",highlightbackground = "black",highlightthickness=1).grid(row=11,column=9)
+go_box = tkinter.Frame(window,width = 140,height = 80,relief = tkinter.RIDGE,bg = "brown",highlightbackground = "black",highlightthickness=1).grid(row=11,column=10)
 
 import random
 
@@ -72,9 +72,9 @@ def roll_dice():
     label_dice = "Dice Roll = "+str(dice_val)
     show_dice.set(label_dice)
     tkinter.Label(window,textvariable=show_dice,bg="green",fg="orange",width=12,height=3).place(relx = 0.5, rely = 0.5, x = 80,y = 8)
-    if position >=41:
-        position = position - 41
-
+    if position >=40:
+        position = position - 40
+    
 
     move_token()
 
@@ -97,11 +97,12 @@ myplaces=[]
 for place in my_places.keys():
     myplaces.append(str(place))
 
+
 # go till jail
 c1 = 10
-for pl in myplaces[0:12]:
+for pl in myplaces[0:11]:#changed 12 to 11
     column_coordinates.update({pl: c1})
-    row_coordinates.update({pl:22})
+    row_coordinates.update({pl:11})
     c1 -= 1
 
 # st_charles till new york avenue
@@ -113,18 +114,19 @@ for pl in myplaces[11:20]:
 
 # free parking till go to jail
 c2 = 0
-for pl in myplaces[20:32]:
+for pl in myplaces[20:31]:#changed 32 to 31
     column_coordinates.update({pl: c2})
     row_coordinates.update({pl:1})
     c2 += 1
 
 # pacific till board walk
 r2 = 2
-for pl in myplaces[32:41]:
+for pl in myplaces[31:40]:
     column_coordinates.update({pl:10})
     row_coordinates.update({pl:r2})
     r2 += 1
 
+    
 
 print(row_coordinates)
 
@@ -134,11 +136,12 @@ i = 0
 for p in myplaces:
     myplace_num.update({p:i})
     i += 1
+print(myplace_num)
 
 def show():
     global token1
     token1 = tkinter.Label(window, text="T", bg="white", fg="black", font=("arial", 20, "bold"))
-    token1.grid(row=22, column=10)
+    token1.grid(row=11, column=10)
 
 def forget_widget():
 
@@ -159,5 +162,6 @@ def move_token():
                 token1 = tkinter.Label(window,text="T",font = ("arial",15,"bold"))
                 token1.grid(row = row_coordinates[a] , column = column_coordinates[a])
                 my_places.update({a:"occupied"})
+            
 
 window.mainloop()
