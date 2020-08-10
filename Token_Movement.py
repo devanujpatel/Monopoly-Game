@@ -42,7 +42,6 @@ row_coordinates = {}
 column_coordinates = {}
 myplace_num = {}
 myplaces = []
-players=[]
 
 for place in my_places.keys():
     myplaces.append(str(place))
@@ -80,29 +79,21 @@ for p in myplaces:
     myplace_num.update({p: i})
     i += 1
 
-
-token1 = tkinter.Label(window, text="T1", bg="white", fg="black", font=("arial", 20, "bold"))
-token1.grid(row=11, column=10)
-
 def forget_widget(widget):
 
     widget.grid_forget()
 
-
-def show_diceroll():
-    global dice_val
-    print("dice roll:", str(dice_val))
-    print("position:", str(position))
+update_tokens = False
 
 def move_token():
-    global token1
+    global token1,update_tokens
 
     for a in myplaces:
         if position == myplace_num[a]:
-            forget_widget(token1)
-            token1 = tkinter.Label(window, text="T", font=("arial", 15, "bold"))
-            token1.grid(row=row_coordinates[a], column=column_coordinates[a])
-            my_places.update({a: "occupied"})
-
+            update_tokens = True
 
 window.mainloop()
+
+# token1 = tkinter.Label(window, text="T", font=("arial", 15, "bold"))
+# token1.grid(row=row_coordinates[a], column=column_coordinates[a])
+#my_places.update({a: "occupied"})
