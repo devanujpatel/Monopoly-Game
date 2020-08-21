@@ -1,8 +1,8 @@
-master_dictionary = {"tokens":{},"players":{}}
+master_dictionary = {}
 playing_tokens = []
-position = 0
-
-
+chance = 1
+#chances = {}
+playing_token_id = []
 """
 import tkinter
 root=tkinter.Tk()# dump everything in master dictionary when going to make save feature
