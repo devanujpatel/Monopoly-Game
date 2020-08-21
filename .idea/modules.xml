@@ -3,8 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/Monopoly.iml" filepath="$PROJECT_DIR$/.idea/Monopoly.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../pycharm codes/.idea/pycharm codes.iml" filepath="$PROJECT_DIR$/../../pycharm codes/.idea/pycharm codes.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../python_learning/.idea/python_learning.iml" filepath="$PROJECT_DIR$/../python_learning/.idea/python_learning.iml" />
     </modules>
   </component>
 </project>
