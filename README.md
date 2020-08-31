@@ -1,12 +1,3 @@
-# python_monopoly
-Making monopoly using Tkinter framework.
-## displaying our board
-still in progress(see code)
-## moving multiple tokens
-still in progress(see code)
-## pygame
-Decided not to use pygame! All the pygame files have been moved to the using_pygame folder.
-## New Branch-Token Movement
-A monopoly game consists of many tokens not one.
-So this brach will be used to develop a 
-coordination between multiple tokens!
+# monopoly_py
+Making monopoly using Tkinter framework.This is in active development and please feel free to contribute!!
+The aim is to make a fully functional monopoly game with a max of 8 players with an approach to make it as similar to the actual game. 
