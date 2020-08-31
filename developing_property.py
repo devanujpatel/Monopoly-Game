@@ -4,114 +4,11 @@ import time, random
 from grid_and_place_coordinates import *
 from initialising_everything import *
 
+#------------------------------ ☺☺☻☻ PLEASE IGNORE ALL THE DOC-STRINGS! ☺☺☻☻-------------------------
+
 chance = 0
 sticky_id = {"token1": "N", "token2": "S", "token3": "w", "token4": "e", "token5": "NE", "token6": "NW", "token7": "SW",
              "token8": "se"}
-
-# TODO:
-#   move line 7 and 8
-#   make names of places on board
-#   update readme
-#   add comments in the code
-#   collaborate with property class
-#   color code
-#   show status
-#   error handling (in n_players entry)
-
-"""class Monopoly_Game(tk.Tk):
-    def __init__(self, *args, **kwargs):
-        tk.Tk.__init__(self, *args, **kwargs)
-
-        "container = tk.Frame(self)
-        container.pack(side="top", fill="both", expand=True)
-        container.grid_rowconfigure(0, weight=1)
-        container.grid_columnconfigure(0, weight=1)
-        
-        global container
-        container = tk.Tk()
-        self.width = container.winfo_screenwidth()  # width of screen
-        self.height = container.winfo_screenheight()  # height of screen
-
-        container.winfo_toplevel().geometry("%dx%d%+d%+d" % (self.width, self.height, 0, 0))
-
-        for F in (ask_screen, monopoly_game):
-            frame = F(container, self)
-            self.frames[F] = frame
-            frame.grid(row=0, column=0, sticky="nsew")
-
-        self.show_frame(ask_screen)
-
-    def show_frame(self, cont):
-        frame = self.frames[cont]
-        frame.tkraise()
-        
-    def enter_button_clicked(self, entry_wid):
-    global n_players
-    n_players = int(entry_wid.get())
-    self.n_players = n_players
-    time.sleep(0.2)
-    entry_wid.pack_forget()
-
-    if n_players > 8:
-        n_players = 8
-
-    if n_players < 2:
-        n_players = 2
-
-    for num in range(int(n_players)):
-        tok = "token" + str(num + 1)
-        playing_tokens.append(tok)
-
-    t1 = token(token1, "token1", "player1")
-    t2 = token(token2, "token2", "player2")
-    t3 = token(token3, "token3", "player3")
-    t4 = token(token4, "token4", "player4")
-    t5 = token(token5, "token5", "player5")
-    t6 = token(token6, "token6", "player6")
-    t7 = token(token7, "token7", "player7")
-    t8 = token(token8, "token8", "player8")
-
-    t1.my_special_init()
-    t2.my_special_init()
-
-    if "token3" in playing_tokens:
-        t3.my_special_init()
-
-    if "token4" in playing_tokens:
-        t4.my_special_init()
-
-    if "token5" in playing_tokens:
-        t5.my_special_init()
-
-    if "token6" in playing_tokens:
-        t6.my_special_init()
-
-    if "token7" in playing_tokens:
-        t7.my_special_init()
-
-    if "token8" in playing_tokens:
-        t8.my_special_init()
-
-    token_objs = [t1, t2, t3, t4, t5, t6, t7, t8]
-
-    for i in range(n_players):
-        playing_token_id.append(token_objs[i])
-
-    global sticky_id
-
-    x = 0.1
-    y = 0.1
-    for T in playing_tokens:
-        if x == 0.30000000000000004:
-            x = 0.3
-        relx.update({T:x})
-        rely.update({T:y})
-        x+=0.2
-        if x ==0.8999999999999999:
-            x = 0.1
-            y = 0.7
-    print(relx,rely)"""
-
 
 container = tk.Tk()
 width = container.winfo_screenwidth()  # width of screen
@@ -120,9 +17,10 @@ height = container.winfo_screenheight()  # height of screen
 container.winfo_toplevel().geometry("%dx%d%+d%+d" % (width, height, 0, 0))
 
 entry = ttk.Entry(container)
-entry.place(relx = 0.4, rely = 0.4)
-play_button = ttk.Button(container, text="Play!", command=lambda:play_but_clicked())
-play_button.place(relx = 0.42, rely = 0.45)
+entry.place(relx=0.4, rely=0.4)
+play_button = ttk.Button(container, text="Play!", command=lambda: play_but_clicked())
+play_button.place(relx=0.42, rely=0.45)
+
 
 def play_but_clicked():
     global n_players
@@ -141,6 +39,9 @@ def play_but_clicked():
     for num in range(int(n_players)):
         tok = "token" + str(num + 1)
         playing_tokens.append(tok)
+
+    global display_board_obj
+    display_board_obj = monopoly_game()
 
     global token1, token2, token3, token4, token5, token6, token7, token8
 
@@ -167,7 +68,7 @@ def play_but_clicked():
 
     if "token3" in playing_tokens:
         t3.my_special_init()
-        #print("token3 reporting sir!")
+        # print("token3 reporting sir!")
     if "token4" in playing_tokens:
         t4.my_special_init()
 
@@ -187,9 +88,59 @@ def play_but_clicked():
 
     for i in range(n_players):
         playing_token_id.append(token_objs[i])
-    
-    global display_board_obj
-    display_board_obj = monopoly_game()
+
+
+
+"""
+class ask_screen(tk.Frame):
+    def __init__(self, parent):
+        global entry, enter_button
+        tk.Frame.__init__(self, parent)
+        entry = ttk.Entry(container)
+        entry.pack()
+        play_button = ttk.Button(self, text="Play!", command=lambda: self.play_but_clicked())
+        play_button.pack()
+    def play_but_clicked(self):
+        global n_players
+        n_players = int(entry.get())
+        self.n_players = n_players
+        time.sleep(0.2)
+        entry.pack_forget()
+        if n_players > 8:
+            n_players = 8
+        if n_players < 2:
+            n_players = 2
+        for num in range(int(n_players)):
+            tok = "token" + str(num + 1)
+            playing_tokens.append(tok)
+        t1 = token(token1, "token1", "player1")
+        t2 = token(token2, "token2", "player2")
+        t3 = token(token3, "token3", "player3")
+        t4 = token(token4, "token4", "player4")
+        t5 = token(token5, "token5", "player5")
+        t6 = token(token6, "token6", "player6")
+        t7 = token(token7, "token7", "player7")
+        t8 = token(token8, "token8", "player8")
+        t1.my_special_init()
+        t2.my_special_init()
+        if "token3" in playing_tokens:
+            t3.my_special_init()
+        if "token4" in playing_tokens:
+            t4.my_special_init()
+        if "token5" in playing_tokens:
+            t5.my_special_init()
+        if "token6" in playing_tokens:
+            t6.my_special_init()
+        if "token7" in playing_tokens:
+            t7.my_special_init()
+        if "token8" in playing_tokens:
+            t8.my_special_init()
+        token_objs = [t1, t2, t3, t4, t5, t6, t7, t8]
+        for i in range(n_players):
+            playing_token_id.append(token_objs[i])
+        display_board_obj = monopoly_game()"""
+
+
 
 """
 class ask_screen(tk.Frame):
@@ -262,7 +213,7 @@ class monopoly_game(tk.Frame):
         width = container.winfo_screenwidth()  # width of screen
         height = container.winfo_screenheight()  # height of screen
         width -= 320
-        height -= 350
+        height -= 345
         width = width / 9
         height = height / 9
         # (self, property_id, property_str, row, column, buying_price, rent, house_price, one_house_rent, color_group)
