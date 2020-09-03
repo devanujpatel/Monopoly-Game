@@ -40,6 +40,7 @@ def play_but_clicked():
     for num in range(int(n_players)):
         tok = "token" + str(num + 1)
         playing_tokens.append(tok)
+    print(playing_tokens)
 
     for num in range(int(n_players)):
         tok = "player" + str(num + 1)
@@ -71,64 +72,11 @@ def play_but_clicked():
     if "token8" in playing_tokens:
         ask_obj8 = ask_info(7)
 
-
-
-class gui_monopoly():
-    def __init__(self):
-        global display_board_obj
-        display_board_obj = monopoly_game()
-
-        global token1, token2, token3, token4, token5, token6, token7, token8
-
-        token1 = tk.Label(container, text="T1", width=2, height=1)
-        token2 = tk.Label(container, text="T2", width=2, height=1)
-        token3 = tk.Label(container, text="T3", width=2, height=1)
-        token4 = tk.Label(container, text="T4", width=2, height=1)
-        token5 = tk.Label(container, text="T5", width=2, height=1)
-        token6 = tk.Label(container, text="T6", width=2, height=1)
-        token7 = tk.Label(container, text="T7", width=2, height=1)
-        token8 = tk.Label(container, text="T8", width=2, height=1)
-
-        t1 = token(token1, "token1", "player1")
-        t2 = token(token2, "token2", "player2")
-        t3 = token(token3, "token3", "player3")
-        t4 = token(token4, "token4", "player4")
-        t5 = token(token5, "token5", "player5")
-        t6 = token(token6, "token6", "player6")
-        t7 = token(token7, "token7", "player7")
-        t8 = token(token8, "token8", "player8")
-
-        t1.my_special_init()
-        t2.my_special_init()
-
-        if "token3" in playing_tokens:
-            t3.my_special_init()
-            # print("token3 reporting sir!")
-        if "token4" in playing_tokens:
-            t4.my_special_init()
-
-        if "token5" in playing_tokens:
-            t5.my_special_init()
-
-        if "token6" in playing_tokens:
-            t6.my_special_init()
-
-        if "token7" in playing_tokens:
-            t7.my_special_init()
-
-        if "token8" in playing_tokens:
-            t8.my_special_init()
-
-        token_objs = [t1, t2, t3, t4, t5, t6, t7, t8]
-
-        for i in range(n_players):
-            playing_token_id.append(token_objs[i])
-
-
 class ask_info:
     def __init__(self, player_num):
         self.player_num = player_num
         self.player_str = players[player_num]
+        self.token_str = playing_tokens[player_num]
         #self.ask_colors()
         self.ask_player_names()
     def ask_player_names(self):
@@ -169,7 +117,7 @@ class ask_info:
 
         elif str(self.e.get()) != '':
             if str(self.e.get()) in all_colors:
-                colors[self.player_num] = str(self.e.get())
+                colors[self.token_str] = str(self.e.get())
                 self.l.pack_forget()
                 self.e.pack_forget()
                 self.b.pack_forget()
@@ -181,6 +129,55 @@ class ask_info:
         if self.player_num+1 == n_players:
             ask_info_frame.place_forget()
             gui_monopoly()
+
+def gui_monopoly():
+    global display_board_obj
+    display_board_obj = monopoly_game()
+
+    global token1, token2, token3, token4, token5, token6, token7, token8
+
+    token1 = tk.Label(container, text="T1", width=2, height=1,bg=colors["token1"])
+    token2 = tk.Label(container, text="T2", width=2, height=1,bg=colors["token2"])
+    token3 = tk.Label(container, text="T3", width=2, height=1,bg=colors["token3"])
+    token4 = tk.Label(container, text="T4", width=2, height=1,bg=colors["token4"])
+    token5 = tk.Label(container, text="T5", width=2, height=1,bg=colors["token5"])
+    token6 = tk.Label(container, text="T6", width=2, height=1,bg=colors["token6"])
+    token7 = tk.Label(container, text="T7", width=2, height=1,bg=colors["token7"])
+    token8 = tk.Label(container, text="T8", width=2, height=1,bg=colors["token8"])
+    t1 = token(token1, "token1", "player1")
+    t2 = token(token2, "token2", "player2")
+    t3 = token(token3, "token3", "player3")
+    t4 = token(token4, "token4", "player4")
+    t5 = token(token5, "token5", "player5")
+    t6 = token(token6, "token6", "player6")
+    t7 = token(token7, "token7", "player7")
+    t8 = token(token8, "token8", "player8")
+
+    t1.my_special_init()
+    t2.my_special_init()
+
+    if "token3" in playing_tokens:
+        t3.my_special_init()
+        # print("token3 reporting sir!")
+    if "token4" in playing_tokens:
+        t4.my_special_init()
+
+    if "token5" in playing_tokens:
+        t5.my_special_init()
+
+    if "token6" in playing_tokens:
+        t6.my_special_init()
+
+    if "token7" in playing_tokens:
+        t7.my_special_init()
+
+    if "token8" in playing_tokens:
+        t8.my_special_init()
+
+    token_objs = [t1, t2, t3, t4, t5, t6, t7, t8]
+
+    for i in range(n_players):
+        playing_token_id.append(token_objs[i])
 
 """
 class ask_screen(tk.Frame):
