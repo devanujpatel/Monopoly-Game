@@ -39,53 +39,59 @@ def show_colors():
 
 def play_but_clicked():
     global n_players, color_but
-    n_players = int(entry.get())
-    n_players = n_players
-    time.sleep(0.2)
-    entry.place_forget()
-    play_button.place_forget()
+    n_players = entry.get()
 
-    if n_players > 8:
-        n_players = 8
+    if n_players == '':
+        pass
 
-    if n_players < 2:
-        n_players = 2
+    if n_players != '':
+        n_players=int(n_players)
+        time.sleep(0.2)
+        entry.place_forget()
+        play_button.place_forget()
 
-    for num in range(int(n_players)):
-        tok = "token" + str(num + 1)
-        playing_tokens.append(tok)
-        chances.update({tok:num})
+        if n_players > 8:
+            n_players = 8
 
-    for num in range(int(n_players)):
-        tok = "player" + str(num + 1)
-        players.append(tok)
-        player_names.update({tok:tok})
+        if n_players < 2:
+            n_players = 2
 
-    global ask_info_frame, color_frame, ask_color_frame
-    color_frame = tk.LabelFrame(start_frame, text="Supported Colors", bg="medium spring green", width=100, height=80)
-    ask_info_frame = tk.LabelFrame(start_frame, text="Enter Your Details", bg="khaki", width=100, height=80)
-    ask_color_frame = tk.LabelFrame(start_frame, text="Enter your favourite colors", bg="khaki", width=100, height=80)
-    ask_info_frame.pack(side="top")
-    ask_obj1 = ask_info(0)
-    ask_obj2 = ask_info(1)
+        for num in range(int(n_players)):
+            tok = "token" + str(num + 1)
+            playing_tokens.append(tok)
+            chances.update({tok:num})
 
-    if "token3" in playing_tokens:
-        ask_obj3 = ask_info(2)
+        for num in range(int(n_players)):
+            tok = "player" + str(num + 1)
+            players.append(tok)
+            player_names.update({tok:tok})
 
-    if "token4" in playing_tokens:
-        ask_obj4 = ask_info(3)
+        global ask_info_frame, color_frame, ask_color_frame
+        color_frame = tk.LabelFrame(start_frame, text="Supported Colors", bg="medium spring green", width=100, height=80)
+        ask_info_frame = tk.LabelFrame(start_frame, text="Enter Your Details", bg="khaki", width=100, height=80)
+        ask_color_frame = tk.LabelFrame(start_frame, text="Enter your favourite colors", bg="khaki", width=100, height=80)
+        ask_info_frame.pack(side="top")
 
-    if "token5" in playing_tokens:
-        ask_obj5 = ask_info(4)
+        ask_obj1 = ask_info(0)
+        ask_obj2 = ask_info(1)
 
-    if "token6" in playing_tokens:
-        ask_obj6 = ask_info(5)
+        if "token3" in playing_tokens:
+            ask_obj3 = ask_info(2)
 
-    if "token7" in playing_tokens:
-        ask_obj7 = ask_info(6)
+        if "token4" in playing_tokens:
+            ask_obj4 = ask_info(3)
 
-    if "token8" in playing_tokens:
-        ask_obj8 = ask_info(7)
+        if "token5" in playing_tokens:
+            ask_obj5 = ask_info(4)
+
+        if "token6" in playing_tokens:
+            ask_obj6 = ask_info(5)
+
+        if "token7" in playing_tokens:
+            ask_obj7 = ask_info(6)
+
+        if "token8" in playing_tokens:
+            ask_obj8 = ask_info(7)
 
 class ask_info:
     def __init__(self, player_num):
@@ -231,14 +237,9 @@ class monopoly_game(tk.Frame):
 
 
         free_parking = tk.Frame(container, width=160, height=140, bg="orange", highlightbackground="black",highlightthickness=1)
-        #free_parking_obj = property(free_parking, "free_parking", 0, 0)
         free_parking.grid(row=0, column=0)
-        #kentucky_avenue = tk.Frame(container, width=width, height=140, bg="LightSteelBlue1",
-        #                           highlightbackground="black",highlightthickness=1)
-        global kentucky_avenue
-        """self,property_str, row, column, width, height, color, rent, price, one_house_rent, two_house_rent,
-                 three_house_rent,four_house_rent,hotel_rent,cost_of_hotel, mortgage_value):"""
-        kentucky_avenue = property("kentucky_avenue",  0,1,width, 140, "light blue", 100 , 200, 50, 60,70,80,100,100,50,40 )
+
+        kentucky_avenue = property("kentucky_avenue",  0,1,width, 140, "light blue", 100 , 200, 50, 60,70,80,100,100,50,40,"bottom")
 
         #chance2 = tk.Frame(container, width=width, height=140, bg="LightSteelBlue1", highlightbackground="black",
         #                   highlightthickness=1)
@@ -293,8 +294,7 @@ class monopoly_game(tk.Frame):
 
         # left lane
         new_york_avenue = tk.Frame(container, width=160, height=height, bg="lightsteelblue",
-                                   highlightbackground="black",
-                                   highlightthickness=1)
+                                   highlightbackground="black",highlightthickness=1)
         #global new_york_avenue_obj
         #new_york_avenue_obj = property(new_york_avenue, "pacific_avenue", 1, 0)
         new_york_avenue.grid(row=1, column=0)
@@ -474,8 +474,10 @@ class token:
 
 class property:
     def __init__(self,property_str, row, column, width, height, color, rent, price, one_house_rent, two_house_rent,
-                 three_house_rent,four_house_rent,hotel_rent,cost_of_house,cost_of_hotel, mortgage_value):
+                 three_house_rent,four_house_rent,hotel_rent,cost_of_house,cost_of_hotel, mortgage_value, color_box_side=None):
         self.property_str = property_str
+        self.width = width
+        self.height = height
         self.one_house_rent = one_house_rent
         self.two_house_rent  = two_house_rent
         self.three_house_rent = three_house_rent
@@ -485,21 +487,24 @@ class property:
         self.mortgage_value = mortgage_value
         self.price = price
         self.color= color
-        self.prop_box = tk.Frame(container, width=width, height=height, bg=color)
-        self.prop_box.grid(row=row, column=column)
         self.rent = rent
         self.cost_of_house = cost_of_house
 
-        # display price on box
+        prop_info.update({self.property_str:{"price":self.price, "houses":0, "owner":None, "players on site":None}})
+
+        if self.property_str not in special_properties:
+            self.prop_box = tk.Frame(container, width=width, height=height, bg="green")
+            self.prop_box.grid(row=row, column=column)
+            self.color_box = tk.Frame(self.prop_box, bg=self.color,highlightbackground="black" ,highlightthickness=1 , width=self.width, height=self.height/4)
+            self.color_box.grid(sticky="s")
 
     def show_details(self):
 
-
-        self.info_box1 = tk.Frame(container, relief="raised", highlightbackground="black",width = width*4, height=height*4,
+        self.info_box1 = tk.Frame(container, relief="groove", highlightbackground="black",width = width*4, height=height*4,
                           highlightthickness=1)
         self.info_box1.grid(rowspan = 6,columnspan=2,  row = 4, column = 1)
 
-        self.info_box2 = tk.Frame(container, relief="raised", highlightbackground="black",width = width*4, height=height*4,
+        self.info_box2 = tk.Frame(container, relief="groove", highlightbackground="black",width = width*4, height=height*4,
                           highlightthickness=1)
         self.info_box2.grid(rowspan = 6,columnspan=2,  row = 4, column = 3)
 
@@ -508,7 +513,7 @@ class property:
                           highlightthickness=1)
         self.prop_name_dis.pack(side="top" , fill="x")
 
-        self.rent_dis = tk.Label(self.info_box1, text="RENt- SITE ONLY: "+str(self.rent), font=("Courier", 12), highlightbackground="black",
+        self.rent_dis = tk.Label(self.info_box1, text="RENT- SITE ONLY: "+str(self.rent), font=("Courier", 12), highlightbackground="black",
                           highlightthickness=1)
         self.rent_dis.pack(side="top" )
 
@@ -548,39 +553,8 @@ class property:
                                highlightthickness=1)
         self.mortgage_value_dis.pack(side="top" )
 
+    def property_manager(self):
+        pass
+
+
 container.mainloop()
-
-"""        # , buying_price, rent, house_price, one_house_rent, group)
-        # , "rent":rent,buying price
-        # "house_price":house_price, "one_house_rent":one_house_rent, "color_group":group}"""
-
-"""name_plate_dis = tk.LabelFrame(self.info_box1, bg="green", text=self.property_str +"\n\n",  font=("Courier", 15), highlightbackground="black",
-                  highlightthickness=1)
-name_plate_dis.pack(side="top")"""        """Atlantic Avenue
-        B & O Railroad
-        Baltic Avenue
-        Boardwalk
-        Connecticut Avenue
-        Electric Company
-        Illinois Avenue
-        Indiana Avenue
-        Kentucky Avenue
-        Marvin Gardens
-        Mediterranean Avenue
-        New York Avenue
-        North Carolina Avenue
-        Oriental Avenue
-        Pacific Avenue
-        Park Place
-        Pennsylvania Avenue
-        Pennsylvania Railroad
-        Reading Railroad
-        Short Line
-        St. Charles Place
-        St. James Place
-        States Avenue
-        Tennessee Avenue
-        Ventnor Avenue
-        Vermont Avenue
-        Virginia Avenue
-        Water Works"""
