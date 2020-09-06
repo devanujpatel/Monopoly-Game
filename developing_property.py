@@ -3,7 +3,8 @@ import tkinter.font as font
 import time, random
 from grid_and_place_coordinates import *
 from initialising_everything import *
-
+asf_x = 0
+asf_y = 0
 #------------------------------ ☺☺☻☻ PLEASE IGNORE ALL THE DOC-STRINGS! ☺☺☻☻-------------------------
 
 container = tk.Tk()
@@ -18,9 +19,9 @@ font1=("Courier", 13)
 
 entry = tk.Entry(start_frame)
 #entry.grid(row=5, column = 5, columnspan=1, rowspan=2)
-entry.place(relx=0.5, rely=0.5)
+entry.place(relx=0.4, rely=0.4)
 play_button = tk.Button(start_frame, text="Play!",font=font1, command=lambda: play_but_clicked())
-play_button.place(relx=0.5, rely=0.56)
+play_button.place(relx=0.42, rely=0.44)
 
 def show_colors():
     color_frame = tk.Frame(start_frame)
@@ -41,20 +42,8 @@ def play_but_clicked():
     global n_players, color_but
     n_players = entry.get()
 
-    if n_players == '':
-        pass
-
-    if n_players != '':
-        n_players=int(n_players)
-        time.sleep(0.2)
-        entry.place_forget()
-        play_button.place_forget()
-
-        if n_players > 8:
-            n_players = 8
-
-        if n_players < 2:
-            n_players = 2
+    if n_players in n_players:
+        n_players = int(n_players)
 
         for num in range(int(n_players)):
             tok = "token" + str(num + 1)
@@ -62,9 +51,8 @@ def play_but_clicked():
             chances.update({tok:num})
 
         for num in range(int(n_players)):
-            tok = "player" + str(num + 1)
-            players.append(tok)
-            player_names.update({tok:tok})
+            pal = "player" + str(num + 1)
+            player_chances.append(pal)
 
         global ask_info_frame, color_frame, ask_color_frame
         color_frame = tk.LabelFrame(start_frame, text="Supported Colors", bg="medium spring green", width=100, height=80)
@@ -96,12 +84,12 @@ def play_but_clicked():
 class ask_info:
     def __init__(self, player_num):
         self.player_num = player_num
-        self.player_str = players[player_num]
+        self.player_str = player_chances[player_num]
         self.token_str = playing_tokens[player_num]
         self.ask_player_names()
 
     def ask_player_names(self):
-        self.pl = tk.Label(ask_info_frame, text="enter your nickname -" + players[self.player_num])
+        self.pl = tk.Label(ask_info_frame, text="enter your nickname -" + player_chances[self.player_num])
         self.pl.pack(side="top",fill="x")
         self.pe = tk.Entry(ask_info_frame)
         self.pe.pack(side='top',fill="x")
@@ -109,18 +97,22 @@ class ask_info:
         self.pb.pack(side="top",fill="x")
         
     def ok_but_clicked_name(self):
+        global asf_x
         if str(self.pe.get()) == '':
             self.pl.pack_forget()
             self.pe.pack_forget()
             self.pb.pack_forget()
+            asf_x +=1
             self.ask_colors()
         elif str(self.pe.get()) != '':
             player_names[self.player_str] = str(self.pe.get())
             self.pl.pack_forget()
             self.pe.pack_forget()
             self.pb.pack_forget()
+            asf_x +=1
             self.ask_colors()
-        if self.player_num + 1 == n_players:
+            
+        if asf_x == n_players:
             ask_info_frame.pack_forget()
             show_colors()
             ask_color_frame.pack_configure(side="right")
@@ -135,27 +127,31 @@ class ask_info:
         self.b = tk.Button(ask_color_frame, text="Ok", command=lambda: self.ok_but_clicked_color())
         self.b.pack(side="top" ,fill="x")
 
-        if self.player_num + 1 == n_players:
-            color_frame.pack_forget()
-
     def ok_but_clicked_color(self):
+        global asf_y
+
         if str(self.e.get()) == '':
             self.l.pack_forget()
             self.e.pack_forget()
             self.b.pack_forget()
+            asf_y +=1
 
         elif str(self.e.get()) != '':
+
             if str(self.e.get()) in all_colors:
                 colors[self.token_str] = str(self.e.get())
                 self.l.pack_forget()
                 self.e.pack_forget()
                 self.b.pack_forget()
+                asf_y +=1
+
             else:
                 self.l.pack_forget()
                 self.e.pack_forget()
                 self.b.pack_forget()
+                asf_y +=1
 
-        if self.player_num+1 == n_players:
+        if asf_y == n_players:
             start_frame.grid_forget()
             gui_monopoly()
 
@@ -186,16 +182,17 @@ def gui_monopoly():
     t1.my_special_init()
     t2.my_special_init()
 
-    stat1 = Status_of_player(chance, "token1")
-    stat2 = Status_of_player(chance, "token2")
-    stat3 = Status_of_player(chance, "token3")
-    stat4 = Status_of_player(chance, "token4")
-    stat5 = Status_of_player(chance, "token5")
-    stat6 = Status_of_player(chance, "token6")
-    stat7 = Status_of_player(chance, "token7")
-    stat8 = Status_of_player(chance, "token8")
+    stat1 = Status_of_player("token1",player_names["player1"])
+    stat2 = Status_of_player("token2",player_names["player2"])
+    stat3 = Status_of_player("token3",player_names["player3"])
+    stat4 = Status_of_player("token4",player_names["player4"])
+    stat5 = Status_of_player("token5",player_names["player5"])
+    stat6 = Status_of_player("token6",player_names["player6"])
+    stat7 = Status_of_player("token7",player_names["player7"])
+    stat8 = Status_of_player("token8",player_names["player8"])
 
     stat1.display()
+    stat1.raise_relief()
     stat2.display()
 
     if "token3" in playing_tokens:
@@ -222,7 +219,7 @@ def gui_monopoly():
     token_objs = [t1, t2, t3, t4, t5, t6, t7, t8]
 
     for i in range(n_players):
-        playing_token_id.append(token_objs[i])
+        playing_token_obj_id.append(token_objs[i])
 
 class monopoly_game(tk.Frame):
     def __init__(self):
@@ -366,6 +363,10 @@ class monopoly_game(tk.Frame):
         place = tk.Frame(container, width=160, height=height, bg="yellow", highlightbackground="black",
                          highlightthickness=1)
         place.grid(row=9, column=10)
+
+        monopoly_dis = tk.Label(container, text="Monopoly", bg="tomato1", fg="white", font=font1)
+        monopoly_dis.grid(row=5, column=5)
+
         global status_frame,sf_width,sf_height
         sf_width = 8*width+2
         sf_height = 3*height
@@ -385,12 +386,12 @@ class roll_dice(tk.Frame):
 
         global roll_dice_d
         roll_dice_d = tk.Button(container, text="Roll Dice!", bg="orange" ,font=font1, command=lambda: self.virtual_dice())
-        roll_dice_d.grid(row=5, column=5)
+        roll_dice_d.grid(row=6, column=6)
 
     def virtual_dice(self):
         roll_dice_d.grid_forget()
         self.token_str = playing_tokens[chance]
-        self.token_id = playing_token_id[chance]
+        self.token_id = playing_token_obj_id[chance]
 
         dice_roll1 = random.randint(1, 6)
         dice_roll2 = random.randint(1, 6)
@@ -420,34 +421,38 @@ class roll_dice(tk.Frame):
         position= master_dictionary[playing_tokens[chance]]["position"]
         properties_dicto[position].info_box1.grid_forget()
         properties_dicto[position].info_box2.grid_forget()
+        properties_dicto[position].buy_button.grid_forget()
+        stat_objs[chance].normal_relief()
 
         chance += 1
         max_chance = n_players
 
+        stat_objs[chance].raise_relief()
+
         if max_chance == chance:
             chance = 0
-
-
 
         end_turn.grid_forget()
         roll_dice_d.grid(row=5, column=5)
 
 class Status_of_player:
-    def __init__(self, chance, token_str):
+    def __init__(self, token_str, player_str):
         self.token_str = token_str
-
+        self.player_str = player_str
     def display(self):
-        self.inferior_status_frame = tk.LabelFrame(status_frame, text=self.token_str, bg=colors[self.token_str], relief="flat",
-                                                   width=sf_width / n_players, height=sf_height, font=("white",11))
+        self.inferior_status_frame = tk.LabelFrame(status_frame, text=self.player_str, bg=colors[self.token_str], relief="flat",
+                                                   width=sf_width / n_players, height=sf_height, font=("white",11), bd=7)
 
         if chance == chances[self.token_str]:
-            self.inferior_status_frame["relief"] = "ridge"
+            self.inferior_status_frame["relief"] = "raised"
 
         self.inferior_status_frame.pack(side="left")
 
-    def check_to_ridge(self):
-        if chance == chances[self.token_str]:
-            self.inferior_status_frame["relief"] = "ridge"
+    def raise_relief(self):
+        self.inferior_status_frame["relief"] = "raised"
+
+    def normal_relief(self):
+        self.inferior_status_frame["relief"] = "flat"
 
 class token:
     def __init__(self, token_id, token_str, player_str):
@@ -458,7 +463,7 @@ class token:
     def my_special_init(self):
 
         self.dicto = {self.token_str: {"position": 0, "row": row_coordinates["go_box"], "column": column_coordinates["go_box"]}}
-        self.dicto_2 = {self.player_str: {"token_id": self.token_id, "token_str": self.token_str, "money": 1500}}
+        self.dicto_2 = {self.player_str: {"token_id": self.token_id, "token_str": self.token_str, "money": 1800}}
         master_dictionary.update(self.dicto)
         master_dictionary.update(self.dicto_2)
         self.token_id.grid(row=10, column=10, sticky=sticky_id[self.token_str])
@@ -470,7 +475,7 @@ class token:
         column = column_coordinates[p]
         self.token_id.grid_forget()
         self.token_id.grid(row=row, column=column, sticky=sticky_id[self.token_str])
-        properties_dicto[position].show_details()
+        properties_dicto[position].property_manager()
 
 class property:
     def __init__(self,property_str, row, column, width, height, color, rent, price, one_house_rent, two_house_rent,
@@ -490,21 +495,50 @@ class property:
         self.rent = rent
         self.cost_of_house = cost_of_house
 
-        prop_info.update({self.property_str:{"price":self.price, "houses":0, "owner":None, "players on site":None}})
+        prop_info.update({self.property_str:{"price":self.price, "houses":0, "owner":None, "players on site":[]}})
+
 
         if self.property_str not in special_properties:
-            self.prop_box = tk.Frame(container, width=width, height=height, bg="green")
+            self.prop_box = tk.Frame(container, width=width, height=height,highlightbackground="black" ,highlightthickness=1)
             self.prop_box.grid(row=row, column=column)
-            self.color_box = tk.Frame(self.prop_box, bg=self.color,highlightbackground="black" ,highlightthickness=1 , width=self.width, height=self.height/4)
-            self.color_box.grid(sticky="s")
+            self.color_box = tk.Frame(container, bg=self.color,highlightbackground="black" ,highlightthickness=1 , width=self.width, height=self.height/4)
+            self.color_box.grid(row=row, column=column, sticky = "s")
+            self.buy_button = tk.Button(container, text="Buy", bg=self.color,font=font1 , command=lambda :self.buy_prop())
+
+        if self.property_str in special_properties:
+            pass
+
+    def property_manager(self):
+        self.show_details()
+        prop_info[self.property_str]["players on site"] = player_names[player_chances[chance]]
+
+        if prop_info[self.property_str]["owner"] == None:
+            self.buy_button.grid(row=6, column=8)
+
+        if prop_info[self.property_str]["owner"] != None:
+            if prop_info[self.property_str]["owner"] ==  prop_info[self.property_str]["players on site"][-1]:
+                print("non owner on site")
+                print(prop_info)
+                # dev here (TRADE option or build house)
+            if prop_info[self.property_str]["owner"] ==  prop_info[self.property_str]["players on site"][-1]:
+                print("owner on site")
+                print(prop_info)
+                # dev here (take rent)
+
+    def buy_prop(self):
+        print("buying property!")
+        self.buy_button.grid_forget()
+        prop_info[self.property_str]["owner"] = player_chances[chance]
+        tk.Label(container, text=player_chances[chance]+" successfully bought-"+self.property_str,bg=self.color).grid(columnspan=3,row=6,column=6)
+        print(prop_info)
 
     def show_details(self):
 
-        self.info_box1 = tk.Frame(container, relief="groove", highlightbackground="black",width = width*4, height=height*4,
+        self.info_box1 = tk.Frame(container, relief="raised", highlightbackground="black",width = width*4, height=height*4,
                           highlightthickness=1)
         self.info_box1.grid(rowspan = 6,columnspan=2,  row = 4, column = 1)
 
-        self.info_box2 = tk.Frame(container, relief="groove", highlightbackground="black",width = width*4, height=height*4,
+        self.info_box2 = tk.Frame(container, relief="raised", highlightbackground="black",width = width*4, height=height*4,
                           highlightthickness=1)
         self.info_box2.grid(rowspan = 6,columnspan=2,  row = 4, column = 3)
 
@@ -553,8 +587,6 @@ class property:
                                highlightthickness=1)
         self.mortgage_value_dis.pack(side="top" )
 
-    def property_manager(self):
-        pass
 
 
 container.mainloop()
