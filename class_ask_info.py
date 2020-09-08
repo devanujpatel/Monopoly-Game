@@ -111,8 +111,9 @@ def step_1(start_frame, player_chances, playing_tokens, n_players,asf_x, asf_y):
     if "token8" in playing_tokens:
         ask_obj8 = ask_info(7)
 
-
-
+    if asf_y == n_players:
+        start_frame.grid_forget()
+        
 
 
 
