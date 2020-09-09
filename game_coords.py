@@ -8,7 +8,7 @@ my_places = {'go_box': [],'mediteranean_avenue': [],'community1': [],'baltic_ave
              'b_and_o_railroad': [],'atlantic_avenue': [],'ventnor_avenue': [],
              'water_works': [],'marvin_gardens': [],'go_to_jail':  [],
              'pacific_avenue': [],'north_carolina_avenue': [],'community3': [],'pennsylvania_avenue':  [],
-             'shortline': [],'chance3': [],'park_place': [],'luxury_tax': [],'board_walk':  []}
+             'shortline': [],'chance3': [],'park_place': [],'luxury_tax': [],'board_walk':  [], }
 
 #h_or_v = {}
 
@@ -22,6 +22,7 @@ myplaces = []
 
 for place in my_places.keys():
     myplaces.append(str(place))
+
 """
 for horizontal_lane in myplaces[0:11]:
     h_or_v.update({horizontal_lane:"H"})
@@ -46,9 +47,7 @@ for p in myplaces:
 
 for k,v in myplace_num.items():
     place_num.update({v:k})
-
 print(place_num)
-
 # go till jail
 c1 = 10
 for pl in myplaces[0:11]:  # changed 12 to 11
@@ -76,6 +75,16 @@ for pl in myplaces[31:40]:
     column_coordinates.update({pl: 10})
     row_coordinates.update({pl: r2})
     r2 += 1
+
+
+
+
+
+
+
+
+
+
 
 """
 print(row_coordinates)
