@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 import time,random
-from grid_and_place_coordinates import *
+from game_coords import *
 from initialising_everything import *
 
 chance = 0
@@ -13,6 +13,7 @@ sticky_id = {"token1":"N","token2":"S","token3":"w","token4":"e","token5":"NE","
 #   collaborate with property class
 #   color code
 #   show status
+#   error handling (in n_players entry)
 
 class Monopoly_Game(tk.Tk):
     def __init__(self, *args, **kwargs):
@@ -162,7 +163,6 @@ class ask_screen(tk.Frame):
         self.controller.enter_button_clicked(entry)
         self.controller.show_frame(mono_board_display)
 
-
 class mono_board_display(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
@@ -172,37 +172,89 @@ class mono_board_display(tk.Frame):
         controller.height = controller.height / 9
         self.height = controller.height
         self.width = controller.width
+        # (self, property_id, property_str, row, column, buying_price, rent, house_price, one_house_rent, color_group)
+        """Atlantic Avenue
+        B & O Railroad
+        Baltic Avenue
+        Boardwalk
+        Connecticut Avenue
+        Electric Company
+        Illinois Avenue
+        Indiana Avenue
+        Kentucky Avenue
+        Marvin Gardens
+        Mediterranean Avenue
+        New York Avenue
+        North Carolina Avenue
+        Oriental Avenue
+        Pacific Avenue
+        Park Place
+        Pennsylvania Avenue
+        Pennsylvania Railroad
+        Reading Railroad
+        Short Line
+        St. Charles Place
+        St. James Place
+        States Avenue
+        Tennessee Avenue
+        Ventnor Avenue
+        Vermont Avenue
+        Virginia Avenue
+        Water Works"""
 
-        """free_parking = tk.Frame(self, width=160, height=140, bg="orange", highlightbackground="black",
+        free_parking = tk.Frame(self, width=160, height=140, bg="orange", highlightbackground="black",
                                 highlightthickness=1)
-        free_parking.grid(row=0, column=0)
+        free_parking_obj = property(free_parking, "free_parking", 0,0)
+        
         kentucky_avenue = tk.Frame(self, width=controller.width, height=140, bg="LightSteelBlue1", highlightbackground="black",
                  highlightthickness=1)
-        kentucky_avenue.grid(row=0, column=1)
-        tk.Frame(self, width=controller.width, height=140, bg="LightSteelBlue1", highlightbackground="black",
-                 highlightthickness=1).grid(row=0, column=2)
-        tk.Frame(self, width=controller.width, height=140, bg="LightSteelBlue1", highlightbackground="black",
-                 highlightthickness=1).grid(row=0, column=3)
-        tk.Frame(self, width=controller.width, height=140, bg="LightSteelBlue1", highlightbackground="black",
-                 highlightthickness=1).grid(row=0, column=4)
-        tk.Frame(self, width=controller.width, height=140, bg="LightSteelBlue1", highlightbackground="black",
-                 highlightthickness=1).grid(row=0, column=5)
-        tk.Frame(self, width=controller.width, height=140, bg="LightSteelBlue1", highlightbackground="black",
-                 highlightthickness=1).grid(row=0, column=6)
-        tk.Frame(self, width=controller.width, height=140, bg="LightSteelBlue1", highlightbackground="black",
-                 highlightthickness=1).grid(row=0, column=7)
-        tk.Frame(self, width=controller.width, height=140, bg="LightSteelBlue1", highlightbackground="black",
-                 highlightthickness=1).grid(row=0, column=8)
-        tk.Frame(self, width=controller.width, height=140, bg="LightSteelBlue1", highlightbackground="black",
-                 highlightthickness=1).grid(row=0, column=9)
-        go_jail = tk.Frame(self, width=160, height=140, bg="yellow", highlightbackground="black",
-                           highlightthickness=1).grid(row=0, column=10)
+        kentucky_avenue_obj = property(kentucky_avenue, "kentucky_avenue", 0,1)
+        
+        chance2 = tk.Frame(self, width=controller.width, height=140, bg="LightSteelBlue1", highlightbackground="black",
+                 highlightthickness=1)
+        chance2_obj = property(chance2, "chance2", 0,2)
+
+        indiana_avenue = tk.Frame(self, width=controller.width, height=140, bg="LightSteelBlue1", highlightbackground="black",
+                 highlightthickness=1)
+        indiana_avenue_obj = property(indiana_avenue, "indiana_avenue", 0,3)
+
+        illinois_avenue = tk.Frame(self, width=controller.width, height=140, bg="LightSteelBlue1", highlightbackground="black",
+                 highlightthickness=1)
+        illinois_avenue_obj = property(illinois_avenue, "illinois_avenue", 0,4)
+
+        b_and_o_railroad = tk.Frame(self, width=controller.width, height=140, bg="LightSteelBlue1", highlightbackground="black",
+                 highlightthickness=1)
+        b_and_o_railroad_obj = property(b_and_o_railroad, "b_and_o_railroad", 0,5)
+
+        atlantic_avenue = tk.Frame(self, width=controller.width, height=140, bg="LightSteelBlue1", highlightbackground="black",
+                 highlightthickness=1)
+        atlantic_avenue_obj = property(atlantic_avenue, "atlantic_avenue", 0,6)
+
+        ventnor_avenue = tk.Frame(self, width=controller.width, height=140, bg="LightSteelBlue1", highlightbackground="black",
+                 highlightthickness=1)
+        ventnor_avenue_obj = property(ventnor_avenue, "ventnor_avenue", 0,7)
+
+        water_works = tk.Frame(self, width=controller.width, height=140, bg="LightSteelBlue1", highlightbackground="black",
+                 highlightthickness=1)
+        water_works_obj = property(water_works, "water_works", 0,8)
+
+        marvin_garden = tk.Frame(self, width=controller.width, height=140, bg="LightSteelBlue1", highlightbackground="black",
+                 highlightthickness=1)
+        marvin_garden_obj = property(marvin_garden, "marvin_garden", 0,9)
+
+        go_to_jail = tk.Frame(self, width=160, height=140, bg="yellow", highlightbackground="black",
+                           highlightthickness=1)
+        go_to_jail_obj = property(go_to_jail, "go_to_jail", 0,10)
 
         # left lane
-        tk.Frame(self, width=160, height=controller.height, bg="lightsteelblue", highlightbackground="black",
-                 highlightthickness=1).grid(row=1, column=0)
-        tk.Frame(self, width=160, height=controller.height, bg="lightsteelblue", highlightbackground="black",
-                 highlightthickness=1).grid(row=2, column=0)
+        new_york_avenue = tk.Frame(self, width=160, height=controller.height, bg="lightsteelblue", highlightbackground="black",
+                 highlightthickness=1)
+        new_york_avenue_obj = property(new_york_avenue, "pacific_avenue", 1,0)
+
+        tennessee_avenue = tk.Frame(self, width=160, height=controller.height, bg="lightsteelblue", highlightbackground="black",
+                 highlightthickness=1)
+        tennessee_avenue_obj = property(tennessee_avenue, "tennessee_avenue", 2,0)
+
         tk.Frame(self, width=160, height=controller.height, bg="lightsteelblue", highlightbackground="black",
                  highlightthickness=1).grid(row=3, column=0)
         tk.Frame(self, width=160, height=controller.height, bg="lightsteelblue", highlightbackground="black",
@@ -263,9 +315,10 @@ class mono_board_display(tk.Frame):
                  highlightthickness=1).grid(row=8, column=10)
         place= tk.Frame(self, width=160, height=controller.height, bg="yellow", highlightbackground="black",
                  highlightthickness = 1)
-        place.grid(row=9, column=10)"""
+        place.grid(row=9, column=10)
+        """
 
-        """place1 = tk.Label(place, bg="orange", width=2, height=1)
+        place1 = tk.Label(place, bg="orange", width=2, height=1)
         place1.place(relx=0.3, rely=0.7)
 
         place2 = tk.Label(place, bg="orange", width=2, height=1)
@@ -287,8 +340,8 @@ class mono_board_display(tk.Frame):
         place2.place(relx=0.1, rely=0.1)
 
         place3 = tk.Label(place, bg="light green", width=2, height=1)
-        place3.place(relx=0.7, rely=0.1)
-        """
+        place3.place(relx=0.7, rely=0.1)"""
+
         global token1, token2, token3, token4, token5, token6, token7, token8
 
         token1 = tk.Label(self, text="T1", width=2, height=1)
@@ -332,8 +385,6 @@ class token:
 
     def token_move(self, position):
 
-        # updating master dictionary
-
         master_dictionary[self.token_str]["position"] = position
         p = place_num[position]
 
@@ -342,8 +393,24 @@ class token:
         self.token.grid_forget()
         self.token.grid(row=row, column=column, sticky=sticky_id[self.token_str])
 
+class property:
+    def __init__(self, property_id, property_str, row, column):
+        #, buying_price, rent, house_price, one_house_rent, group)
 
+        property_id.grid(row=row, column=column)
+        properties.update({property_str:{"property_id":property_id}})
+                          #, "rent":rent,buying price
+        #                                "house_price":house_price, "one_house_rent":one_house_rent, "color_group":group}
+        
+            
 
 game = Monopoly_Game()
 game.mainloop()
 
+"""## flow of the game
+
+### ask frame
+
+### displaying our board
+
+### moving multiple tokens"""
