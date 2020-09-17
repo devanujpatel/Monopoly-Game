@@ -38,8 +38,9 @@ def play_but_clicked():
     play_button.place_forget()
 
     import class_ask_info
-    class_ask_info.step_1(container,font1,start_frame, initialising_everything.player_chances,initialising_everything.playing_tokens,
-                          n_players, initialising_everything.asf_x,initialising_everything.asf_y, initialising_everything.chance)
+    class_ask_info.step_1(container, font1, start_frame, initialising_everything.player_chances,
+                          initialising_everything.playing_tokens,
+                          n_players, initialising_everything.asf_x, initialising_everything.asf_y, initialising_everything.chance)
 
 container.mainloop()
     #else:

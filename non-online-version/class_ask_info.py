@@ -120,6 +120,6 @@ def step_1(container,font1,start_frame, player_chances, playing_tokens, n_player
     def import_prop():
         import property_class
 
-        property_class.step_2(main_frame, font1, player_chances, player_names, chance,colors, n_players)
+        property_class.step_2(main_frame, font1, player_chances, player_names, chance, colors, n_players)
 
 
