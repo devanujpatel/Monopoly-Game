@@ -190,51 +190,51 @@ def step_2(main_frame, font1, player_chances, player_names, chance, colors, n_pl
     # lower lane
     just_visiting = my_property_class("just_visting", 10, 0, 160, 140)
 
-    pentoville_road = my_property_class("pentoville road", 10, 1, width, 140, "light blue", 100, 200,
-                                        50, 60, 70, 80, 100, 100, 50, 40, "bottom")
+    pentoville_road = my_property_class("pentoville road", 10, 1, width, 140, "light blue", 8, 120,
+                                        40,100, 300, 450, 600, 50, 50, 60, "bottom")
 
-    euston_road = my_property_class("euston road", 10, 2, width, 140, "light blue", 100, 200,
-                                    50, 60, 70, 80, 100, 100, 50, 40, "bottom")
+    euston_road = my_property_class("euston road", 10, 2, width, 140, "light blue", 6, 100,
+                                    30, 90, 270, 400, 550, 50, 50, 50, "bottom")
     
-    chance1 = ("chance", 10, 3, width, 140, "light blue", 100, 200,
-               50, 60, 70, 80, 100, 100, 50, 40, "bottom")
-    the_angel_islington = my_property_class("the angel islington", 10, 4, width, 140, "light blue", 100, 200,
-                                            50, 60, 70, 80, 100, 100, 50, 40, "bottom")
+    chance1 = ("chance", 10, 3, width, 140)
+    the_angel_islington = my_property_class("the angel islington", 10, 4, width, 140, "light blue", 6, 100,
+                                    30, 90, 270, 400, 550, 50, 50, 50, "bottom")
 
-    kings_cross_station = my_property_class("kings cross station", 10, 5, width, 140, "light blue", 100, 200,
-                                            50, 60, 70, 80, 100, 100, 50, 40, "bottom")
+    kings_cross_station = my_property_class("kings cross station", 10, 5, width, 140)
 
-    income_tax = my_property_class("income tax!", 10, 6, width, 140, "light blue", 100, 200,
-                                   50, 60, 70, 80, 100, 100, 50, 40, "bottom")
-    white_chapal_road = my_property_class("white chapal road", 10, 7, width, 140, "light blue", 100, 200,
-                                          50, 60, 70, 80, 100, 100, 50, 40, "bottom")
+    income_tax = my_property_class("income tax!", 10, 6, width, 140)
+
+    white_chapal_road = my_property_class("white chapal road", 10, 7, width, 140, "brown", 4, 60,
+                                          20, 60, 180, 320, 450, 50, 50, 30, "bottom")
 
     community_chest1 = my_property_class("community chest", 10, 8, width, 140)
 
-    old_kent_road = my_property_class("old kent road", 10, 9, width, 140, "light blue", 100, 200,
-                                      50, 60, 70, 80, 100, 100, 50, 40, "bottom")
+    old_kent_road = my_property_class("old kent road", 10, 9, width, 140, "brown", 2, 60,
+                                      10, 30, 90, 160, 250, 50, 50, 30, "bottom")
 
-    go_box = my_property_class("go box", 10, 10)
+    go_box = my_property_class("go box", 10, 10, 160, 140)
 
     # right lane
-    pall_mall = my_property_class("pall mall", 0, 9, width, 140, "light blue", 100, 200,
-                                  50, 60, 70, 80, 100, 100, 50, 40, "bottom")
-    electric_company = my_property_class("electric company", 0, 8, width, 140, "light blue", 100, 200,
-                                         50, 60, 70, 80, 100, 100, 50, 40, "bottom")
-    white_hall = my_property_class("white hall", 0, 7, width, 140, "light blue", 100, 200,
-                                   50, 60, 70, 80, 100, 100, 50, 40, "bottom")
-    northumber_ld_avenue = my_property_class("northumberl'd avenue", 0, 6, width, 140, "light blue", 100, 200,
-                                             50, 60, 70, 80, 100, 100, 50, 40, "bottom")
-    marylebone_station = my_property_class("marltbone station", 0, 5, width, 140, "light blue", 100, 200,
-                                           50, 60, 70, 80, 100, 100, 50, 40, "bottom")
-    bow_street = my_property_class("bow street", 0, 4, width, 140, "light blue", 100, 200,
-                                   50, 60, 70, 80, 100, 100, 50, 40, "bottom")
-    community_chest2 = my_property_class("community chest", 0, 3, width, 140, "light blue", 100, 200,
-                                         50, 60, 70, 80, 100, 100, 50, 40, "bottom")
-    marlborough_street = my_property_class("marlborough street", 0, 2, width, 140, "light blue", 100, 200,
-                                           50, 60, 70, 80, 100, 100, 50, 40, "bottom")
-    vine_street = my_property_class("vine street", 0, 1, width, 140, "light blue", 100, 200,
-                                    50, 60, 70, 80, 100, 100, 50, 40, "bottom")
+    pall_mall = my_property_class("pall mall", 0, 9, 160, height, "pink", 10, 140,
+                                  50, 150, 450, 625, 750, 100, 50*2, 70, "bottom")
+    electric_company = my_property_class("electric company", 0, 8, 160, height)
+
+    white_hall = my_property_class("white hall", 0, 7, 160, height, "pink", 10, 140,
+                                  50, 150, 450, 625, 750, 100, 50*2, 70, "bottom")
+
+    northumber_ld_avenue = my_property_class("northumberl'd avenue", 0, 6, 160, height, "pink", 12,160, 60,
+                                             180, 500, 700, 900, 100, 100, 80,  "bottom")
+
+    marylebone_station = my_property_class("marltbone station", 0, 5, 160, height)
+
+    bow_street = my_property_class("bow street", 0, 4, 160, height, "orange", 14, 180,
+                                   70, 200, 550, 750, 950, 100, 50*2,90, "bottom")
+
+    community_chest2 = my_property_class("community chest", 0, 3, 160, height)
+    marlborough_street = my_property_class("marlborough street", 0, 2, 160, height, "orange", 14, 180,
+                                   70, 200, 550, 750, 950, 100, 50*2,90, "bottom")
+    vine_street = my_property_class("vine street", 0, 1, 160, height, "orange", 16, 200,
+                                    80, 220, 600, 800, 1000, 100, 50*2, 100, "bottom")
 
 
     monopoly_dis = tk.Label(main_frame, text="Monopoly", bg="tomato1", fg="white", font=font1)
