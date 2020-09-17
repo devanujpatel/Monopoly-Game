@@ -65,5 +65,5 @@ def step_3(main_frame,status_frame,properties_dicto, n_players, playing_tokens, 
         initialising_everything.playing_token_obj_id.append(token_objs[i])
 
     import status_of_player
-    status_of_player.step_4(status_frame,sf_width,sf_height,n_players, playing_tokens, colors)
+    status_of_player.step_4(status_frame, sf_width, sf_height, n_players, playing_tokens, colors)
 

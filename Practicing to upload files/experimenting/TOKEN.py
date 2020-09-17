@@ -4,7 +4,7 @@
 # everything is associated with roll dice!
 
 from tkinter import *
-import time,random,tkinter,keyboard
+import time,random,tkinter
 from grid_and_place_coordinates import *
 from initialising_everything import *
 
