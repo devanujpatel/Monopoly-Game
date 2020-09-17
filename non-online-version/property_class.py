@@ -9,8 +9,8 @@ def step_2(main_frame, font1, player_chances, player_names, chance, colors, n_pl
                           "go box", "free parking", "luxury tax", "income tax"]
 
     class my_property_class:
-        def __init__(self, property_str, row, column, width, height, color, rent, price, one_house_rent, two_house_rent,
-                     three_house_rent, four_house_rent, hotel_rent, cost_of_house, cost_of_hotel, mortgage_value,
+        def __init__(self, property_str, row, column, width, height, color=None, rent=None, price=None, one_house_rent=None, two_house_rent=None,
+                     three_house_rent=None, four_house_rent=None, hotel_rent=None, cost_of_house=None, cost_of_hotel=None, mortgage_value=None,
                      color_box_side=None):
             self.property_str = property_str
             self.width = width
@@ -164,38 +164,38 @@ def step_2(main_frame, font1, player_chances, player_names, chance, colors, n_pl
     go_to_jail = my_property_class("go_to_jail", 10, 0, width, 140)
 
     # left lane
-    regent_street = my_property_class("regent street", 10, 1, width, 140, "green", 26, 300,
+    regent_street = my_property_class("regent street", 10, 1, 160, height, "green", 26, 300,
                                       130, 390, 900, 1100, 1275, 200, 200, 150, "left")
 
-    oxford_street = my_property_class("oxford street", 10, 2, width, 140, "green", 26, 300,
+    oxford_street = my_property_class("oxford street", 10, 2, 160, height, "green", 26, 300,
                                       130, 390, 900, 1100, 1275, 200, 200, 150, "left")
 
-    community_chest = my_property_class("community_chest", 10, 3, width, 140)
+    community_chest = my_property_class("community_chest", 10, 3, 160, height)
 
-    bond_street = my_property_class("bond street", 10, 4, width, 140, "green", 28, 320,
+    bond_street = my_property_class("bond street", 10, 4, 160, height, "green", 28, 320,
                                     150, 450, 1000, 1200, 1400, 200, 200, 160, "left")
 
-    liverpool_st_station = my_property_class("liverpool_st_station", 10, 5, width, 140)
+    liverpool_st_station = my_property_class("liverpool_st_station", 10, 5, 160, height)
 
-    chance3 = my_property_class("chance3", 10, 6, width, 140)
+    chance3 = my_property_class("chance3", 10, 6, 160, height)
 
-    park_lane = my_property_class("park_lane", 10, 7, width, 140, "dark blue", 35, 350,
+    park_lane = my_property_class("park_lane", 10, 7, 160, height, "dark blue", 35, 350,
                                   175, 500, 1100, 1300, 1500, 200, 200, 175, "bottom")
 
-    super_tax = my_property_class("super_tax", 10, 8, width, 140)
+    super_tax = my_property_class("super_tax", 10, 8, 160, height)
 
-    mayfair = my_property_class("mayfair", 10, 9, width, 140, "dark blue", 50, 400,
+    mayfair = my_property_class("mayfair", 10, 9, 160, height, "dark blue", 50, 400,
                                 200, 600, 1400, 1700, 2000, 200, 200, 200, "bottom")
 
     # lower lane
-    just_visiting = my_property_class("just_visting", 10, 0, width, 140, "light blue", 100, 200,
-                                      50, 60, 70, 80, 100, 100, 50, 40, "bottom")
+    just_visiting = my_property_class("just_visting", 10, 0, 160, 140)
 
     pentoville_road = my_property_class("pentoville road", 10, 1, width, 140, "light blue", 100, 200,
                                         50, 60, 70, 80, 100, 100, 50, 40, "bottom")
 
     euston_road = my_property_class("euston road", 10, 2, width, 140, "light blue", 100, 200,
                                     50, 60, 70, 80, 100, 100, 50, 40, "bottom")
+    
     chance1 = ("chance", 10, 3, width, 140, "light blue", 100, 200,
                50, 60, 70, 80, 100, 100, 50, 40, "bottom")
     the_angel_islington = my_property_class("the angel islington", 10, 4, width, 140, "light blue", 100, 200,
