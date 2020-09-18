@@ -9,19 +9,20 @@ server.bind(("",9999))
 server.listen()
 
 HEADER = 10
+sockets_list = [server]
 
 # dictionary that handles everythong
 rooms = {}
 room = 100
 
-notified_players , _, error_list  = select.
-
 # start new thread for recieving username and etc. stuff (this will also be the thread which will handle the game for the player)
-class Client(threading.Thread):
-    def __init__(self, client, addr):
+class client_class(threading.Thread):
+    def __init__(self, client, addr,read_socks):
         threading.Thread.__init__(self)
         self.client = client
         self.addr = addr
+        self.read_socks = read_socks
+
     def run(self):
         # recv username , new room or join room , favourite color, etc...
         # do further things like waiting or playing
@@ -33,7 +34,7 @@ class Client(threading.Thread):
 
         self.username = username
         # inform us about the new connection
-        print(f"Connection from {username},{self.client}{addr} has been establieshed successfully !!!")
+        print(f"Connection from {username},{self.client}{self.addr} has been establieshed successfully !!!")
         # send a msg to client about the same
         msg_to_client = "Connection established successfully, enjoy your game of monopoly!"
         self.client.send(bytes(msg_to_client,"utf-8"))
@@ -44,6 +45,7 @@ class Client(threading.Thread):
 
         if what_to_do == 0:
             self.create_room()
+            # to give the next room created a unique room name
             room += 1
 
         if what_to_do == 1:
@@ -52,28 +54,34 @@ class Client(threading.Thread):
 
     def create_room(self):
         # create a room
-        # the first item in the players list(which is the value of 'players' key below) will be the host and further players will be aded later
+        # the first item in the players list(which is the value of 'players' key below) will be the host and further players will be added later
         self.room_dicto = {"players":[self.username]}
+
         # also add it in the main rooms dictionary
         rooms.update({room:self.room_dicto})
 
-        # add the player(in this case the host) in notified players list
-        #notified_players.append(self.client)
-        # provide instead the data in the infinte while loop as discussed below
+        # a variable waiting which could be True or False, if False then start game- start game will only run when host tells to do so
+        waiting = self.client.recv(16)
+        # start the game when received (recall about blocking sockets!)
+        # can only send str so "false"
+        if waiting == "false":
+            self.start_game()
+        # may have to do some modifications
 
 
-        # wait for more players to join!
-        # plan till now is in a infinite while loop and then loop through the self.players list in the self.room_dicto and then provide the new
-        # comers with the data till now || ignore the ones in notified sockets as they will be notified already
+    def start_game(self):
+        # players should see the main game frame
 
-
+        self.info = {"player_num":len(self.room_dicto['players']),}
+        self.client.send(bytes("true",'utf-8'))
 
 
 
 while True:
     client, addr = server.accept()
+    read_sockets, _, exception_sockets = select.select(sockets_list, [], sockets_list)
     # creating obj of Client hope it overwrites the obj name everytime a new player joins
-    handling_thread = Client(client, addr)
+    handling_thread = client_class(client, addr,read_sockets)
     handling_thread.start()
 
 
