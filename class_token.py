@@ -5,8 +5,8 @@ import tkinter as tk
 sticky_id = {"token1": "N", "token2": "S", "token3": "w", "token4": "e", "token5": "NE", "token6": "NW", "token7": "SW",
              "token8": "se"}
 
-def step_3(main_frame,status_frame,properties_dicto, n_players, playing_tokens, colors,sf_width, sf_height):
-    import initialising_everything, game_coords
+def step_3(main_frame,status_frame,properties_dicto, n_players, playing_tokens, colors,sf_width, sf_height,row_coordinates,column_coordinates,place_num):
+    import initialising_everything
 
     class token:
         def __init__(self, token_str, player_str,dis_str):
@@ -19,7 +19,7 @@ def step_3(main_frame,status_frame,properties_dicto, n_players, playing_tokens, 
             self.token_id = tk.Label(main_frame,text=self.dis_str,bg=colors[self.token_str],
                                  highlightbackground="black", highlightthickness=1)
             self.token_id.grid(row=10,column = 10,sticky = sticky_id[self.token_str])
-            self.dicto = {self.token_str: {"position": 0, "row": game_coords.row_coordinates["go_box"], "column": game_coords.column_coordinates["go_box"]}}
+            self.dicto = {self.token_str: {"position": 0, "row": row_coordinates["go box"], "column": column_coordinates["go box"]}}
             self.dicto_2 = {self.player_str: {"token_id": self.token_id, "token_str": self.token_str, "money": 1500}}
             initialising_everything.master_dictionary.update(self.dicto)
             initialising_everything.master_dictionary.update(self.dicto_2)
@@ -27,9 +27,9 @@ def step_3(main_frame,status_frame,properties_dicto, n_players, playing_tokens, 
 
         def token_move(self, position):
             initialising_everything.master_dictionary[self.token_str]["position"] = position
-            p = game_coords.place_num[position]
-            row = game_coords.row_coordinates[p]
-            column = game_coords.column_coordinates[p]
+            p = place_num[position]
+            row = row_coordinates[p]
+            column = column_coordinates[p]
             self.token_id.grid_forget()
             self.token_id.grid(row=row, column=column, sticky=sticky_id[self.token_str])
             properties_dicto[position].show_details()

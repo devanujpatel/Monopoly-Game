@@ -20,7 +20,6 @@ def step_5(main_frame, font1,n_players,properties_dicto):
             dice_roll1 = random.randint(1, 6)
             dice_roll2 = random.randint(1, 6)
             dice_roll = dice_roll1 + dice_roll2
-            dice_roll = 21
             show_dice = tk.StringVar()
             label_dice = "Dice Roll = " + str(dice_roll)
             show_dice.set(label_dice)
