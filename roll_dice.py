@@ -1,9 +1,10 @@
 import tkinter as tk
 
-def step_5(main_frame, font1,n_players,properties_dicto):
+def step_5(main_frame,n_players,properties_dicto, stat_objs):
     
     import initialising_everything as it
     import random
+    font1 = ("Courier", 13)
     class roll_dice_class():
     
         def __init__(self):
@@ -45,16 +46,16 @@ def step_5(main_frame, font1,n_players,properties_dicto):
             properties_dicto[position].info_box1.grid_forget()
             properties_dicto[position].info_box2.grid_forget()
             properties_dicto[position].buy_button.grid_forget()
-            #stat_objs[it.chance].normal_relief()
+            stat_objs[it.chance].normal_relief()
     
             it.chance += 1
             max_chance = n_players
     
-            #[it.chance].raise_relief()
-    
             if it.chance == max_chance:
                 it.chance = 0
-    
+
+            stat_objs[it.chance].raise_relief()
+
             end_turn.grid_forget()
             roll_dice_d.grid(row=6, column=6)
 

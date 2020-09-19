@@ -1,7 +1,6 @@
-# necessary for non-overlapping token display
-
 import tkinter as tk
 
+# necessary for non-overlapping token display
 sticky_id = {"token1": "N", "token2": "S", "token3": "w", "token4": "e", "token5": "NE", "token6": "NW", "token7": "SW",
              "token8": "se"}
 
@@ -19,10 +18,13 @@ def step_3(main_frame,status_frame,properties_dicto, n_players, playing_tokens, 
             self.token_id = tk.Label(main_frame,text=self.dis_str,bg=colors[self.token_str],
                                  highlightbackground="black", highlightthickness=1)
             self.token_id.grid(row=10,column = 10,sticky = sticky_id[self.token_str])
-            self.dicto = {self.token_str: {"position": 0, "row": game_coords.row_coordinates["go_box"], "column": game_coords.column_coordinates["go_box"]}}
-            self.dicto_2 = {self.player_str: {"token_id": self.token_id, "token_str": self.token_str, "money": 1500}}
+            self.dicto = {self.token_str: {"position": 0}}
+            self.dicto_2 = {self.player_str: {"money": 1800,"sites owned":None}}
+
             initialising_everything.master_dictionary.update(self.dicto)
             initialising_everything.master_dictionary.update(self.dicto_2)
+            print(initialising_everything.master_dictionary)
+
             self.token_id.grid(row=10, column=10, sticky=sticky_id[self.token_str])
 
         def token_move(self, position):
@@ -32,7 +34,7 @@ def step_3(main_frame,status_frame,properties_dicto, n_players, playing_tokens, 
             column = game_coords.column_coordinates[p]
             self.token_id.grid_forget()
             self.token_id.grid(row=row, column=column, sticky=sticky_id[self.token_str])
-            properties_dicto[position].show_details()
+            properties_dicto[position].property_manager()
 
     t1 = token("token1", "player1","T1")
     t2 = token("token2", "player2","T2")
@@ -65,5 +67,5 @@ def step_3(main_frame,status_frame,properties_dicto, n_players, playing_tokens, 
         initialising_everything.playing_token_obj_id.append(token_objs[i])
 
     import status_of_player
-    status_of_player.step_4(status_frame,sf_width,sf_height,n_players, playing_tokens, colors)
+    status_of_player.step_4(status_frame,sf_width,sf_height,n_players, playing_tokens, colors,properties_dicto,main_frame)
 

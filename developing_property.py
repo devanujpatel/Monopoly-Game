@@ -236,6 +236,9 @@ class monopoly_game(tk.Frame):
         free_parking = tk.Frame(container, width=160, height=140, bg="orange", highlightbackground="black",highlightthickness=1)
         free_parking.grid(row=0, column=0)
 
+        free_parking = property("Free Parking", 0, 1, 160, 140, "light blue", 100, 200, 50, 60, 70, 80, 100,
+                                   100, 50, 40, "bottom")
+
         kentucky_avenue = property("kentucky_avenue",  0,1,width, 140, "light blue", 100 , 200, 50, 60,70,80,100,100,50,40,"bottom")
 
         #chance2 = tk.Frame(container, width=width, height=140, bg="LightSteelBlue1", highlightbackground="black",

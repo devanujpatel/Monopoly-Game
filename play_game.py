@@ -21,25 +21,31 @@ play_button = tk.Button(start_frame, text="Play!",font=font1, command=lambda: pl
 play_button.place(relx=0.42, rely=0.44)
 
 def play_but_clicked():
+
     n_players = entry.get()
 
+    if n_players in initialising_everything.n_player_list:
+        #if n_players in initialising_everything.n_player_list:
+        n_players = int(n_players)
 
-    #if n_players in initialising_everything.n_player_list:
-    n_players = int(n_players)
+        for num in range(n_players):
+            tok = "token" + str(num + 1)
+            initialising_everything.playing_tokens.append(tok)
+            pal = "player" + str(num + 1)
+            initialising_everything.player_chances.append(pal)
+            initialising_everything.chances.update({tok: num})
 
+        entry.place_forget()
+        play_button.place_forget()
 
-    for num in range(int(n_players)):
-        tok = "token" + str(num + 1)
-        initialising_everything.playing_tokens.append(tok)
-        pal = "player" + str(num + 1)
-        initialising_everything.player_chances.append(pal)
-        initialising_everything.chances.update({tok: num})
-    entry.place_forget()
-    play_button.place_forget()
+        import class_ask_info
+        class_ask_info.step_1(container,font1,start_frame, initialising_everything.player_chances,initialising_everything.playing_tokens,
+                              n_players, initialising_everything.asf_x,initialising_everything.asf_y, initialising_everything.chance)
 
-    import class_ask_info
-    class_ask_info.step_1(container,font1,start_frame, initialising_everything.player_chances,initialising_everything.playing_tokens,
-                          n_players, initialising_everything.asf_x,initialising_everything.asf_y, initialising_everything.chance)
+    else:
+        # nothing to do -- just dont forget the entry and play button widget
+        print("SW")
+        pass
 
 container.mainloop()
     #else:

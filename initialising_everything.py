@@ -12,9 +12,8 @@ player_names = {"player1":"player1","player2":"player2","player3":"player3","pla
 prop_info = {}
 # every game starts with chance = 0--may do random later--imp for save feature
 chance = 0
-
 # for checking that no. of players-entry is valid
-n_player_list = [2,3,4,5,6,7,8]
+n_player_list = ["2","3","4","5","6","7","8"]
 # properties apart from normal properties - need special attention
 special_properties = ["chance", "community chest", "jail", "go_to_jail", "water works", "electric company", "go box", "free parking", "luxury tax", "income tax"]
 # for example token1 will have chance 0 similarly token2 will have chance 1--imp for save feature
