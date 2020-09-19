@@ -1,6 +1,5 @@
 import tkinter as tk
-import tkinter.font as font
-import time, random
+import random
 from grid_and_place_coordinates import *
 from initialising_everything import *
 asf_x = 0
