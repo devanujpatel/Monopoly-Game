@@ -2,7 +2,7 @@ import socket
 import threading
 
 server = socket.socket()
-server.bind(("127.0.0.1",9999))
+server.bind(("",9999))
 server.listen(8)
 
 HEADER = 10
