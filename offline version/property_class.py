@@ -320,7 +320,7 @@ def step_2(main_frame, font1, player_chances, player_names, chance, colors, n_pl
 
     import class_token, initialising_everything
     class_token.step_3(main_frame, status_frame, prop_id, n_players, initialising_everything.playing_tokens,
-                       colors, sf_width, sf_height,row_coordinates, column_coordinates, place_num)
+                       colors, sf_width, sf_height, row_coordinates, column_coordinates, place_num)
 
     import roll_dice
     roll_dice.step_5(main_frame, font1, n_players, prop_id)
