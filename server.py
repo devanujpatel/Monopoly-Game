@@ -9,9 +9,9 @@ HEADER = 10
 
 # a dictionary that contains each and every room created and its data about players
 rooms = {}
+
 # start making rooms with no. 100
 room = 100
-
 
 class threaded_Client(threading.Thread):
     def __init__(self, client, addr):
@@ -20,7 +20,7 @@ class threaded_Client(threading.Thread):
         self.addr = addr
 
     def run(self):
-        try:
+        #try:
             global rooms, room
             print("Running: " + threading.Thread.getName(self))
             print("waiting for client", self.addr, "to send username!")
@@ -40,28 +40,43 @@ class threaded_Client(threading.Thread):
                 print("Client creating a room.")
                 # the rooms dicto will be updated with a room no. and another dicto which includes
                 # names of players and their objects
-                rooms.update({room: {"players": {self.username: self.client}}})
+                rooms.update({room: {"players": {self.username: self.client},"players list":[self.username]}})
+                self.room = room
+                self.players_list_temp = rooms[self.room]["players list"]
+                print(self.players_list_temp)
+                self.room = room
                 print(rooms)
                 room += 1
                 print("next room created will be", str(room))
-                self.client.close()
+                
+                self.client.send(pickle.dumps(self.players_list_temp))
+
 
             # join a room
             if what_to_do == 0:
                 print("Client joining a room.")
                 room_num = self.client.recv(16).decode('utf-8')
                 room_num = int(room_num)
-                rooms[room_num]["player names"].append(self.username)
-                rooms[room_num]["player objects"].append(self.client)
+                self.room = room_num
+                rooms[room_num]["players"][self.username] = self.client
+                rooms[room_num]["players list"].append(self.username)
+                print(rooms)
+                #self.client.send(pickle.dumps(rooms[self.room]["players list"]))
+                # send all the players the new list
+                for player in rooms[self.room]["players list"]:
+                    print(player)
+                    print(rooms[self.room]["players"][player])
+                    rooms[self.room]["players"][player].send(pickle.dumps(rooms[self.room]["players list"]))
+
                 print(rooms)
 
-                self.client.close()
 
-        except Exception as e:
-            print("an error occured", e)
-            # close the connection (later delete from dictionaries)
-            self.client.close()
-
+        #except Exception as e:
+        #    print("an error occured", e)
+        #    # close the connection (later delete from dictionaries)
+        #    self.client.close()
+        
+    
 
 while True:
     client, addr = server.accept()
