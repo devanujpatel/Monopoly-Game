@@ -1,6 +1,6 @@
 import tkinter as tk
 import random
-from grid_and_place_coordinates import *
+from game_coords import *
 from initialising_everything import *
 asf_x = 0
 asf_y = 0
