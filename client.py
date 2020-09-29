@@ -122,17 +122,38 @@ def start_game_host():
     global check_for_new_players_list_stat
     check_for_new_players_list_stat = False
     print("player started the game")
-
+    one_time_recv_game_info()
 def start_game_player():
     print("Yo lets play")
+    one_time_recv_game_info()
+    
+def one_time_recv_game_info():
+    # recv the game info sent from the server to start the game and update info
+    global game_info
+    game_info = pickle.loads(client.recv(1024))
+    print(game_info)
 
-def recv_game_details():
-    pass
+def init_game():
+    # create objects of all players so that it is easy to handle the game
 
+    global player_objs
+    player_objs = {}
+
+    playing_tokens = []
+
+    # update a list named playing tokens after which we will create objects of player class
+    for t in range(len(game_info["players list"])):
+        tok = "token"+str(t)
+        playing_tokens.append(tok)
+    print(playing_tokens)
+
+    # create objects and then store them in dictionary with player name
+
+
+class Player:
+    def __init__(self):
+        pass
+container.mainloop()
 
 # ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
 
-
-
-
-container.mainloop()
