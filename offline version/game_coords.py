@@ -1,18 +1,27 @@
+my_places = {'go_box': [],'old kent road': [],'community1': [],'Whitechapel Road': [],'income_tax': [],
+             "King's Cross Station": [],'The Angel Islington': [],'chance1': [],'vermount_avenue': []
+    , 'connecticut_avenue': [],'just_visiting': []
+    , 'st_charles_place': [],'electric_company': [],'states_avenue': [],'virginia_avenue': [],
+             'pennsylvania_railroad': [],'st_james_place': [],'community2': [],'tennessesse_avenue':  [],
+             'new_york_avenue':  []
+    , 'free_parking': [],'kentucky_avenue': [],'chance2': [],'india_avenue': [],'illinois_avenue': [],
+             'b_and_o_railroad': [],'atlantic_avenue': [],'ventnor_avenue': [],
+             'water_works': [],'marvin_gardens': [],'go_to_jail':  [],
+             'pacific_avenue': [],'north_carolina_avenue': [],'community3': [],'pennsylvania_avenue':  [],
+             'shortline': [],'chance3': [],'park_place': [],'luxury_tax': [],'board_walk':  [], }
 
-
-#h_or_v = {}
 
 # for the grid positions of all places on the board!
-
 row_coordinates = {}
 column_coordinates = {}
 myplace_num = {}
 place_num = {}
 myplaces = []
-"""
+
 for place in my_places.keys():
     myplaces.append(str(place))
 
+"""
 for horizontal_lane in myplaces[0:11]:
     h_or_v.update({horizontal_lane:"H"})
 
