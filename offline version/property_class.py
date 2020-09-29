@@ -162,6 +162,7 @@ def step_2(main_frame, font1, player_chances, player_names, chance, colors, n_pl
     width = width / 9
     height = height / 9
 
+    
     free_parking = my_property_class("Free Parking", 0, 0, 160, 140)
     free_parking.update_dicto(free_parking,20)
 
