@@ -18,6 +18,11 @@ existing_rooms = []
 # start making rooms with no. 100
 room = 100
 
+# ------------☺☺☺ INSTRUCTIONS☺☺☺------------
+#  A DETAILED EXPLANATION OF THE DATA STORED IN THE ROOMS DICTIONARY WILL BE SOON ADDED AS A DOCSTRING
+#  IN THE END OF THE CODE
+# this is so as it is hard to write long comments so all the usages and reasons of the dictionary will soon be added
+
 class threaded_Client(threading.Thread):
     def __init__(self, client, addr):
         threading.Thread.__init__(self)
@@ -50,6 +55,18 @@ class threaded_Client(threading.Thread):
         # if we wrote return before and increment later then the execution of the function will stop at the return
         # statement and incrementation of chance num wouldn't happen!
 
+    def new_player_dicto_update(self):
+        #  this function will run whenever a player joins, this is to store data in a dictionary
+        # the values are appropriate for a fresh game (new game)
+        # if a saved game is to be started again then never ever call this function!
+
+        rooms[self.room]["game info"].update({self.username:{"money":1800,"position":0,"properties":{},}})
+        # the "properties" key will have all the prop.s which thye player owns along with it status which can be- mortgaged
+        # or normal and the no. of houses on  it for 0 = no house , 1 = 1 house and so on and 5 for a hotel
+        # more keys may be added later as needed!
+
+        # add the player inthe chances list(stored in rooms dicto) soi that we know whose chance it is and we can react acc.
+        rooms[self.room]["player chances"].update({self.username:self.chance})
 
     def create_room(self):
         global rooms, room
@@ -77,8 +94,10 @@ class threaded_Client(threading.Thread):
 
         print(self.username, "is creating a room.")
         # the rooms dicto will be updated with a room no. and other necessary information
+        # the game info key is the main key in which the game data will be stored and sent to all the clients at the
+        # start of the game after which the server and all the clients will maintain it according to the instructions sent
         rooms.update({self.room: {"host": self.username, "status": "looking for players",
-                              "players list": [self.username],"chance alloc num":0}})
+                              "players list": [self.username],"chance alloc num":0, "game info": {},"player chances":{} }})
         room_player_objs.update({self.room:{"players": {self.username: self.client}}})
 
         self.chance = self.allocate_chance_num()
