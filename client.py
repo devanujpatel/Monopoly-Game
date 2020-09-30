@@ -145,9 +145,27 @@ def start_game_player():
 def recv_game_details():
     pass
 
+"""def recv_players_list()
+    print("recving players list")
+    players_in_room = client.recv(1024)
+    players_in_room = pickle.loads(players_in_room)
+    print(players_in_room)
+    
+    
+    global ok_but_for_username, username_entry
+        username_entry = tk.Entry(start_frame)
+        ok_but_for_username = tk.Button(start_frame, text="Okay", font=font, command=lambda: ok_but_for_username_clicked())
+        username_entry.grid(row=3, column=3)
+        ok_but_for_username.grid(row=4, column=3)
+        # show the players list
+        # recv for new players list on new thread
+        print("recving players list on new thread")
+        check_thread = recv_new_players_list_thread()
+        check_thread.start()
+        
+        ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+"""
+
+
+
 container.mainloop()
-
-#ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
-
-
-
