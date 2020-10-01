@@ -18,7 +18,7 @@ existing_rooms = []
 # start making rooms with no. 100
 room = 100
 
-# ------------☺☺☺ INSTRUCTIONS☺☺☺------------
+# ------------☺☺☺ INSTRUCTIONS ☺☺☺------------
 #  A DETAILED EXPLANATION OF THE DATA STORED IN THE ROOMS DICTIONARY WILL BE SOON ADDED AS A DOCSTRING
 #  IN THE END OF THE CODE
 # this is so as it is hard to write long comments so all the usages and reasons of the dictionary will soon be added
@@ -99,8 +99,8 @@ class threaded_Client(threading.Thread):
         rooms.update({self.room: {"host": self.username, "status": "looking for players",
                               "players list": [self.username],"chance alloc num":0, "game info": {},"player chances":{} }})
         room_player_objs.update({self.room:{"players": {self.username: self.client}}})
-
         self.chance = self.allocate_chance_num()
+        self.new_player_dicto_update()
         print(self.username,str(self. chance))
         # send our host the players in his room (at the moment it would be only one player i.e the host itself)
         self.client.send(pickle.dumps(rooms[self.room]["players list"]))
@@ -110,14 +110,33 @@ class threaded_Client(threading.Thread):
         rooms[self.room]["status"] = "room locked temp"
         print("starting the game for room", self.room, "whose host is", self.username)
 
+        send_game_info = pickle.dumps(rooms[self.room])
+        #length_game_info_sendable = str(len(send_game_info))
+        #print(length_game_info_sendable)
         # sending all the players a msg to start the game so our client side code knows to update the screen
         for player in rooms[self.room]["players list"]:
             if player != rooms[self.room]["host"]:
                 print("sending to", player)
                 room_player_objs[self.room]["players"][player].send(pickle.dumps("start game"))
-        print("successfully sent msg to all the players")
-        rooms[self.room]["status"] = "looking for players"
+                #room_player_objs[self.room]["players"][player].send(bytes(length_game_info_sendable,'utf-8'))
+                room_player_objs[self.room]["players"][player].send(send_game_info)
 
+        # as we are not sending the game info list to host so:
+        room_player_objs[self.room]["players"][self.username].send(pickle.dumps(rooms[self.room]))
+        print("successfully sent msg to all the players")
+
+        # there are three states of status - room locked, looking for players and game started (but room not locked)
+        # for a room to be locked staus should be room locked else it will be looking for players or game started
+        # in game started more
+        # players can join the room in game started or in ooking for plaeyrs mode but no wwhen room is locked
+        rooms[self.room]["status"] = "game started"
+
+        # close connection - it is here temporarily , as it is a good practice to close connections
+        for player in rooms[self.room]["players list"]:
+            room_player_objs[self.room]["players"][player].close()
+
+        print("successfully closed all connections in the room",self.room)
+        print(threading.enumerate())
     def recv_room_num(self):
         self.room = self.client.recv(16).decode('utf-8')
         self.room = int(self.room)
@@ -141,11 +160,16 @@ class threaded_Client(threading.Thread):
 
                 room_player_objs[self.room]["players"][self.username] = self.client
                 rooms[self.room]["players list"].append(self.username)
+                self.chance = self.allocate_chance_num()
+                self.new_player_dicto_update()
                 print(rooms)
                 # self.client.send(pickle.dumps(rooms[self.room]["players list"]))
                 # send all the players the new list
                 for player in rooms[self.room]["players list"]:
                     room_player_objs[self.room]["players"][player].send(pickle.dumps(rooms[self.room]["players list"]))
+
+            #elif rooms[self.room]["status"] == "game started":
+            # will be developed soon!
 
             elif rooms[self.room]["status"] == "room locked temp":
                 # send the client that room is locked
@@ -169,7 +193,10 @@ class threaded_Client(threading.Thread):
                 self.client.send(bytes("room locked",'utf-8'))
                 self.recv_room_num()
 
-            # may add a else here for handling some extreme cases and send clinet: some error occured plz try again
+            # this is only while in developing stage as "game started" mode is not covered yet
+            else:
+                self.client.send(bytes("error",'utf-8'))
+                self.client.close()
 
     def join_room(self):
         self.recv_room_num()
@@ -182,6 +209,8 @@ while True:
     client_thread = threaded_Client(client, addr)
     client_thread.start()
     print("Looking for more clients in main thread")
+    print(threading.enumerate())
+
 
 # TODO
 #   give timeouts so that you can reomove a person who is inactive for a long time like 120 seconds or 3 times inactive for 30 sec
