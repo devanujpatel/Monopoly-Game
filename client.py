@@ -27,8 +27,8 @@ tk.Frame(start_frame,width= width/7,height=height/7).grid(row=0,column=7)
 
 font = ("Courier", 14)
 
-two_btns_label = tk.Label(start_frame, text = "What do you want to do - join room or create a room?",font=font)
-two_btns_label.grid(row=2,column=3, columnspan=4)
+two_btns_label = tk.Label(start_frame, text = "What do you want to do?",font=font)
+two_btns_label.grid(row=2,column=2, columnspan=3)
 # give our client a choice of creating or joining a room
 create_room_btn = tk.Button(start_frame,text="Create Room",command=lambda:create_room())
 create_room_btn.grid(row=3,column=2)
@@ -58,8 +58,8 @@ def join_room():
 def ask_username():
     # ask for username
     global ok_but_for_username, username_entry, username_label
-    username_label = tk.Label(start_frame, text="Enter your username, this username will be applicabe to this room only", font=font)
-    username_label.grid(row=3, column=2, columnspan=4)
+    username_label = tk.Label(start_frame, text="Enter your username", font=font)
+    username_label.grid(row=2, column=3)
     username_entry = tk.Entry(start_frame)
     ok_but_for_username = tk.Button(start_frame, text="Okay", font=font, command=lambda: ok_but_for_username_clicked())
     username_entry.grid(row=3, column=3)
@@ -80,11 +80,11 @@ def ok_but_for_username_clicked():
 def ask_room_num():
     global room_num_entry, ok_but_room_num, room_label
     room_label = tk.Label(start_frame,text="Enter the number of the room which you want to join!", font=font)
-    room_label.grid(row=3, column=2, columnspan=4)
+    room_label.grid(row=2, column=2, columnspan=3)
     room_num_entry = tk.Entry(start_frame)
-    room_num_entry.grid(row=2,column=3)
+    room_num_entry.grid(row=3,column=3)
     ok_but_room_num = tk.Button(start_frame, text="Ok",command = lambda:ok_but_room_num_clkd())
-    ok_but_room_num.grid(row=3,column=3)
+    ok_but_room_num.grid(row=4,column=3)
 
 def ok_but_room_num_clkd():
     room_label.grid_forget()
@@ -124,7 +124,7 @@ class recv_new_players_list_thread(threading.Thread):
 
     def run(self):
         # accept new players list as new players do join and the list needs to be updated
-        global check_for_new_players_list_stat, start_btn, player_desig
+        global check_for_new_players_list_stat, start_game_btn, player_desig
         start_btn_shown = False
         print("checking for new players list on",threading.Thread.getName(self))
         check_for_new_players_list_stat =  True
@@ -151,8 +151,8 @@ class recv_new_players_list_thread(threading.Thread):
                             start_btn_shown = True
 
 def start_game_host():
-    start_btn.grid_forget()
     global check_for_new_players_list_stat
+    start_game_btn.grid_forget()
     check_for_new_players_list_stat = False
     client.send(bytes("start the game",'utf-8'))
     print("player started the game")
