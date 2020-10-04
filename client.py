@@ -24,7 +24,22 @@ tk.Frame(start_frame,width= width/7,height=height/7).grid(row=0,column=4)
 
 font = ("Courier", 13)
 
-# give our client a choice of creating or joining a room
+"""# ask for username
+username_entry = tk.Entry(start_frame)
+ok_but_for_username = tk.Button(start_frame, text= "Okay",font= font,command= lambda :ok_but_for_username_clicked())
+username_entry.grid(row=3,column=3)
+ok_but_for_username.grid(row=4,column=3)
+
+def ok_but_for_username_clicked():
+    ok_but_for_username.grid_forget()
+    username_entry.grid_forget()
+    username = str(username_entry.get())
+
+    print("sending username")
+    username_sendable = f"{len(username):<{HEADER}}"+username
+    client.send(bytes(username_sendable,'utf-8'))"""
+
+# give our client a choice of creating or joining a room 
 create_room_btn = tk.Button(start_frame,text="Create Room",command=lambda:create_room())
 create_room_btn.grid(row=3,column=2)
 join_room_btn = tk.Button(start_frame, text="Join Room", command=lambda: join_room())
@@ -36,7 +51,7 @@ def create_room():
     print("sending to create new room!")
     client.send(bytes("create room", 'utf-8'))
     ask_username()
-
+    
 def join_room():
     join_room_btn.grid_forget()
     create_room_btn.grid_forget()
@@ -108,6 +123,7 @@ class recv_new_players_list_thread(threading.Thread):
         print("checking for new players list on",threading.Thread.getName(self))
         check_for_new_players_list_stat =  True
         while check_for_new_players_list_stat:
+
             new_players_list = client.recv(1024)
             if new_players_list:
                 new_players_list = pickle.loads(new_players_list)
@@ -122,38 +138,34 @@ def start_game_host():
     global check_for_new_players_list_stat
     check_for_new_players_list_stat = False
     print("player started the game")
-    one_time_recv_game_info()
+
 def start_game_player():
     print("Yo lets play")
-    one_time_recv_game_info()
+
+def recv_game_details():
+    pass
+
+"""def recv_players_list()
+    print("recving players list")
+    players_in_room = client.recv(1024)
+    players_in_room = pickle.loads(players_in_room)
+    print(players_in_room)
     
-def one_time_recv_game_info():
-    # recv the game info sent from the server to start the game and update info
-    global game_info
-    game_info = pickle.loads(client.recv(1024))
-    print(game_info)
-
-def init_game():
-    # create objects of all players so that it is easy to handle the game
-
-    global player_objs
-    player_objs = {}
-
-    playing_tokens = []
-
-    # update a list named playing tokens after which we will create objects of player class
-    for t in range(len(game_info["players list"])):
-        tok = "token"+str(t)
-        playing_tokens.append(tok)
-    print(playing_tokens)
-
-    # create objects and then store them in dictionary with player name
+    
+    global ok_but_for_username, username_entry
+        username_entry = tk.Entry(start_frame)
+        ok_but_for_username = tk.Button(start_frame, text="Okay", font=font, command=lambda: ok_but_for_username_clicked())
+        username_entry.grid(row=3, column=3)
+        ok_but_for_username.grid(row=4, column=3)
+        # show the players list
+        # recv for new players list on new thread
+        print("recving players list on new thread")
+        check_thread = recv_new_players_list_thread()
+        check_thread.start()
+        
+        ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+"""
 
 
-class Player:
-    def __init__(self):
-        pass
+
 container.mainloop()
-
-# ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
-
