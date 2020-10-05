@@ -1,6 +1,6 @@
 import socket, pickle, threading
 import tkinter as tk
-
+from prop_class_for_online_version import my_property_class
 client = socket.socket()
 client.connect(("192.168.29.201",9999))
 HEADER = 10
@@ -76,6 +76,7 @@ def ok_but_for_username_clicked():
     client.send(bytes(username_sendable, 'utf-8'))
     check_on_new_thread_npl = recv_new_players_list_thread()
     check_on_new_thread_npl.start()
+    print("check for new players list",check_on_new_thread_npl.native_id)
 
 def ask_room_num():
     global room_num_entry, ok_but_room_num, room_label
@@ -123,52 +124,226 @@ class recv_new_players_list_thread(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
+        print("for thread recv new players list")
         # accept new players list as new players do join and the list needs to be updated
         global check_for_new_players_list_stat, start_game_btn, player_desig
         start_btn_shown = False
         print("checking for new players list on",threading.Thread.getName(self))
-        check_for_new_players_list_stat =  True
 
-        while check_for_new_players_list_stat:
+        while True:
+            new_players_list = client.recv(1024)
+            if new_players_list:
+                new_players_list = pickle.loads(new_players_list)
 
-            if check_for_new_players_list_stat == False:
-                break
-            else:
-                new_players_list = client.recv(1024)
-                if new_players_list:
-                    new_players_list = pickle.loads(new_players_list)
-                    if new_players_list == "start game":
-                        print("recved start game",username)
-                        check_for_new_players_list_stat = False
-                        start_game_player()
-                    else:
-                        print("new players list = ", new_players_list)
-                        # only display start btn when more than one player is there in the room and also dont show again
-                        # if already on grid!
-                        if len(new_players_list) > 1 and start_btn_shown == False and player_desig == "host":
-                            start_game_btn = tk.Button(start_frame, text="Start Game",command=lambda: start_game_host())
-                            start_game_btn.grid(row=4, column=3)
-                            start_btn_shown = True
+                if new_players_list == "start game":
+                    print("recved start game",username)
+                    break
+
+                else:
+                    print("new players list = ", new_players_list)
+                    # only display start btn when more than one player is there in the room and also dont show again
+                    # if already on grid!
+                    if len(new_players_list) > 1 and start_btn_shown == False and player_desig == "host":
+                        start_game_btn = tk.Button(start_frame, text="Start Game",command=lambda: start_game_host())
+                        start_game_btn.grid(row=4, column=3)
+                        start_btn_shown = True
+
+                    # incase a player joins and then leaves
+                    if len(new_players_list) == 1 and start_btn_shown == True:
+                        start_game_btn.grid_forget()
+                        start_btn_shown = False
+
+        recv_details_thread = threading.Thread(target=recv_game_details)
+        recv_details_thread.start()
+        print("recv game setails thread:",recv_details_thread.native_id)
 
 def start_game_host():
-    global check_for_new_players_list_stat
     start_game_btn.grid_forget()
-    check_for_new_players_list_stat = False
     client.send(bytes("start the game",'utf-8'))
     print("player started the game")
-    recv_details_thread = threading.Thread(target=recv_game_details)
-    recv_details_thread.start()
-def start_game_player():
-    print("Yo lets play")
-    recv_details_thread = threading.Thread(target=recv_game_details)
-    recv_details_thread.start()
 
 def recv_game_details():
-    #list_length = int(client.recv(HEADER).decode('utf-8'))
-    game_info = pickle.loads(client.recv(2048))
+    print(threading.enumerate())
+    print("recving game info")
+    game_info = client.recv(1024)
+    game_info = pickle.loads(game_info)
     print(game_info)
+    display_game_screen()
+
+def display_game_screen():
+    start_frame.grid_forget()
+    global main_frame
+    main_frame = tk.Frame(container)
+    main_frame.grid(row=0, column=0, sticky="nsew")
+
+    width = main_frame.winfo_screenwidth()  # width of screen
+    height = main_frame.winfo_screenheight()  # height of screen
+    width -= 325
+    height -= 345
+    width = width / 9
+    height = height / 9
+
+    # top lane
+
+    free_parking = my_property_class(main_frame,"Free Parking", 0, 0, 160, 140)
+    free_parking.update_dicto(free_parking, 20)
+
+    strand = my_property_class(main_frame,"Strand", 0, 1, width, 140, "firebrick1", 18, 220,
+                               90, 250, 700, 875, 1050, 150, 150, 110, "s")
+    strand.update_dicto(strand, 21)
+
+    chance2 = my_property_class(main_frame,"Chance", 0, 2, width, 140)
+    chance2.update_dicto(chance2, 22)
+
+    fleet_street = my_property_class(main_frame,"fleet street", 0, 3, width, 140, "firebrick1", 18, 220,
+                                     90, 250, 700, 875, 1050, 150, 150, 110, "s")
+    fleet_street.update_dicto(fleet_street, 23)
+
+    trafalagar_square = my_property_class(main_frame,"trafalagar square", 0, 4, width, 140, "firebrick1", 20, 240,
+                                          100, 300, 750, 925, 1100, 150, 150, 120, "s")
+    trafalagar_square.update_dicto(trafalagar_square, 24)
+
+    fenchurch_st_station = my_property_class(main_frame,"fenchurch st station", 0, 5, width, 140)
+    fenchurch_st_station.update_dicto(fenchurch_st_station, 25)
+
+    licester_square = my_property_class(main_frame,"licester square", 0, 6, width, 140, "yellow", 22, 290,
+                                        110, 330, 800, 975, 1150, 150, 150, 130, "s")
+    licester_square.update_dicto(licester_square, 26)
+
+    coventry_street = my_property_class(main_frame,"coventry street", 0, 7, width, 140, "yellow", 22, 290,
+                                        110, 330, 800, 975, 1150, 150, 150, 130, "s")
+    coventry_street.update_dicto(coventry_street, 27)
+
+    water_works = my_property_class(main_frame,"water works", 0, 8, width, 140)
+    water_works.update_dicto(water_works, 28)
+
+    piccadilly = my_property_class(main_frame,"piccadilly", 0, 9, width, 140, "yellow", 24, 280,
+                                   120, 360, 850, 1025, 1200, 150, 150, 140, "s")
+    piccadilly.update_dicto(piccadilly, 29)
+
+    go_to_jail = my_property_class(main_frame,"go_to_jail", 0, 10, 160, 140)
+    go_to_jail.update_dicto(go_to_jail, 30)
+
+    # right lane
+    regent_street = my_property_class(main_frame,"regent street", 1, 10, 160, height, "green", 26, 300,
+                                      130, 390, 900, 1100, 1275, 200, 200, 150, "w")
+    regent_street.update_dicto(regent_street, 31)
+
+    oxford_street = my_property_class(main_frame,"oxford street", 2, 10, 160, height, "green", 26, 300,
+                                      130, 390, 900, 1100, 1275, 200, 200, 150, "w")
+    oxford_street.update_dicto(free_parking, 32)
+
+    community_chest = my_property_class(main_frame,"community_chest", 3, 10, 160, height)
+    community_chest.update_dicto(community_chest, 33)
+
+    bond_street = my_property_class(main_frame,"bond street", 4, 10, 160, height, "green", 28, 320,
+                                    150, 450, 1000, 1200, 1400, 200, 200, 160, "w")
+    bond_street.update_dicto(bond_street, 34)
+
+    liverpool_st_station = my_property_class(main_frame,"liverpool_st_station", 5, 10, 160, height)
+    liverpool_st_station.update_dicto(liverpool_st_station, 35)
+
+    chance3 = my_property_class(main_frame,"chance3", 6, 10, 160, height)
+    chance3.update_dicto(chance3, 36)
+
+    park_lane = my_property_class(main_frame,"park_lane", 7, 10, 160, height, "dark blue", 35, 350,
+                                  175, 500, 1100, 1300, 1500, 200, 200, 175, "w")
+    park_lane.update_dicto(park_lane, 37)
+
+    super_tax = my_property_class(main_frame,"super_tax", 8, 10, 160, height)
+    super_tax.update_dicto(super_tax, 38)
+
+    mayfair = my_property_class(main_frame,"mayfair", 9, 10, 160, height, "dark blue", 50, 400,
+                                200, 600, 1400, 1700, 2000, 200, 200, 200, "w")
+    mayfair.update_dicto(mayfair, 39)
+
+    # lower lane\
+
+    just_visiting = my_property_class(main_frame,"just_visting", 10, 0, 160, 140)
+    just_visiting.update_dicto(just_visiting, 10)
+
+    pentoville_road = my_property_class(main_frame,"pentoville road", 10, 1, width, 140, "light blue", 8, 120,
+                                        40, 100, 300, 450, 600, 50, 50, 60, "n")
+    pentoville_road.update_dicto(pentoville_road, 9)
+
+    euston_road = my_property_class(main_frame,"euston road", 10, 2, width, 140, "light blue", 6, 100,
+                                    30, 90, 270, 400, 550, 50, 50, 50, "n")
+    euston_road.update_dicto(euston_road, 8)
+
+    chance1 = my_property_class(main_frame,"chance", 10, 3, width, 140)
+    chance1.update_dicto(chance1, 7)
+
+    the_angel_islington = my_property_class(main_frame,"the angel islington", 10, 4, width, 140, "light blue", 6, 100,
+                                            30, 90, 270, 400, 550, 50, 50, 50, "n")
+    the_angel_islington.update_dicto(the_angel_islington, 6)
+
+    kings_cross_station = my_property_class(main_frame,"kings cross station", 10, 5, width, 140)
+    kings_cross_station.update_dicto(kings_cross_station, 5)
+
+    income_tax = my_property_class(main_frame,"income tax!", 10, 6, width, 140)
+    income_tax.update_dicto(income_tax, 4)
+
+    white_chapal_road = my_property_class(main_frame,"white chapal road", 10, 7, width, 140, "brown", 4, 60,
+                                          20, 60, 180, 320, 450, 50, 50, 30, "n")
+    white_chapal_road.update_dicto(white_chapal_road, 3)
+
+    community_chest1 = my_property_class(main_frame,"community chest", 10, 8, width, 140)
+    community_chest1.update_dicto(community_chest1, 2)
+
+    old_kent_road = my_property_class(main_frame,"old kent road", 10, 9, width, 140, "brown", 2, 60,
+                                      10, 30, 90, 160, 250, 50, 50, 30, "n")
+    old_kent_road.update_dicto(old_kent_road, 1)
+
+    go_box = my_property_class(main_frame,"go box", 10, 10, 160, 140)
+    go_box.update_dicto(go_box, 0)
+
+    # left lane
+
+    pall_mall = my_property_class(main_frame,"pall mall", 9, 0, 160, height, "pink", 10, 140,
+                                  50, 150, 450, 625, 750, 100, 50 * 2, 70, "e")
+    pall_mall.update_dicto(pall_mall, 11)
+
+    electric_company = my_property_class(main_frame,"electric company", 8, 0, 160, height)
+    electric_company.update_dicto(electric_company, 12)
+
+    white_hall = my_property_class(main_frame,"white hall", 7, 0, 160, height, "pink", 10, 140,
+                                   50, 150, 450, 625, 750, 100, 50 * 2, 70, "e")
+    white_hall.update_dicto(white_hall, 13)
+
+    northumber_ld_avenue = my_property_class(main_frame,"northumberl'd avenue", 6, 0, 160, height, "pink", 12, 160, 60,
+                                             180, 500, 700, 900, 100, 100, 80, "e")
+    northumber_ld_avenue.update_dicto(northumber_ld_avenue, 14)
+
+    marylebone_station = my_property_class(main_frame,"marltbone station", 5, 0, 160, height)
+    marylebone_station.update_dicto(marylebone_station, 15)
+
+    bow_street = my_property_class(main_frame,"bow street", 4, 0, 160, height, "orange", 14, 180,
+                                   70, 200, 550, 750, 950, 100, 50 * 2, 90, "e")
+    bow_street.update_dicto(bow_street, 16)
+
+    community_chest2 = my_property_class(main_frame,"community chest", 3, 0, 160, height)
+    community_chest2.update_dicto(community_chest2, 17)
+
+    marlborough_street = my_property_class(main_frame,"marlborough street", 2, 0, 160, height, "orange", 14, 180,
+                                           70, 200, 550, 750, 950, 100, 50 * 2, 90, "e")
+    marlborough_street.update_dicto(marlborough_street, 18)
+
+    vine_street = my_property_class(main_frame,"vine street", 1, 0, 160, height, "orange", 16, 200,
+                                    80, 220, 600, 800, 1000, 100, 50 * 2, 100, "e")
+    vine_street.update_dicto(vine_street, 19)
+
+    monopoly_dis = tk.Label(main_frame, text="Monopoly", bg="tomato1", fg="white")
+    monopoly_dis.grid(row=5, column=5)
+
+    sf_width = 8 * width + 2
+    sf_height = 3 * height
+    status_frame = tk.LabelFrame(main_frame, text="Status Box", bg="light green", fg="black",
+                                 highlightbackground="black", highlightthickness=1, width=sf_width,height=sf_height)
+    status_frame.grid(rowspan=4, columnspan=9, row=1, column=1)
+
+#def make_player_class_objs():
+
 
 # ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
-# TODO
-#   send room info
+
 container.mainloop()

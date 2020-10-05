@@ -32,10 +32,10 @@ class threaded_Client(threading.Thread):
     def run(self):
         global rooms, room
         print("Running: " + threading.Thread.getName(self))
-        print("waiting for client", self.addr, "to send further action msg!")
+        print("waiting for client to send further action msg!",threading.Thread.getName(self))
         # wait for client to send whether he/she wants to join a room or create a room
         what_to_do = (self.client.recv(16).decode('utf-8'))
-        print("recved what to do msg from client")
+        print("recved what to do msg from client", threading.Thread.getName(self))
 
         # create a room
         if what_to_do == "create room":
@@ -46,14 +46,17 @@ class threaded_Client(threading.Thread):
             self.join_room()
 
     def allocate_chance_num(self):
-        # increment chance alloc num by 1
+        """# increment chance alloc num by 1
         rooms[self.room]["chance alloc num"] += 1
         # return the chance -1 to allocate the chance num to player
         return rooms[self.room]["chance alloc num"] - 1
         # one is subtracted while returning above as we added one before
         # this is so as we need to add one and also return chance num to player
         # if we wrote return before and increment later then the execution of the function will stop at the return
-        # statement and incrementation of chance num wouldn't happen!
+        # statement and incrementation of chance num wouldn't happen!"""
+
+        self.chance = rooms[self.room]["chance alloc num"]
+        rooms[self.room]["chance alloc num"] += 1
 
     def new_player_dicto_update(self):
         #  this function will run whenever a player joins, this is to store data in a dictionary
@@ -75,7 +78,7 @@ class threaded_Client(threading.Thread):
         print(self.room)
         # add the particular room no. in existing rooms list to later know that the room exists
         existing_rooms.append(self.room)
-        print(existing_rooms)
+
         # increment for any other player who creates a new room as we want to give new room num to each room created
         room += 1
         print("next room created will be", str(room))
@@ -99,9 +102,9 @@ class threaded_Client(threading.Thread):
         rooms.update({self.room: {"host": self.username, "status": "looking for players",
                               "players list": [self.username],"chance alloc num":0, "game info": {},"player chances":{} }})
         room_player_objs.update({self.room:{"players": {self.username: self.client}}})
-        self.chance = self.allocate_chance_num()
+        self.allocate_chance_num()
         self.new_player_dicto_update()
-        print(self.username,str(self. chance))
+        print(self.username,"'s chance is",str(self. chance))
         # send our host the players in his room (at the moment it would be only one player i.e the host itself)
         self.client.send(pickle.dumps(rooms[self.room]["players list"]))
 
@@ -110,19 +113,19 @@ class threaded_Client(threading.Thread):
         rooms[self.room]["status"] = "room locked temp"
         print("starting the game for room", self.room, "whose host is", self.username)
 
-        send_game_info = pickle.dumps(rooms[self.room])
-        #length_game_info_sendable = str(len(send_game_info))
-        #print(length_game_info_sendable)
+        #send_game_info_L = len(pickle.dumps(rooms[self.room]))
+
         # sending all the players a msg to start the game so our client side code knows to update the screen
         for player in rooms[self.room]["players list"]:
-            if player != rooms[self.room]["host"]:
-                print("sending to", player)
-                room_player_objs[self.room]["players"][player].send(pickle.dumps("start game"))
-                #room_player_objs[self.room]["players"][player].send(bytes(length_game_info_sendable,'utf-8'))
-                room_player_objs[self.room]["players"][player].send(send_game_info)
+            print("sending to", player)
+            room_player_objs[self.room]["players"][player].send(pickle.dumps("start game"))
+            # send length of the game info , done as encounteru=ing eoferror on client side!
+            #room_player_objs[self.room]["players"][player].send(bytes(str(send_game_info_L), 'utf-8'))
+            room_player_objs[self.room]["players"][player].send(pickle.dumps(rooms[self.room]))
+            #room_player_objs[self.room]["players"][player].send(pickle.dumps(("status","game started")))
 
         # as we are not sending the game info list to host so:
-        room_player_objs[self.room]["players"][self.username].send(pickle.dumps(rooms[self.room]))
+        #room_player_objs[self.room]["players"][self.username].send(pickle.dumps(rooms[self.room]))
         print("successfully sent msg to all the players")
 
         # there are three states of status - room locked, looking for players and game started (but room not locked)
@@ -137,6 +140,7 @@ class threaded_Client(threading.Thread):
 
         print("successfully closed all connections in the room",self.room)
         print(threading.enumerate())
+
     def recv_room_num(self):
         self.room = self.client.recv(16).decode('utf-8')
         self.room = int(self.room)
@@ -160,8 +164,9 @@ class threaded_Client(threading.Thread):
 
                 room_player_objs[self.room]["players"][self.username] = self.client
                 rooms[self.room]["players list"].append(self.username)
-                self.chance = self.allocate_chance_num()
+                self.allocate_chance_num()
                 self.new_player_dicto_update()
+                print(self.username, "'s chance is", str(self.chance))
                 print(rooms)
                 # self.client.send(pickle.dumps(rooms[self.room]["players list"]))
                 # send all the players the new list

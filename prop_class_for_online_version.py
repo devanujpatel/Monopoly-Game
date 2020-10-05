@@ -15,8 +15,6 @@ my_places = {'go_box': [], 'old kent road': [], 'community1': [], 'Whitechapel R
              'pacific_avenue': [], 'north_carolina_avenue': [], 'community3': [], 'pennsylvania_avenue': [],
              'shortline': [], 'chance3': [], 'park_place': [], 'luxury_tax': [], 'board_walk': [], }
 
-main_frame = tk.Tk()
-
 #contains information about properties -- imp for save feaure
 prop_info = {}
 place_num = {}
@@ -26,11 +24,12 @@ special_properties = ["chance", "community chest", "jail", "go_to_jail", "water 
 prop_id = {}
 
 class my_property_class:
-    def __init__(self, property_str, row, column, width, height, color=None, rent=None, price=None,
+    def __init__(self, main_frame_para,property_str, row, column, width, height, color=None, rent=None, price=None,
                  one_house_rent=None, two_house_rent=None,
                  three_house_rent=None, four_house_rent=None, hotel_rent=None, cost_of_house=None,
                  cost_of_hotel=None, mortgage_value=None, color_box_side=None):
-
+        global main_frame
+        main_frame = main_frame_para
         self.property_str = property_str
         self.width = width
         self.height = height
@@ -46,7 +45,8 @@ class my_property_class:
         self.rent = rent
         self.cost_of_house = cost_of_house
         self.color_box_side = color_box_side
-
+        self.height = height
+        self.width = width
         row_coordinates.update({property_str: row})
         column_coordinates.update({property_str: column})
 
@@ -96,13 +96,13 @@ class my_property_class:
 
     def show_details(self):
 
-        self.info_box1 = tk.Frame(main_frame, relief="raised", highlightbackground="black", width=width * 4,
-                                  height=height * 4,
+        self.info_box1 = tk.Frame(main_frame, relief="raised", highlightbackground="black", width=self.width * 4,
+                                  height=self.height * 4,
                                   highlightthickness=1)
         self.info_box1.grid(rowspan=6, columnspan=2, row=4, column=1)
 
-        self.info_box2 = tk.Frame(main_frame, relief="raised", highlightbackground="black", width=width * 4,
-                                  height=height * 4,
+        self.info_box2 = tk.Frame(main_frame, relief="raised", highlightbackground="black", width=self.width * 4,
+                                  height=self.height * 4,
                                   highlightthickness=1)
         self.info_box2.grid(rowspan=6, columnspan=2, row=4, column=3)
 
@@ -154,7 +154,9 @@ class my_property_class:
                                            font=("Courier", 12), highlightbackground="black",
                                            highlightthickness=1)
         self.mortgage_value_dis.pack(side="top")
-
+        
+# created the objects below for testing, to see the objects refer to client file after recv_game_info !
+"""
 width = main_frame.winfo_screenwidth()  # width of screen
 height = main_frame.winfo_screenheight()  # height of screen
 width -= 325
@@ -321,5 +323,5 @@ status_frame = tk.LabelFrame(main_frame, text="Status Box", bg="light green", fg
                              height=sf_height)
 status_frame.grid(rowspan=4, columnspan=9, row=1, column=1)
 
-main_frame.mainloop()
+main_frame.mainloop()"""
 
