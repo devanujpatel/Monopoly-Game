@@ -1,4 +1,4 @@
-import socket, threading, pickle
+import socket, threading, pickle, time
 
 # create a af_inet streaming server
 server = socket.socket()
@@ -45,6 +45,63 @@ class threaded_Client(threading.Thread):
         if what_to_do == "join room":
             self.join_room()
 
+    def play_game(self):
+
+        # send flag = True means u are good to go and send flag False means wait for sometime and then send when senn
+        # flag is True
+
+        # first of all we get the favourite color of each player
+        self.fav_color = self.client.recv(1024).decode('utf-8')
+        rooms[self.username]["fav_color"] = self.fav_color
+        # + color responses
+        rooms[self.room]["color responses"][0] += 1
+        rooms[self.room]["color responses"][1].update({self.username:self.fav_color})
+        # check in while True for color responses == to n_players , then send the list of all colors
+        while True:
+            if rooms[self.room]["color responses"] == len(rooms[self.room]["players list"]):
+                self.client.send(pickle.dumps(rooms[self.room]["color responses"[1]]))
+                break
+
+            if rooms[self.room]["color responses"] != len(rooms[self.room]["players list"]):
+                time.sleep(0.5)
+                pass
+
+        # after this we start the actual game!
+
+        while True:
+            # look out for our client; if something is send we need to MUNCH THE DATA
+
+            # the name is data TUP as we are gonna communicate via tuples which contain changes orderes by our client
+            # FORMAT: (username,what needs to be changed, update value)
+            # it is to be read as change xyz of abc name to pqr
+
+            data_tup = pickle.loads(self.client.recv(1024))
+
+            # if it is to end our turn then do so; sent only when 30 sec timeout happens or end tru btn clicked on
+            # client's side
+            if data_tup == "end my turn":
+                # increase chance num by one
+                rooms[self.room]["chance"] += 1
+                # while increasing chance we also need to see if chance number is within limit
+                if rooms[self.room]["chance"] == len(rooms[self.room]["players list"]):
+                    rooms[self.room]["rounds completed"] += 1
+                    rooms[self.room]["chance"] = 0
+
+            # player leaves gracefully!
+            elif data_tup == "leave":
+                break
+            # LET'S MUNCH DOWN OUR DATA
+            rooms[self.room][[data_tup][0]][[data_tup][1]] = [[data_tup][2]]
+            # send the same to others
+            rooms[self.room]["send flag"] = False
+            for player in rooms[self.room]["players list"]:
+                if player != data_tup[0]:
+                    room_player_objs[self.room][player].send(pickle.dumps(data_tup))
+                else:
+                    pass
+            rooms[self.room]["send flag"] = True
+        #self.client.close()
+
     def allocate_chance_num(self):
         """# increment chance alloc num by 1
         rooms[self.room]["chance alloc num"] += 1
@@ -63,13 +120,18 @@ class threaded_Client(threading.Thread):
         # the values are appropriate for a fresh game (new game)
         # if a saved game is to be started again then never ever call this function!
 
-        rooms[self.room]["game info"].update({self.username:{"money":1800,"position":0,"properties":{},}})
+        rooms[self.room]["game info"].update({self.username:{"color":None,"money":1800,"position":0,"properties":{},}})
         # the "properties" key will have all the prop.s which thye player owns along with it status which can be- mortgaged
         # or normal and the no. of houses on  it for 0 = no house , 1 = 1 house and so on and 5 for a hotel
         # more keys may be added later as needed!
 
         # add the player inthe chances list(stored in rooms dicto) soi that we know whose chance it is and we can react acc.
         rooms[self.room]["player chances"].update({self.username:self.chance})
+
+        rooms[self.room]["players list"].append(self.username)
+
+        room_player_objs.update({self.room: {self.username: self.client}})
+
 
     def create_room(self):
         global rooms, room
@@ -99,9 +161,10 @@ class threaded_Client(threading.Thread):
         # the rooms dicto will be updated with a room no. and other necessary information
         # the game info key is the main key in which the game data will be stored and sent to all the clients at the
         # start of the game after which the server and all the clients will maintain it according to the instructions sent
-        rooms.update({self.room: {"host": self.username, "status": "looking for players",
-                              "players list": [self.username],"chance alloc num":0, "game info": {},"player chances":{} }})
-        room_player_objs.update({self.room:{"players": {self.username: self.client}}})
+        rooms.update({self.room: {"host": self.username, "status": "looking for players","color responses":[0,{}],
+                              "players list": [],"chance alloc num":0, "game info": {},"player chances":{}, "chance":0,
+                              "rounds completed":0, "send flag":True}})
+
         self.allocate_chance_num()
         self.new_player_dicto_update()
         print(self.username,"'s chance is",str(self. chance))
@@ -134,12 +197,14 @@ class threaded_Client(threading.Thread):
         # players can join the room in game started or in ooking for plaeyrs mode but no wwhen room is locked
         rooms[self.room]["status"] = "game started"
 
-        # close connection - it is here temporarily , as it is a good practice to close connections
-        for player in rooms[self.room]["players list"]:
-            room_player_objs[self.room]["players"][player].close()
+        # from now on player and host have to walk similar paths so we will run a function common to both
+        # though host still gets some additional powers
 
-        print("successfully closed all connections in the room",self.room)
-        print(threading.enumerate())
+        self.play_game()
+
+        # run only after game ends or player leaves
+        self.client.close()
+
 
     def recv_room_num(self):
         self.room = self.client.recv(16).decode('utf-8')
@@ -163,7 +228,6 @@ class threaded_Client(threading.Thread):
                 print("received username from", self.addr, ":", self.username, "for room", self.room)
 
                 room_player_objs[self.room]["players"][self.username] = self.client
-                rooms[self.room]["players list"].append(self.username)
                 self.allocate_chance_num()
                 self.new_player_dicto_update()
                 print(self.username, "'s chance is", str(self.chance))
@@ -172,6 +236,12 @@ class threaded_Client(threading.Thread):
                 # send all the players the new list
                 for player in rooms[self.room]["players list"]:
                     room_player_objs[self.room]["players"][player].send(pickle.dumps(rooms[self.room]["players list"]))
+
+                self.play_game()
+
+
+                # this will only be reached when player leaves or game ends
+                self.client.close()
 
             #elif rooms[self.room]["status"] == "game started":
             # will be developed soon!

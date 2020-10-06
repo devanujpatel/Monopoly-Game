@@ -1,6 +1,10 @@
 import socket, pickle, threading
 import tkinter as tk
 from prop_class_for_online_version import my_property_class
+
+# importing the choosecolor package
+from tkinter import colorchooser
+
 client = socket.socket()
 client.connect(("192.168.29.201",9999))
 HEADER = 10
@@ -163,12 +167,29 @@ def start_game_host():
     print("player started the game")
 
 def recv_game_details():
+    global game_info
     print(threading.enumerate())
     print("recving game info")
     game_info = client.recv(1024)
     game_info = pickle.loads(game_info)
     print(game_info)
-    display_game_screen()
+    color_button = tk.Button(main_frame, text="Select color",
+                    command=lambda:choose_color())
+    color_button.pack()
+
+# Function that will be invoked when the
+# button will be clicked in the main window
+def choose_color():
+    # variable to store hexadecimal code of color
+    color_code = colorchooser.askcolor(title="Choose color")
+    # send our server the color our client chose
+    client.send(bytes(color_code,'utf-8'))
+
+    # take response: it would be other player's fav color and our's too as server will send combined dicto
+    fav_colors = pickle.loads(client.recv(1024))
+    game_info.update({fav_colors})
+    print(game_info)
+    # create player objs here
 
 def display_game_screen():
     start_frame.grid_forget()
