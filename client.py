@@ -192,14 +192,16 @@ def choose_color():
     print(fav_colors)
     game_info.update({fav_colors})
     display_game_screen()
+
+    global player_objects
     player_objects = {}
     create_objs()
 
 def create_objs():
-    global game_info, player_objs, stat_box
+    global game_info, stat_box
     # create player class objs which will help to update the display when we recv data updates in the recv thread
     for player in game_info(['players list']):
-        player_objs.update({player:Player(main_frame,stat_box,game_info[player])})
+        player_objects.update({player:Player(main_frame,stat_box,game_info[player])})
 
 def recv_data_updates():
     while True:
