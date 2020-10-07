@@ -76,7 +76,7 @@ class threaded_Client(threading.Thread):
         # can make a option to save and leave game when one player leaves ,to the host
         # if host decides to continue the game then the player will be erased (new option on the way)
         # elif host decides to save the game then the game will end, inference drawn, and saved too(ofcourse)
-        # also host can simply just end the game also
+        # host can simply just end the game also
         # it is to be decided how to manage the game after the removal of the player
         # if host leaves the whole game is disbanded and option to save the game goes to player 1
 
@@ -93,9 +93,19 @@ class threaded_Client(threading.Thread):
                 # the name is data TUP as we are gonna communicate via tuples which contain changes orderes by our client
                 # FORMAT: (username,what needs to be changed, update value)
                 # it is to be read as change xyz of abc name to pqr
+                # or else it could be : (what to do , player desig) for cases like end turn, leave game, end game,etc...
                 try:
-                    data_tup = pickle.loads(self.client.recv(1024))
-                except Exception as e:
+                    while True:
+
+                        data_tup = self.client.recv(1024)
+                        if data_tup:
+                            pickle.loads(data_tup)
+                            leave_confirmation_status = "lost conn probably"
+                            break
+                        else:
+                            pass
+
+                except ConnectionResetError as e:
                     print(e, self.username , self.room)
                     # give loop(2) chance to assess the situation then if client has to leave then break from main loop too
                     # if not then continue to run loop(1) which will then run loop(2)
@@ -112,8 +122,17 @@ class threaded_Client(threading.Thread):
                         rooms[self.room]["chance"] = 0
 
                 # player leaves gracefully!
-                elif data_tup == "leave":
-                    leave_confirmed = True
+                elif data_tup[0] == "leave" and data_tup[1] == "player":
+                    leave_confirmation_status = "ask again"
+                    break
+
+                elif data_tup[0] == "leave" and data_tup[1] == "host":
+                    leave_confirmation_status = "ask again host"
+                    break
+
+                # host sends to end game
+                elif data_tup[0] == "end game" and data_tup[1] == "host":
+                    leave_confirmation_status = "ask to save"
                     break
 
                 # LET'S MUNCH DOWN OUR DATA
@@ -127,26 +146,51 @@ class threaded_Client(threading.Thread):
                         pass
                 rooms[self.room]["send flag"] = True
 
-        # assess the situation
-        # possible situations:
-        # 1> CLIENT LEAVES GRACEFULLY
-        # 2> CLIENT GETS DISCONNECTED (dooubt if player is active)
-        # 3> HOST ENDS THE GAME
-        # 4> HOST LEAVES ABRUPTLY
-        # situation 1 : make the player leave but keep his dicto alive, ->then ask host if he wants to still continue
-        # the game if yes then erase the player dicto and distribute props to bank and if no then ask host to save the game
-        # sit 2, the player will be asked if he/she is still in the game with a timeout of 20 seconds then proceed
-        # as situation 1 after '->'
-        # situation 3 : ask host to save game
-        # situation 4 : ask player1 the option to end and save game
+            # assess the situation
+            # possible situations:
+            # 1> CLIENT LEAVES GRACEFULLY
+            # 2> CLIENT GETS DISCONNECTED (doubt if player is active)
+            # 3> HOST ENDS THE GAME
+            # 4> HOST LEAVES ABRUPTLY
+            # situation 1 : make the player leave but keep his dicto alive, ->then ask host if he wants to still continue
+            # the game if yes then erase the player dicto and distribute props to bank and if no then ask host to save the game
+            # sit 2, the player will be asked if he/she is still in the game with a timeout of 20 seconds if timeout happens zthen proceed
+            # as situation 1 after '->'
+            # situation 3 : ask host to save game
+            # situation 4 : ask player1 the option to end and save game
 
-        # also make a backup feature in the game
-        # think of a way to let player join again with same game status as before
+            # also make a backup feature in the game
+            # think of a way to let player join again with same game status as before
+
+            print(leave_confirmation_status)
+
+            if leave_confirmation_status == "lost conn probably":
+                self.check_if_active()
+            if leave_confirmation_status == "ask again host":
+                self.
 
 
+            self.client.close()
 
-
-        self.client.close()
+    def confirm_leave(self):
+        pass
+        # return a value ; active or not , if host not active then ask player1
+        # if player not active then ask host his options
+    def save_room(self):
+        pass
+    def end_game_confirm(self):
+        pass
+    def check_if_active(self):
+        pass
+    def close_conn(self, conn):
+        pass
+    def ask_about_end_game_when_player_left(self,conn):
+        pass
+        # ask host or player 1 to end and save game when a player leaves
+    def read_saved_game(self):
+        pass
+    def waiting_mode(self):
+        pass
 
     def allocate_chance_num(self):
         """# increment chance alloc num by 1
@@ -322,7 +366,6 @@ class threaded_Client(threading.Thread):
     def join_room(self):
         self.recv_room_num()
 
-
 while True:
     client, addr = server.accept()
     print("Accepted connection from", addr)
@@ -331,7 +374,6 @@ while True:
     client_thread.start()
     print("Looking for more clients in main thread")
     print(threading.enumerate())
-
 
 # TODO
 #   give timeouts so that you can reomove a person who is inactive for a long time like 120 seconds or 3 times inactive for 30 sec
