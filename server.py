@@ -83,68 +83,72 @@ class threaded_Client(threading.Thread):
         # the loop(2) is responsible to run the game
         # whereas the loop(1) is responsible to confirm disconnections
 
+    def main_game(self):
+        # loop (2)
+        while True:
+            # look out for our client; if something is sent we need to MUNCH DOWN THE DATA
+
+            # the name is data TUP as we are gonna communicate via tuples which contain changes orderes by our client
+            # FORMAT: (username,what needs to be changed, update value)
+            # it is to be read as change xyz of abc name to pqr
+            # or else it could be : (what to do , player desig) for cases like end turn, leave game, end game,etc...
+            try:
+                while True:
+
+                    data_tup = self.client.recv(1024)
+                    if data_tup:
+                        pickle.loads(data_tup)
+                        break
+                    else:
+                        pass
+            except ConnectionResetError as e:
+                print(e, self.username, self.room)
+                # give loop(2) chance to assess the situation then if client has to leave then break from main loop too
+                # if not then continue to run loop(1) which will then run loop(2)
+                return "check if active"
+
+            # if it is to end our turn then do so; sent only when 30 sec timeout happens or end tru btn clicked on
+            # client's side
+            if data_tup == "end my turn":
+                # increase chance num by one
+                rooms[self.room]["chance"] += 1
+                # while increasing chance we also need to see if chance number is within limit
+                if rooms[self.room]["chance"] == len(rooms[self.room]["players list"]):
+                    rooms[self.room]["rounds completed"] += 1
+                    rooms[self.room]["chance"] = 0
+
+            # player leaves gracefully!
+            elif data_tup[0] == "leave" and data_tup[1] == "player":
+                leave_confirmation_status = "ask again player"
+                return leave_confirmation_status
+
+            elif data_tup[0] == "leave" and data_tup[1] == "host":
+                leave_confirmation_status = "ask again host"
+                return leave_confirmation_status
+
+            # host sends to end game
+            elif data_tup[0] == "end game" and data_tup[1] == "host":
+                leave_confirmation_status = "ask to save"
+                return leave_confirmation_status
+
+            # LET'S MUNCH DOWN OUR DATA
+            rooms[self.room][[data_tup][0]][[data_tup][1]] = [[data_tup][2]]
+            # send the same to others
+            rooms[self.room]["send flag"] = False
+            for player in rooms[self.room]["players list"]:
+                if player != data_tup[0]:
+                    room_player_objs[self.room][player].send(pickle.dumps(data_tup))
+                else:
+                    pass
+            rooms[self.room]["send flag"] = True
+
+    def assess_situation(self):
+        
         # this is while True no. (1)
         while True:
 
-            # loop (2)
-            while True:
-                # look out for our client; if something is sent we need to MUNCH DOWN THE DATA
-
-                # the name is data TUP as we are gonna communicate via tuples which contain changes orderes by our client
-                # FORMAT: (username,what needs to be changed, update value)
-                # it is to be read as change xyz of abc name to pqr
-                # or else it could be : (what to do , player desig) for cases like end turn, leave game, end game,etc...
-                try:
-                    while True:
-
-                        data_tup = self.client.recv(1024)
-                        if data_tup:
-                            pickle.loads(data_tup)
-                            leave_confirmation_status = "lost conn probably"
-                            break
-                        else:
-                            pass
-
-                except ConnectionResetError as e:
-                    print(e, self.username , self.room)
-                    # give loop(2) chance to assess the situation then if client has to leave then break from main loop too
-                    # if not then continue to run loop(1) which will then run loop(2)
-                    break
-
-                # if it is to end our turn then do so; sent only when 30 sec timeout happens or end tru btn clicked on
-                # client's side
-                if data_tup == "end my turn":
-                    # increase chance num by one
-                    rooms[self.room]["chance"] += 1
-                    # while increasing chance we also need to see if chance number is within limit
-                    if rooms[self.room]["chance"] == len(rooms[self.room]["players list"]):
-                        rooms[self.room]["rounds completed"] += 1
-                        rooms[self.room]["chance"] = 0
-
-                # player leaves gracefully!
-                elif data_tup[0] == "leave" and data_tup[1] == "player":
-                    leave_confirmation_status = "ask again"
-                    break
-
-                elif data_tup[0] == "leave" and data_tup[1] == "host":
-                    leave_confirmation_status = "ask again host"
-                    break
-
-                # host sends to end game
-                elif data_tup[0] == "end game" and data_tup[1] == "host":
-                    leave_confirmation_status = "ask to save"
-                    break
-
-                # LET'S MUNCH DOWN OUR DATA
-                rooms[self.room][[data_tup][0]][[data_tup][1]] = [[data_tup][2]]
-                # send the same to others
-                rooms[self.room]["send flag"] = False
-                for player in rooms[self.room]["players list"]:
-                    if player != data_tup[0]:
-                        room_player_objs[self.room][player].send(pickle.dumps(data_tup))
-                    else:
-                        pass
-                rooms[self.room]["send flag"] = True
+            # constantly run the loop(2) to play game then the main_game fnc will return for situation handling
+            lcs = self.main_game()
 
             # assess the situation
             # possible situations:
@@ -161,32 +165,37 @@ class threaded_Client(threading.Thread):
 
             # also make a backup feature in the game
             # think of a way to let player join again with same game status as before
+            
+            print(lcs)
+            # lcs = leave_confirmation_status and wtd = what_to_do
+            if lcs == "check if active":
+                wtd = self.check_if_active()
+            if lcs == "ask again host":
+                wtd = self.confirm_leave("host")
+            if lcs == "ask again player":
+                wtd = self.confirm_leave("player")
+            if lcs == "ask to save":
+                wtd = self.end_game_confirm()
 
-            print(leave_confirmation_status)
+        # ACC TO WTD REACT FURTHER AND THEN AFTER THAT RESPECTIVE FNC REACT ACC. TO THE NEW WTD I.E PROBLY BREAK
+        # OR RUN MAIN_GAME_AGAIN WHICH MEANS TO JUST CONTINUE THE LOOP OF GAME AS USUAL
+        self.client.close()
 
-            if leave_confirmation_status == "lost conn probably":
-                self.check_if_active()
-            if leave_confirmation_status == "ask again host":
-                self.
-
-
-            self.client.close()
-
-    def confirm_leave(self):
+    def confirm_leave(self, player_desig):
         pass
         # return a value ; active or not , if host not active then ask player1
         # if player not active then ask host his options
     def save_room(self):
         pass
     def end_game_confirm(self):
+        # it is ; ask to save room or end game now
+        pass
+    def end_game(self):
         pass
     def check_if_active(self):
         pass
     def close_conn(self, conn):
         pass
-    def ask_about_end_game_when_player_left(self,conn):
-        pass
-        # ask host or player 1 to end and save game when a player leaves
     def read_saved_game(self):
         pass
     def waiting_mode(self):
