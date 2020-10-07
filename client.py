@@ -1,6 +1,7 @@
-import socket, pickle, threading
+import socket, pickle, threading, time
 import tkinter as tk
 from prop_class_for_online_version import my_property_class
+from player_class_online_version import Player
 
 # importing the choosecolor package
 from tkinter import colorchooser
@@ -173,7 +174,8 @@ def recv_game_details():
     game_info = client.recv(1024)
     game_info = pickle.loads(game_info)
     print(game_info)
-    color_button = tk.Button(main_frame, text="Select color",
+
+    color_button = tk.Button(start_frame, text="Select color",
                     command=lambda:choose_color())
     color_button.pack()
 
@@ -187,16 +189,46 @@ def choose_color():
 
     # take response: it would be other player's fav color and our's too as server will send combined dicto
     fav_colors = pickle.loads(client.recv(1024))
+    print(fav_colors)
     game_info.update({fav_colors})
-    print(game_info)
-    # create player objs here
+    display_game_screen()
+    player_objects = {}
+    create_objs()
+
+def create_objs():
+    global game_info, player_objs, stat_box
+    # create player class objs which will help to update the display when we recv data updates in the recv thread
+    for player in game_info(['players list']):
+        player_objs.update({player:Player(main_frame,stat_box,game_info[player])})
+
+def recv_data_updates():
+    while True:
+        data_update = pickle.loads(client.recv(1024))
+        print(data_update)
+        if len(data_update) == 3:
+            game_info[[data_update[0]]][[data_update[1]]] = data_update[2]
+        elif len(data_update) == 2:
+            game_info[[data_update[0]]] = data_update[1]
+        print(game_info)
+        # run update info method here
+
+def seek_chance():
+    while True:
+        time.sleep(1.0)
+        if game_info["chance"] == game_info["player chances"][username]:
+            pass
+            # display roll dice and other stuff like that
+        else:
+            time.sleep(1.0)
+
+
 
 def display_game_screen():
     start_frame.grid_forget()
-    global main_frame
+    global main_frame, status_frame, width, height
     main_frame = tk.Frame(container)
-    main_frame.grid(row=0, column=0, sticky="nsew")
 
+    main_frame.grid(row=0, column=0, sticky="nsew")
     width = main_frame.winfo_screenwidth()  # width of screen
     height = main_frame.winfo_screenheight()  # height of screen
     width -= 325
@@ -278,7 +310,7 @@ def display_game_screen():
                                 200, 600, 1400, 1700, 2000, 200, 200, 200, "w")
     mayfair.update_dicto(mayfair, 39)
 
-    # lower lane\
+    # lower lane
 
     just_visiting = my_property_class(main_frame,"just_visting", 10, 0, 160, 140)
     just_visiting.update_dicto(just_visiting, 10)

@@ -18,6 +18,7 @@ existing_rooms = []
 # start making rooms with no. 100
 room = 100
 
+
 # ------------☺☺☺ INSTRUCTIONS ☺☺☺------------
 #  A DETAILED EXPLANATION OF THE DATA STORED IN THE ROOMS DICTIONARY WILL BE SOON ADDED AS A DOCSTRING
 #  IN THE END OF THE CODE
@@ -32,7 +33,7 @@ class threaded_Client(threading.Thread):
     def run(self):
         global rooms, room
         print("Running: " + threading.Thread.getName(self))
-        print("waiting for client to send further action msg!",threading.Thread.getName(self))
+        print("waiting for client to send further action msg!", threading.Thread.getName(self))
         # wait for client to send whether he/she wants to join a room or create a room
         what_to_do = (self.client.recv(16).decode('utf-8'))
         print("recved what to do msg from client", threading.Thread.getName(self))
@@ -55,7 +56,7 @@ class threaded_Client(threading.Thread):
         rooms[self.username]["fav_color"] = self.fav_color
         # + color responses
         rooms[self.room]["color responses"][0] += 1
-        rooms[self.room]["color responses"][1].update({self.username:self.fav_color})
+        rooms[self.room]["color responses"][1].update({self.username: self.fav_color})
         # check in while True for color responses == to n_players , then send the list of all colors
         while True:
             if rooms[self.room]["color responses"] == len(rooms[self.room]["players list"]):
@@ -65,7 +66,6 @@ class threaded_Client(threading.Thread):
             if rooms[self.room]["color responses"] != len(rooms[self.room]["players list"]):
                 time.sleep(0.5)
                 pass
-
 
         # after this we start the actual game!
 
@@ -143,29 +143,24 @@ class threaded_Client(threading.Thread):
             rooms[self.room]["send flag"] = True
 
     def assess_situation(self):
-        
+
         # this is while True no. (1)
         while True:
 
             # constantly run the loop(2) to play game then the main_game fnc will return for situation handling
             lcs = self.main_game()
 
-            # assess the situation
-            # possible situations:
-            # 1> CLIENT LEAVES GRACEFULLY
-            # 2> CLIENT GETS DISCONNECTED (doubt if player is active)
-            # 3> HOST ENDS THE GAME
-            # 4> HOST LEAVES ABRUPTLY
-            # situation 1 : make the player leave but keep his dicto alive, ->then ask host if he wants to still continue
-            # the game if yes then erase the player dicto and distribute props to bank and if no then ask host to save the game
-            # sit 2, the player will be asked if he/she is still in the game with a timeout of 20 seconds if timeout happens zthen proceed
-            # as situation 1 after '->'
-            # situation 3 : ask host to save game
-            # situation 4 : ask player1 the option to end and save game
+            # assess the situation possible situations: 1> CLIENT LEAVES GRACEFULLY 2> CLIENT GETS DISCONNECTED (
+            # doubt if player is active) 3> HOST ENDS THE GAME 4> HOST LEAVES ABRUPTLY situation 1 : make the player
+            # leave but keep his dicto alive, ->then ask host if he wants to still continue the game if yes then
+            # erase the player dicto and distribute props to bank and if no then ask host to save the game sit 2,
+            # the player will be asked if he/she is still in the game with a timeout of 20 seconds if timeout happens
+            # then proceed as situation 1 after '->' situation 3 : ask host to save game situation 4 : ask player1
+            # the option to end and save game
 
             # also make a backup feature in the game
             # think of a way to let player join again with same game status as before
-            
+
             print(lcs)
             # lcs = leave_confirmation_status and wtd = what_to_do
             if lcs == "check if active":
@@ -177,7 +172,7 @@ class threaded_Client(threading.Thread):
             if lcs == "ask to save":
                 wtd = self.end_game_confirm()
 
-        # ACC TO WTD REACT FURTHER AND THEN AFTER THAT RESPECTIVE FNC REACT ACC. TO THE NEW WTD I.E PROBLY BREAK
+        # ACC TO WTD REACT FURTHER AND THEN AFTER THAT RESPECTIVE FNC REACT ACC. TO THE NEW WTD I.E PROBABLY BREAK
         # OR RUN MAIN_GAME_AGAIN WHICH MEANS TO JUST CONTINUE THE LOOP OF GAME AS USUAL
         self.client.close()
 
@@ -185,31 +180,38 @@ class threaded_Client(threading.Thread):
         pass
         # return a value ; active or not , if host not active then ask player1
         # if player not active then ask host his options
+
     def save_room(self):
         pass
+
     def end_game_confirm(self):
         # it is ; ask to save room or end game now
         pass
+
     def end_game(self):
         pass
+
     def check_if_active(self):
         pass
+
     def close_conn(self, conn):
         pass
+
     def read_saved_game(self):
         pass
+
     def waiting_mode(self):
         pass
 
     def allocate_chance_num(self):
         """# increment chance alloc num by 1
         rooms[self.room]["chance alloc num"] += 1
-        # return the chance -1 to allocate the chance num to player
+        return the chance -1 to allocate the chance num to player
         return rooms[self.room]["chance alloc num"] - 1
-        # one is subtracted while returning above as we added one before
-        # this is so as we need to add one and also return chance num to player
-        # if we wrote return before and increment later then the execution of the function will stop at the return
-        # statement and incrementation of chance num wouldn't happen!"""
+        one is subtracted while returning above as we added one before
+        this is so as we need to add one and also return chance num to player
+        if we wrote return before and increment later then the execution of the function will stop at the return
+        statement and incrementation of chance num wouldn't happen!"""
 
         self.chance = rooms[self.room]["chance alloc num"]
         rooms[self.room]["chance alloc num"] += 1
@@ -219,18 +221,20 @@ class threaded_Client(threading.Thread):
         # the values are appropriate for a fresh game (new game)
         # if a saved game is to be started again then never ever call this function!
 
-        rooms[self.room]["game info"].update({self.username:{"color":None,"money":1800,"position":0,"properties":{},}})
-        # the "properties" key will have all the prop.s which thye player owns along with it status which can be- mortgaged
-        # or normal and the no. of houses on  it for 0 = no house , 1 = 1 house and so on and 5 for a hotel
+        rooms[self.room]["game info"].update(
+            {self.username: {"color": None, "money": 1800, "position": 0, "properties": {}, }}
+        )
+        # the "properties" key will have all the prop.s which the player owns along with it status which can be-
+        # mortgaged or normal and the no. of houses on  it for 0 = no house , 1 = 1 house and so on and 5 for a hotel
         # more keys may be added later as needed!
 
-        # add the player inthe chances list(stored in rooms dicto) soi that we know whose chance it is and we can react acc.
-        rooms[self.room]["player chances"].update({self.username:self.chance})
+        # add the player in the chances list(stored in rooms dicto) soi that we know whose chance it is and we can
+        # react acc.
+        rooms[self.room]["player chances"].update({self.username: self.chance})
 
         rooms[self.room]["players list"].append(self.username)
 
-        room_player_objs.update({self.room: {self.username: self.client}})
-
+        room_player_objs[self.room].update({self.username: self.client})
 
     def create_room(self):
         global rooms, room
@@ -260,13 +264,14 @@ class threaded_Client(threading.Thread):
         # the rooms dicto will be updated with a room no. and other necessary information
         # the game info key is the main key in which the game data will be stored and sent to all the clients at the
         # start of the game after which the server and all the clients will maintain it according to the instructions sent
-        rooms.update({self.room: {"host": self.username, "status": "looking for players","color responses":[0,{}],
-                              "players list": [],"chance alloc num":0, "game info": {},"player chances":{}, "chance":0,
-                              "rounds completed":0, "send flag":True}})
-
+        rooms.update({self.room: {"host": self.username, "status": "looking for players", "color responses": [0, {}],
+                                  "players list": [], "chance alloc num": 0, "game info": {}, "player chances": {},
+                                  "chance": 0,
+                                  "rounds completed": 0, "send flag": True}})
+        room_player_objs.update({self.room:{}})
         self.allocate_chance_num()
         self.new_player_dicto_update()
-        print(self.username,"'s chance is",str(self. chance))
+        print(self.username, "'s chance is", str(self.chance))
         # send our host the players in his room (at the moment it would be only one player i.e the host itself)
         self.client.send(pickle.dumps(rooms[self.room]["players list"]))
 
@@ -275,19 +280,19 @@ class threaded_Client(threading.Thread):
         rooms[self.room]["status"] = "room locked temp"
         print("starting the game for room", self.room, "whose host is", self.username)
 
-        #send_game_info_L = len(pickle.dumps(rooms[self.room]))
+        # send_game_info_L = len(pickle.dumps(rooms[self.room]))
 
         # sending all the players a msg to start the game so our client side code knows to update the screen
         for player in rooms[self.room]["players list"]:
             print("sending to", player)
-            room_player_objs[self.room]["players"][player].send(pickle.dumps("start game"))
+            room_player_objs[self.room][player].send(pickle.dumps("start game"))
             # send length of the game info , done as encounteru=ing eoferror on client side!
-            #room_player_objs[self.room]["players"][player].send(bytes(str(send_game_info_L), 'utf-8'))
-            room_player_objs[self.room]["players"][player].send(pickle.dumps(rooms[self.room]))
-            #room_player_objs[self.room]["players"][player].send(pickle.dumps(("status","game started")))
+            # room_player_objs[self.room][player].send(bytes(str(send_game_info_L), 'utf-8'))
+            room_player_objs[self.room][player].send(pickle.dumps(rooms[self.room]))
+            # room_player_objs[self.room][player].send(pickle.dumps(("status","game started")))
 
         # as we are not sending the game info list to host so:
-        #room_player_objs[self.room]["players"][self.username].send(pickle.dumps(rooms[self.room]))
+        # room_player_objs[self.room][self.username].send(pickle.dumps(rooms[self.room]))
         print("successfully sent msg to all the players")
 
         # there are three states of status - room locked, looking for players and game started (but room not locked)
@@ -303,7 +308,6 @@ class threaded_Client(threading.Thread):
 
         # run only after game ends or player leaves
         self.client.close()
-
 
     def recv_room_num(self):
         self.room = self.client.recv(16).decode('utf-8')
@@ -326,7 +330,7 @@ class threaded_Client(threading.Thread):
                 self.username = str(self.client.recv(self.username_length).decode('utf-8'))
                 print("received username from", self.addr, ":", self.username, "for room", self.room)
 
-                room_player_objs[self.room]["players"][self.username] = self.client
+                room_player_objs[self.room][self.username] = self.client
                 self.allocate_chance_num()
                 self.new_player_dicto_update()
                 print(self.username, "'s chance is", str(self.chance))
@@ -334,15 +338,14 @@ class threaded_Client(threading.Thread):
                 # self.client.send(pickle.dumps(rooms[self.room]["players list"]))
                 # send all the players the new list
                 for player in rooms[self.room]["players list"]:
-                    room_player_objs[self.room]["players"][player].send(pickle.dumps(rooms[self.room]["players list"]))
+                    room_player_objs[self.room][player].send(pickle.dumps(rooms[self.room]["players list"]))
 
                 self.play_game()
-
 
                 # this will only be reached when player leaves or game ends
                 self.client.close()
 
-            #elif rooms[self.room]["status"] == "game started":
+            # elif rooms[self.room]["status"] == "game started":
             # will be developed soon!
 
             elif rooms[self.room]["status"] == "room locked temp":
@@ -364,16 +367,17 @@ class threaded_Client(threading.Thread):
                 # new idea here - do a while loop so that the player joins automatically when the room is again unlocked
                 # thus our client doesn't have to send to join room again
             elif rooms[self.room]["status"] == "room locked":
-                self.client.send(bytes("room locked",'utf-8'))
+                self.client.send(bytes("room locked", 'utf-8'))
                 self.recv_room_num()
 
             # this is only while in developing stage as "game started" mode is not covered yet
             else:
-                self.client.send(bytes("error",'utf-8'))
+                self.client.send(bytes("error", 'utf-8'))
                 self.client.close()
 
     def join_room(self):
         self.recv_room_num()
+
 
 while True:
     client, addr = server.accept()
