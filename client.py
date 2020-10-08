@@ -174,23 +174,23 @@ def recv_game_details():
     game_info = client.recv(1024)
     game_info = pickle.loads(game_info)
     print(game_info)
-
-    color_button = tk.Button(start_frame, text="Select color",
-                    command=lambda:choose_color())
-    color_button.pack()
+    cc_thread = threading.Thread(target= choose_color())
+    cc_thread.start()
 
 # Function that will be invoked when the
 # button will be clicked in the main window
 def choose_color():
     # variable to store hexadecimal code of color
     color_code = colorchooser.askcolor(title="Choose color")
+    print(color_code)
+    print("after color chooser")
     # send our server the color our client chose
-    client.send(bytes(color_code,'utf-8'))
+    client.send(pickle.dumps(color_code))
 
     # take response: it would be other player's fav color and our's too as server will send combined dicto
     fav_colors = pickle.loads(client.recv(1024))
     print(fav_colors)
-    game_info.update({fav_colors})
+    game_info.update(fav_colors)
     display_game_screen()
 
     global player_objects
@@ -400,5 +400,7 @@ def display_game_screen():
 
 
 # ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
-
+"""    color_button = tk.Button(start_frame, text="Select color",
+                    command=lambda:choose_color())
+    color_button.grid()"""
 container.mainloop()

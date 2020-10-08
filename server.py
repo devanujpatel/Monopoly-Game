@@ -50,20 +50,26 @@ class threaded_Client(threading.Thread):
 
         # send flag = True means u are good to go and send flag False means wait for sometime and then send when senn
         # flag is True
-
+        print("trying to recv fav color",self.username)
         # first of all we get the favourite color of each player
-        self.fav_color = self.client.recv(1024).decode('utf-8')
-        rooms[self.username]["fav_color"] = self.fav_color
+        self.fav_color = pickle.loads(self.client.recv(1024))
+        print("recved fav color",self.username,":",self.fav_color)
+        rooms[self.room]["game info"][self.username]["color"] = self.fav_color
+        print(rooms[self.room]["game info"][self.username])
         # + color responses
         rooms[self.room]["color responses"][0] += 1
         rooms[self.room]["color responses"][1].update({self.username: self.fav_color})
+        print(rooms[self.room]["color responses"])
+        print(len(rooms[self.room]["players list"]))
         # check in while True for color responses == to n_players , then send the list of all colors
         while True:
-            if rooms[self.room]["color responses"] == len(rooms[self.room]["players list"]):
-                self.client.send(pickle.dumps(rooms[self.room]["color responses"[1]]))
+            if rooms[self.room]["color responses"][0] == len(rooms[self.room]["players list"]):
+                print("sending color responses ;by",self.username)
+                self.client.send(pickle.dumps(rooms[self.room]["color responses"][1]))
                 break
 
             if rooms[self.room]["color responses"] != len(rooms[self.room]["players list"]):
+                print("sleeping , then waiting for all color responses", self.username)
                 time.sleep(0.5)
                 pass
 
@@ -174,7 +180,7 @@ class threaded_Client(threading.Thread):
 
         # ACC TO WTD REACT FURTHER AND THEN AFTER THAT RESPECTIVE FNC REACT ACC. TO THE NEW WTD I.E PROBABLY BREAK
         # OR RUN MAIN_GAME_AGAIN WHICH MEANS TO JUST CONTINUE THE LOOP OF GAME AS USUAL
-        self.client.close()
+        #self.client.close()
 
     def confirm_leave(self, player_desig):
         pass
@@ -278,36 +284,29 @@ class threaded_Client(threading.Thread):
         # recv a msg to know that host wants to start the game -- recall blocking sockets
         self.start_game = self.client.recv(24)
         rooms[self.room]["status"] = "room locked temp"
+        rooms[self.room].update({"start game count":0})
         print("starting the game for room", self.room, "whose host is", self.username)
+        print("sending to", self.username)
+        room_player_objs[self.room][self.username].send(pickle.dumps("start game"))
+        room_player_objs[self.room][self.username].send(pickle.dumps(rooms[self.room]))
+        rooms[self.room]["start game count"] += 1
 
-        # send_game_info_L = len(pickle.dumps(rooms[self.room]))
-
-        # sending all the players a msg to start the game so our client side code knows to update the screen
-        for player in rooms[self.room]["players list"]:
-            print("sending to", player)
-            room_player_objs[self.room][player].send(pickle.dumps("start game"))
-            # send length of the game info , done as encounteru=ing eoferror on client side!
-            # room_player_objs[self.room][player].send(bytes(str(send_game_info_L), 'utf-8'))
-            room_player_objs[self.room][player].send(pickle.dumps(rooms[self.room]))
-            # room_player_objs[self.room][player].send(pickle.dumps(("status","game started")))
-
-        # as we are not sending the game info list to host so:
-        # room_player_objs[self.room][self.username].send(pickle.dumps(rooms[self.room]))
-        print("successfully sent msg to all the players")
+        if rooms[self.room]["start game count"] == len(rooms[self.room]["players list"]):
+            print("successfully sent msg to all the players", self.username)
+            rooms[self.room]["status"] = "game started"
+        else:
+            pass
+        self.play_game()
 
         # there are three states of status - room locked, looking for players and game started (but room not locked)
         # for a room to be locked staus should be room locked else it will be looking for players or game started
         # in game started more
         # players can join the room in game started or in ooking for plaeyrs mode but no wwhen room is locked
-        rooms[self.room]["status"] = "game started"
+
 
         # from now on player and host have to walk similar paths so we will run a function common to both
         # though host still gets some additional powers
 
-        self.play_game()
-
-        # run only after game ends or player leaves
-        self.client.close()
 
     def recv_room_num(self):
         self.room = self.client.recv(16).decode('utf-8')
@@ -340,10 +339,22 @@ class threaded_Client(threading.Thread):
                 for player in rooms[self.room]["players list"]:
                     room_player_objs[self.room][player].send(pickle.dumps(rooms[self.room]["players list"]))
 
-                self.play_game()
+                while True:
+                    if rooms[self.room]["status"] == "room locked temp":
+                        print("sending to", self.username)
+                        room_player_objs[self.room][self.username].send(pickle.dumps("start game"))
+                        room_player_objs[self.room][self.username].send(pickle.dumps(rooms[self.room]))
+                        rooms[self.room]["start game count"] += 1
 
-                # this will only be reached when player leaves or game ends
-                self.client.close()
+                        if rooms[self.room]["start game count"] == len(rooms[self.room]["players list"]):
+                            print("successfully sent msg to all the players", self.username)
+                            rooms[self.room]["status"] = "game started"
+                        else:
+                            pass
+                        print('running play game')
+                        self.play_game()
+                    else:
+                        time.sleep(0.5)
 
             # elif rooms[self.room]["status"] == "game started":
             # will be developed soon!
