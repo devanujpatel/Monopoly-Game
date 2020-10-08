@@ -174,34 +174,35 @@ def recv_game_details():
     game_info = client.recv(1024)
     game_info = pickle.loads(game_info)
     print(game_info)
+    display_thread = threading.Thread(target= display_game_screen())
+    display_thread.start()
     cc_thread = threading.Thread(target= choose_color())
     cc_thread.start()
-
+    global created_objs
+    created_objs = {}
+    npc_thread = threading.Thread(target= get_color_updates())
+    npc_thread.start()
 # Function that will be invoked when the
 # button will be clicked in the main window
 def choose_color():
+    print(threading.enumerate())
     # variable to store hexadecimal code of color
     color_code = colorchooser.askcolor(title="Choose color")
     print(color_code)
-    print("after color chooser")
+    scr = (username, color_code[1])
     # send our server the color our client chose
-    client.send(pickle.dumps(color_code))
+    client.send(pickle.dumps(scr))
 
-    # take response: it would be other player's fav color and our's too as server will send combined dicto
-    fav_colors = pickle.loads(client.recv(1024))
-    print(fav_colors)
-    game_info.update(fav_colors)
-    display_game_screen()
+def get_color_updates():
+    while True:
+        npc = pickle.loads(client.recv(1024))
+        print(npc)
 
-    global player_objects
-    player_objects = {}
-    create_objs()
-
-def create_objs():
-    global game_info, stat_box
-    # create player class objs which will help to update the display when we recv data updates in the recv thread
-    for player in game_info(['players list']):
-        player_objects.update({player:Player(main_frame,stat_box,game_info[player])})
+        if npc == "end":
+            break
+        else:
+            #created_objs.update({npc[0]:Player(main_frame,status_frame,game_info)})
+            print('object created:',npc[0])
 
 def recv_data_updates():
     while True:

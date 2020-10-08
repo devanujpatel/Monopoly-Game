@@ -18,12 +18,6 @@ existing_rooms = []
 # start making rooms with no. 100
 room = 100
 
-
-# ------------☺☺☺ INSTRUCTIONS ☺☺☺------------
-#  A DETAILED EXPLANATION OF THE DATA STORED IN THE ROOMS DICTIONARY WILL BE SOON ADDED AS A DOCSTRING
-#  IN THE END OF THE CODE
-# this is so as it is hard to write long comments so all the usages and reasons of the dictionary will soon be added
-
 class threaded_Client(threading.Thread):
     def __init__(self, client, addr):
         threading.Thread.__init__(self)
@@ -50,29 +44,19 @@ class threaded_Client(threading.Thread):
 
         # send flag = True means u are good to go and send flag False means wait for sometime and then send when senn
         # flag is True
-        print("trying to recv fav color",self.username)
         # first of all we get the favourite color of each player
         self.fav_color = pickle.loads(self.client.recv(1024))
-        print("recved fav color",self.username,":",self.fav_color)
         rooms[self.room]["game info"][self.username]["color"] = self.fav_color
-        print(rooms[self.room]["game info"][self.username])
         # + color responses
         rooms[self.room]["color responses"][0] += 1
         rooms[self.room]["color responses"][1].update({self.username: self.fav_color})
-        print(rooms[self.room]["color responses"])
-        print(len(rooms[self.room]["players list"]))
         # check in while True for color responses == to n_players , then send the list of all colors
-        while True:
-            if rooms[self.room]["color responses"][0] == len(rooms[self.room]["players list"]):
-                print("sending color responses ;by",self.username)
-                self.client.send(pickle.dumps(rooms[self.room]["color responses"][1]))
-                break
-
-            if rooms[self.room]["color responses"] != len(rooms[self.room]["players list"]):
-                print("sleeping , then waiting for all color responses", self.username)
-                time.sleep(0.5)
-                pass
-
+        for player in rooms[self.room]["players list"]:
+            print("sending color responses ;by",player)
+            room_player_objs[self.room][player].send(pickle.dumps(self.fav_color))
+        if rooms[self.room]["color responses"][0] == len(rooms[self.room]["players list"]):
+            for player in rooms[self.room]["players list"]:
+                room_player_objs[self.room][player].send(pickle.dumps("end"))
         # after this we start the actual game!
 
         # a client conn only gets closed when he/she leaves
