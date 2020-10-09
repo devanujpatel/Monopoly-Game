@@ -168,12 +168,12 @@ def start_game_host():
     print("player started the game")
 
 def recv_game_details():
-    global game_info
+    global data_holder
     print(threading.enumerate())
     print("recving game info")
-    game_info = client.recv(1024)
-    game_info = pickle.loads(game_info)
-    print(game_info)
+    data_holder = client.recv(1024)
+    data_holder = pickle.loads(data_holder)
+    print(data_holder)
 
     display_thread = threading.Thread(target= display_game_screen())
     display_thread.start()
@@ -181,6 +181,8 @@ def recv_game_details():
     cc_thread.start()
 
 def choose_color():
+
+    # GIVE DEFAULT COLOR
     print(threading.enumerate())
     # variable to store hexadecimal code of color
     color_code = colorchooser.askcolor(title="Choose color")
@@ -191,6 +193,8 @@ def choose_color():
     get_color_updates()
 
 def get_color_updates():
+    global created_objs
+    created_objs = {}
     client.send(pickle.dumps("start"))
     while True:
         npc = pickle.loads(client.recv(1024))
@@ -198,8 +202,9 @@ def get_color_updates():
 
         if npc == "end":
             break
-
-        #created_objs.update({npc[0]:Player(main_frame,status_frame,game_info)})
+        data_holder["game info"][npc[0]]["color"] = npc[1]
+        print(data_holder)
+        created_objs.update({npc[0]:Player(main_frame,status_frame,data_holder,npc[0])})
         print('object created:',npc[0])
 
 def recv_data_updates():
@@ -207,16 +212,16 @@ def recv_data_updates():
         data_update = pickle.loads(client.recv(1024))
         print(data_update)
         if len(data_update) == 3:
-            game_info[[data_update[0]]][[data_update[1]]] = data_update[2]
+            data_holder[[data_update[0]]][[data_update[1]]] = data_update[2]
         elif len(data_update) == 2:
-            game_info[[data_update[0]]] = data_update[1]
-        print(game_info)
+            data_holder[[data_update[0]]] = data_update[1]
+        print(data_holder)
         # run update info method here
 
 def seek_chance():
     while True:
         time.sleep(1.0)
-        if game_info["chance"] == game_info["player chances"][username]:
+        if data_holder["chance"] == data_holder["player chances"][username]:
             pass
             # display roll dice and other stuff like that
         else:

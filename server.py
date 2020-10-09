@@ -14,6 +14,9 @@ room_game_info = {}
 # a dicto which will contain socket objects of each and every player in a particular room
 room_player_objs = {}
 
+# for holding token directiosn of a room
+token_dir = {}
+
 existing_rooms = []
 # start making rooms with no. 100
 room = 100
@@ -69,7 +72,7 @@ class threaded_Client(threading.Thread):
         # send the leftover players the color
         while True:
             for player in self.not_reachable:
-                print("trying to send not reachable player;",player)
+                time.sleep(0.3)
                 if rooms[self.room]["color responses"][2][player] == "ready":
                     room_player_objs[self.room][player].send(pickle.dumps(self.fav_color))
                     self.sent.append(player)
@@ -80,12 +83,14 @@ class threaded_Client(threading.Thread):
                         room_player_objs[self.room][player].send(pickle.dumps("end"))
                     break
 
-        # check in while True for color responses == to n_players , then send the list of all colors
-
         # after this we start the actual game!
 
+
+
+    def main_game(self):
+
         # a client conn only gets closed when he/she leaves
-        # so when the main while loop(1) end s the conn will get over
+        # so when the main while loop(1) ends the conn will get over
         # when while loop (2) gets over their is a doubt whether the client is disconnected
 
         # can make a option to save and leave game when one player leaves ,to the host
@@ -98,7 +103,6 @@ class threaded_Client(threading.Thread):
         # the loop(2) is responsible to run the game
         # whereas the loop(1) is responsible to confirm disconnections
 
-    def main_game(self):
         # loop (2)
         while True:
             # look out for our client; if something is sent we need to MUNCH DOWN THE DATA
@@ -237,8 +241,7 @@ class threaded_Client(threading.Thread):
         # if a saved game is to be started again then never ever call this function!
 
         rooms[self.room]["game info"].update(
-            {self.username: {"color": None, "money": 1800, "position": 0, "properties": {}, }}
-        )
+            {self.username: {"color": None, "money": 1800, "position": 0, "properties": {}, }} )
         # the "properties" key will have all the prop.s which the player owns along with it status which can be-
         # mortgaged or normal and the no. of houses on  it for 0 = no house , 1 = 1 house and so on and 5 for a hotel
         # more keys may be added later as needed!
@@ -250,6 +253,9 @@ class threaded_Client(threading.Thread):
         rooms[self.room]["players list"].append(self.username)
 
         room_player_objs[self.room].update({self.username: self.client})
+
+        rooms[self.room]["token dir"].update({self.username:token_dir[self.room].pop(-1)})
+
 
     def create_room(self):
         global rooms, room
@@ -281,7 +287,9 @@ class threaded_Client(threading.Thread):
         # start of the game after which the server and all the clients will maintain it according to the instructions sent
         rooms.update({self.room: {"host": self.username, "status": "looking for players", "color responses": [0, [],{}],
                                   "players list": [], "chance alloc num": 0, "game info": {}, "player chances": {},
-                                  "chance": 0,"rounds completed": 0, "send flag": True}})
+                                  "chance": 0,"rounds completed": 0,"token dir":{} ,"send flag": True}})
+
+        token_dir.update({self.room:["N","S","E","W","NE","SE","NW","SW"]})
         room_player_objs.update({self.room:{}})
         self.allocate_chance_num()
         self.new_player_dicto_update()
@@ -397,11 +405,10 @@ class threaded_Client(threading.Thread):
     def join_room(self):
         self.recv_room_num()
 
-
 while True:
     client, addr = server.accept()
     print("Accepted connection from", addr)
-    print("creating new thread for", addr)
+    print("creating new thread")
     client_thread = threaded_Client(client, addr)
     client_thread.start()
     print("Looking for more clients in main thread")
