@@ -44,19 +44,44 @@ class threaded_Client(threading.Thread):
 
         # send flag = True means u are good to go and send flag False means wait for sometime and then send when senn
         # flag is True
+
         # first of all we get the favourite color of each player
+        rooms[self.room]["color responses"][2].update({self.username:"not ready"})
         self.fav_color = pickle.loads(self.client.recv(1024))
+        rooms[self.room]["color responses"][2].update({self.username:"ready"})
+
         rooms[self.room]["game info"][self.username]["color"] = self.fav_color
         # + color responses
         rooms[self.room]["color responses"][0] += 1
-        rooms[self.room]["color responses"][1].update({self.username: self.fav_color})
-        # check in while True for color responses == to n_players , then send the list of all colors
+        rooms[self.room]["color responses"][1].append(self.fav_color)
+        self.sent = []
+        self.not_reachable = []
+
+        # after the for loop we will know how many players are left to send the color responses
         for player in rooms[self.room]["players list"]:
-            print("sending color responses ;by",player)
-            room_player_objs[self.room][player].send(pickle.dumps(self.fav_color))
-        if rooms[self.room]["color responses"][0] == len(rooms[self.room]["players list"]):
-            for player in rooms[self.room]["players list"]:
-                room_player_objs[self.room][player].send(pickle.dumps("end"))
+            if rooms[self.room]["color responses"][2][player] == "ready" and player not in self.sent:
+                room_player_objs[self.room][player].send(pickle.dumps(self.fav_color))
+                self.sent.append(player)
+            elif rooms[self.room]["color responses"][2][player] == "not ready":
+                self.not_reachable.append(player)
+        print(self.sent)
+        print(self.not_reachable)
+        # send the leftover players the color
+        while True:
+            for player in self.not_reachable:
+                print("trying to send not reachable player;",player)
+                if rooms[self.room]["color responses"][2][player] == "ready":
+                    room_player_objs[self.room][player].send(pickle.dumps(self.fav_color))
+                    self.sent.append(player)
+                    self.not_reachable.remove(player)
+
+                if len(self.not_reachable) == 0:
+                    for player in rooms[self.room]["players list"]:
+                        room_player_objs[self.room][player].send(pickle.dumps("end"))
+                    break
+
+        # check in while True for color responses == to n_players , then send the list of all colors
+
         # after this we start the actual game!
 
         # a client conn only gets closed when he/she leaves
@@ -254,10 +279,9 @@ class threaded_Client(threading.Thread):
         # the rooms dicto will be updated with a room no. and other necessary information
         # the game info key is the main key in which the game data will be stored and sent to all the clients at the
         # start of the game after which the server and all the clients will maintain it according to the instructions sent
-        rooms.update({self.room: {"host": self.username, "status": "looking for players", "color responses": [0, {}],
+        rooms.update({self.room: {"host": self.username, "status": "looking for players", "color responses": [0, [],{}],
                                   "players list": [], "chance alloc num": 0, "game info": {}, "player chances": {},
-                                  "chance": 0,
-                                  "rounds completed": 0, "send flag": True}})
+                                  "chance": 0,"rounds completed": 0, "send flag": True}})
         room_player_objs.update({self.room:{}})
         self.allocate_chance_num()
         self.new_player_dicto_update()

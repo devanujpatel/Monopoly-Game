@@ -174,16 +174,12 @@ def recv_game_details():
     game_info = client.recv(1024)
     game_info = pickle.loads(game_info)
     print(game_info)
+
     display_thread = threading.Thread(target= display_game_screen())
     display_thread.start()
     cc_thread = threading.Thread(target= choose_color())
     cc_thread.start()
-    global created_objs
-    created_objs = {}
-    npc_thread = threading.Thread(target= get_color_updates())
-    npc_thread.start()
-# Function that will be invoked when the
-# button will be clicked in the main window
+
 def choose_color():
     print(threading.enumerate())
     # variable to store hexadecimal code of color
@@ -192,17 +188,19 @@ def choose_color():
     scr = (username, color_code[1])
     # send our server the color our client chose
     client.send(pickle.dumps(scr))
+    get_color_updates()
 
 def get_color_updates():
+    client.send(pickle.dumps("start"))
     while True:
         npc = pickle.loads(client.recv(1024))
         print(npc)
 
         if npc == "end":
             break
-        else:
-            #created_objs.update({npc[0]:Player(main_frame,status_frame,game_info)})
-            print('object created:',npc[0])
+
+        #created_objs.update({npc[0]:Player(main_frame,status_frame,game_info)})
+        print('object created:',npc[0])
 
 def recv_data_updates():
     while True:
