@@ -60,29 +60,6 @@ def join_room():
     client.send(bytes("join room", 'utf-8'))
     ask_room_num()
 
-def ask_username():
-    # ask for username
-    global ok_but_for_username, username_entry, username_label
-    username_label = tk.Label(start_frame, text="Enter your username", font=font)
-    username_label.grid(row=2, column=3)
-    username_entry = tk.Entry(start_frame)
-    ok_but_for_username = tk.Button(start_frame, text="Okay", font=font, command=lambda: ok_but_for_username_clicked())
-    username_entry.grid(row=3, column=3)
-    ok_but_for_username.grid(row=4, column=3)
-
-def ok_but_for_username_clicked():
-    username_label.grid_forget()
-    ok_but_for_username.grid_forget()
-    username_entry.grid_forget()
-    global username
-    username = str(username_entry.get())
-    print("sending username")
-    username_sendable = f"{len(username):<{HEADER}}" + username
-    client.send(bytes(username_sendable, 'utf-8'))
-    check_on_new_thread_npl = recv_new_players_list_thread()
-    check_on_new_thread_npl.start()
-    print("check for new players list",check_on_new_thread_npl.native_id)
-
 def ask_room_num():
     global room_num_entry, ok_but_room_num, room_label
     room_label = tk.Label(start_frame,text="Enter the number of the room which you want to join!", font=font)
@@ -123,6 +100,30 @@ def ok_but_room_num_clkd():
         # ask client to enter another room num
         print("room is either full or locked by the host!")
         ask_room_num()
+
+def ask_username():
+    # ask for username
+    global ok_but_for_username, username_entry, username_label
+    username_label = tk.Label(start_frame, text="Enter your username", font=font)
+    username_label.grid(row=2, column=3)
+    username_entry = tk.Entry(start_frame)
+    ok_but_for_username = tk.Button(start_frame, text="Okay", font=font, command=lambda: ok_but_for_username_clicked())
+    username_entry.grid(row=3, column=3)
+    ok_but_for_username.grid(row=4, column=3)
+
+def ok_but_for_username_clicked():
+    global username
+    username_label.grid_forget()
+    ok_but_for_username.grid_forget()
+    username_entry.grid_forget()
+    username = str(username_entry.get())
+    print("sending username")
+    username_sendable = f"{len(username):<{HEADER}}" + username
+    client.send(bytes(username_sendable, 'utf-8'))
+    check_on_new_thread_npl = recv_new_players_list_thread()
+    check_on_new_thread_npl.start()
+    print("check for new players list",check_on_new_thread_npl.native_id)
+
 
 class recv_new_players_list_thread(threading.Thread):
     def __init__(self):
@@ -182,11 +183,13 @@ def recv_game_details():
 
 def choose_color():
 
-    # GIVE DEFAULT COLOR
+    # this blocks the execution of all the threads so a work arond is made , u will see later
+
     print(threading.enumerate())
     # variable to store hexadecimal code of color
     color_code = colorchooser.askcolor(title="Choose color")
     print(color_code)
+    # scr = sendable color tuple
     scr = (username, color_code[1])
     # send our server the color our client chose
     client.send(pickle.dumps(scr))
@@ -206,28 +209,6 @@ def get_color_updates():
         print(data_holder)
         created_objs.update({npc[0]:Player(main_frame,status_frame,data_holder,npc[0])})
         print('object created:',npc[0])
-
-def recv_data_updates():
-    while True:
-        data_update = pickle.loads(client.recv(1024))
-        print(data_update)
-        if len(data_update) == 3:
-            data_holder[[data_update[0]]][[data_update[1]]] = data_update[2]
-        elif len(data_update) == 2:
-            data_holder[[data_update[0]]] = data_update[1]
-        print(data_holder)
-        # run update info method here
-
-def seek_chance():
-    while True:
-        time.sleep(1.0)
-        if data_holder["chance"] == data_holder["player chances"][username]:
-            pass
-            # display roll dice and other stuff like that
-        else:
-            time.sleep(1.0)
-
-
 
 def display_game_screen():
     start_frame.grid_forget()
@@ -400,11 +381,35 @@ def display_game_screen():
                                  highlightbackground="black", highlightthickness=1, width=sf_width,height=sf_height)
     status_frame.grid(rowspan=4, columnspan=9, row=1, column=1)
 
-#def make_player_class_objs():
+# still working on how the game will come about
+# till now the idea is show roll dice and other btns stuff like that to the player whose chance is there and then send stuff to the server
+# for changes (data tup- as discussed in the server side code)
+# one thread will check for anything to recv
+# host can lock room , kick players out , etc
+# players can also later change their token color, name, chat with others, etc
+
+# CODE TILL NOW
+def recv_data_updates():
+    while True:
+        data_update = pickle.loads(client.recv(1024))
+        print(data_update)
+        if len(data_update) == 3:
+            data_holder[[data_update[0]]][[data_update[1]]] = data_update[2]
+        elif len(data_update) == 2:
+            data_holder[[data_update[0]]] = data_update[1]
+        print(data_holder)
+        # run update info method here
+
+def seek_chance():
+    while True:
+        time.sleep(1.0)
+        if data_holder["chance"] == data_holder["player chances"][username]:
+            pass
+            # display roll dice and other stuff like that
+        else:
+            time.sleep(1.0)
 
 
 # ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
-"""    color_button = tk.Button(start_frame, text="Select color",
-                    command=lambda:choose_color())
-    color_button.grid()"""
+
 container.mainloop()

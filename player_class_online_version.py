@@ -1,5 +1,6 @@
 import tkinter as tk
 
+# not yet completed! ☺☺
 class Player:
     # this class is meant only for display updates
     def __init__(self, main_frame_para,stat_box_para,dicto_para,name):
@@ -17,6 +18,7 @@ class Player:
         self.token.grid(row =  10 , column = 10, sticky=data_holder["token dir"][self.name])
 
 
+# ignore
 '''    def dis_token(self):
         # display our token on the go box
         self.token = tk.Label(main_frame,text ="T"+str(self.player_chance+1),bg = self.color,highlightbackground="black", highlightthickness=1 )
