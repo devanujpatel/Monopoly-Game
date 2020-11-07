@@ -14,12 +14,33 @@ room_game_info = {}
 # a dicto which will contain socket objects of each and every player in a particular room
 room_player_objs = {}
 
-# for holding token directiosn of a room
+# for holding token directions of a room
 token_dir = {}
+
+# clients whom we need to send existing room numbers
+send_room_num_clients = []
+
+# a list to contain all info to be sent to client in send_room_num_clients
+send_room_info_list = {}
 
 existing_rooms = []
 # start making rooms with no. 100
 room = 100
+
+def send_room_nums():
+    if len(send_room_num_clients) != 0:
+        send_item = []
+
+        if len(send_room_info_list) != 0:
+            for r in send_room_info_list.values():
+                send_item.append(r)
+
+            for client in send_room_num_clients:
+                try:
+                    print("sending to client",client)
+                    client.send(pickle.dumps(send_item))
+                except ConnectionError:
+                    send_room_num_clients.remove(client)
 
 class threaded_Client(threading.Thread):
     def __init__(self, client, addr):
@@ -41,19 +62,10 @@ class threaded_Client(threading.Thread):
 
         # join a room
         if what_to_do == "join room":
-            self.recv_room_num ()
+            self.join_room()
 
     def create_room(self):
         global rooms, room
-        # give our host player a room no.
-        self.room = room
-        print(self.room)
-        # add the particular room no. in existing rooms list to later know that the room exists
-        existing_rooms.append(self.room)
-
-        # increment for any other player who creates a new room as we want to give new room num to each room created
-        room += 1
-        print("next room created will be", str(room))
 
         # recv username from the player for that particular game
         # later a save game feature will be available and
@@ -65,17 +77,35 @@ class threaded_Client(threading.Thread):
 
         # now recv the username with buffer size = length of username received earlier
         self.username = str(self.client.recv(self.username_length).decode('utf-8'))
+
+        print(self.username)
+
+        # give our host player a room no.
+        self.room = room
+        print(self.room)
+        # add the particular room no. in existing rooms list to later know that the room exists
+        existing_rooms.append(self.room)
+
+        # increment for any other player who creates a new room as we want to give new room num to each room created
+        room += 1
+        print("next room created will be", str(room))
+
         print("received username from", self.addr, ":", self.username, "for room", self.room)
 
         print(self.username, "is creating a room.")
-        # the rooms dicto will be updated with a room no. and other necessary information
-        # the game info key is the main key in which the game data will be stored and sent to all the clients at the
-        # start of the game after which the server and all the clients will maintain it according to the instructions sent
+        # the rooms dicto will be updated with a room no. and other necessary information the game info key is the
+        # main key in which the game data will be stored and sent to all the clients at the start of the game after
+        # which the server and all the clients will maintain it according to the instructions sent
         rooms.update({self.room: {"host": self.username, "status": "looking for players", "color responses": [0, [],{}],
                                   "players list": [], "chance alloc num": 0, "game info": {}, "player chances": {},
                                   "chance": 0,"rounds completed": 0,"token dir":{} ,"send flag": True}})
 
-        # for storing and then allocating different poistions to players to avoid overlapping of tokens (these are sticky options of tkinter)
+        # now that the room is properly established we can send it to our clients who want to join a room
+        send_room_info_list.update({self.room:[self.room, self.username,1]})
+        send_room_nums()
+
+        # for storing and then allocating different poistions to players to avoid overlapping of tokens (these are
+        # sticky options of tkinter)
         token_dir.update({self.room:["N","S","E","W","NE","SE","NW","SW"]})
         # contains the client objects of particular room
         room_player_objs.update({self.room:{}})
@@ -139,11 +169,17 @@ class threaded_Client(threading.Thread):
         # add him in players list
         rooms[self.room]["players list"].append(self.username)
 
-        # in the objects dcto also which was created by the host
+        # in the objects dicto also which was created by the host
         room_player_objs[self.room].update({self.username: self.client})
 
         # for avoiding token overlapping as discussed earlier
         rooms[self.room]["token dir"].update({self.username: token_dir[self.room].pop(-1)})
+
+    def join_room(self):
+        send_room_num_clients.append(self.client)
+        send_room_nums()
+        print("CLIENT HERRE",self.client)
+        self.recv_room_num()
 
     def recv_room_num(self):
         self.room = self.client.recv(16).decode('utf-8')
@@ -160,6 +196,7 @@ class threaded_Client(threading.Thread):
         elif self.room in existing_rooms:
 
             if rooms[self.room]["status"] == "looking for players":
+                send_room_num_clients.remove(self.client)
                 self.client.send(bytes("joined successfully", 'utf-8'))
 
                 # receiving username length to later receive whole username
@@ -177,9 +214,12 @@ class threaded_Client(threading.Thread):
                 for player in rooms[self.room]["players list"]:
                     room_player_objs[self.room][player].send(pickle.dumps(rooms[self.room]["players list"]))
 
+                send_room_info_list[self.room][2] = len(rooms[self.room]["players list"])
+                send_room_nums()
+
                 # then check in a while true loop  for status - room locked temp(rlt) cuz when host starts the game the stat is changed to rlt
                 while True:
-                    time.sleep(0.6)
+                    time.sleep(0.5)
                     if rooms[self.room]["status"] == "room locked temp":
                         print("sending to", self.username)
                         room_player_objs[self.room][self.username].send(pickle.dumps("start game"))
@@ -194,7 +234,7 @@ class threaded_Client(threading.Thread):
                         print('running play game')
                         self.play_game()
                     else:
-                        time.sleep(0.6)
+                        time.sleep(0.5)
 
             # elif rooms[self.room]["status"] == "game started":
             # will be developed soon!
@@ -408,7 +448,9 @@ class threaded_Client(threading.Thread):
     def waiting_mode(self):
         pass
 
+
 while True:
+    time.sleep(3)
     client, addr = server.accept()
     print("Accepted connection from", addr)
     print("creating new thread")
@@ -416,6 +458,7 @@ while True:
     client_thread.start()
     print("Looking for more clients in main thread")
     print(threading.enumerate())
+    time.sleep(3)
 
 # TODO
 #   give timeouts so that you can reomove a person who is inactive for a long time like 120 seconds or 3 times inactive for 30 sec
@@ -426,7 +469,7 @@ while True:
 #   see the check recved room num comments for ndew features update   (3)
 #   also make a backup feature in the game (players can take backup at regular intervals)
 #   think of a way to let player join again with same game status as before
-#
+#   GIVE DEFAULT COLOR to players when they do not choose any color
 #   see below comments and resolve them and also see keep for the doubts
 
 # ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
