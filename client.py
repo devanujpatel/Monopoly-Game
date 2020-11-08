@@ -8,7 +8,7 @@ from tkinter import colorchooser, ttk
 
 client = socket.socket()
 client.connect(("192.168.29.202", 9999))
-HEADER = 10
+
 container = tk.Tk()
 
 # setting width and height of tkinter window so as to fit screen!
@@ -50,7 +50,6 @@ def create_room():
     print("sending to create new room!")
     client.send(pickle.dumps("create room"))
     ask_username()
-
 
 def join_room():
     global player_desig
@@ -221,7 +220,6 @@ def ok_but_for_username_clicked():
     check_on_new_thread_npl = recv_new_players_list_thread()
     check_on_new_thread_npl.start()
 
-
 class recv_new_players_list_thread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
@@ -313,7 +311,6 @@ class recv_new_players_list_thread(threading.Thread):
         recv_details_thread = threading.Thread(target=recv_game_details)
         recv_details_thread.start()
 
-
 def start_game_host():
     start_game_btn.grid_forget()
     client.send(pickle.dumps("start the game"))
@@ -326,8 +323,6 @@ def recv_game_details():
     print("recving game info")
     data_holder = client.recv(1024)
     data_holder = pickle.loads(data_holder)
-    print(data_holder)
-
     display_thread = threading.Thread(target=display_game_screen())
     display_thread.start()
     cc_thread = threading.Thread(target=choose_color())
@@ -337,36 +332,29 @@ def recv_game_details():
 def choose_color():
     # this blocks the execution of all the threads so a work arond is made , u will see later
 
-    print(threading.enumerate())
     # variable to store hexadecimal code of color
     color_code = colorchooser.askcolor(title="Choose color")
-    print(color_code)
+    print("color code = ",color_code)
     # scr = sendable color tuple
     scr = (username, color_code[1])
     # send our server the color our client chose
-    scr = pickle.dumps(scr)
-    scr_length = len(scr)
-    print(scr_length)
-    client.send(pickle.dumps(scr_length))
-    client.send(scr)
+    client.send(pickle.dumps(scr))
     get_color_updates()
-
 
 def get_color_updates():
     global created_objs
     created_objs = {}
-    client.send(pickle.dumps("start"))
+    #client.send(pickle.dumps("start"))
     while True:
         npc = pickle.loads(client.recv(1024))
-        print(npc)
+        print("npc =",npc)
 
         if npc == "end":
             break
+
         data_holder["game info"][npc[0]]["color"] = npc[1]
-        print(data_holder["game info"][npc[0]]["color"])
         created_objs.update({npc[0]: Player(main_frame, status_frame, data_holder, npc[0])})
         print('object created:', npc[0])
-
 
 def display_game_screen():
     start_frame.grid_forget()
