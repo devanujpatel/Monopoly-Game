@@ -4,10 +4,10 @@ from prop_class_for_online_version import my_property_class
 from player_class_online_version import Player
 
 # importing the choosecolor package
-from tkinter import colorchooser
+from tkinter import colorchooser, ttk
 
 client = socket.socket()
-client.connect(("192.168.29.201",9999))
+client.connect(("192.168.29.202",9999))
 HEADER = 10
 container = tk.Tk()
 
@@ -47,7 +47,7 @@ def create_room():
     join_room_btn.grid_forget()
     create_room_btn.grid_forget()
     print("sending to create new room!")
-    client.send(bytes("create room", 'utf-8'))
+    client.send(pickle.dumps("create room"))
     ask_username()
 
 def join_room():
@@ -57,11 +57,18 @@ def join_room():
     join_room_btn.grid_forget()
     create_room_btn.grid_forget()
     print("sending to join room!")
-    client.send(bytes("join room", 'utf-8'))
+    client.send(pickle.dumps("join room"))
     ask_room_num()
 
 def ask_room_num():
-    global room_num_entry, ok_but_room_num, room_label
+
+    global room_num_entry, ok_but_room_num, room_label, room_num_display_frame
+    room_num_display_frame = tk.Frame(container)
+    room_num_display_frame.grid()
+
+    recv_rooms_list_thread_OBJECT = recv_rooms_list_thread()
+    recv_rooms_list_thread_OBJECT.start()
+
     room_label = tk.Label(start_frame,text="Enter the number of the room which you want to join!", font=font)
     room_label.grid(row=2, column=2, columnspan=3)
     room_num_entry = tk.Entry(start_frame)
@@ -69,13 +76,98 @@ def ask_room_num():
     ok_but_room_num = tk.Button(start_frame, text="Ok",command = lambda:ok_but_room_num_clkd())
     ok_but_room_num.grid(row=4,column=3)
 
+class recv_rooms_list_thread(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+
+        # display a list of players on the screen
+        # it would be in the form of a treeview (of ttk)
+
+        # define our treeview
+
+        global rooms_view
+        rooms_view = ttk.Treeview(room_num_display_frame)
+
+        # format our columns
+        rooms_view["columns"] = ("Room Number", "Host Name", "No. of Players")
+        rooms_view.column("#0", width=0)
+        rooms_view.column("Room Number", width=150, minwidth=50, anchor="w")
+        rooms_view.column("Host Name", width=150, minwidth=40, anchor="w")
+        rooms_view.column("No. of Players", width=100, minwidth=20, anchor="w")
+
+        # create headings
+        rooms_view.heading("#0", text="")
+        rooms_view.heading("Room Number", text="Room Number", anchor="w")
+        rooms_view.heading("Host Name", text="Host Name", anchor="w")
+        rooms_view.heading("No. of Players", text="No. of Players", anchor="w")
+
+        # pack to the screen
+        rooms_view.pack()
+
+        # we will add data as and when we recv stuff
+
+        print("checking for new players list on", threading.Thread.getName(self))
+
+        # list of players we have taken note of
+        noted_rooms = []
+        # contains the n_players of all room nums recved so as later we can change the display when n-players change
+        noted_n_players = {}
+
+        stringvars = {}
+        global rooms_list
+        stat_list = ["error", "joined successfully", "room doesn't exist", "room locked"]
+
+        while True:
+            time.sleep(0.5)
+            print("recving rooms list")
+
+            rooms_list =  pickle.loads(client.recv(1024))
+
+            print("new rooms list = ", rooms_list)
+
+            if rooms_list in stat_list:
+                analyze_stat(rooms_list)
+                break
+            else:
+                for room in rooms_list:
+
+                    if room[0] not in noted_rooms:
+
+                        stringvars.update({room[0]:tk.StringVar()})
+                        #stringvars[room[0]].set(str(room[2]))
+                        # add data for the player in treeview
+
+                        rooms_view.insert(parent="", index="end", text="", values=(room[0],room[1],stringvars[room[0]]))
+
+                        # add the player in noted players so we do not double display the player
+                        noted_rooms.append(room[0])
+                        # add n_players with corresponding room num
+                        noted_n_players.update({room[0]: room[2]})
+
+                    else:
+                        # this means we have noted the room already, so just check if we need to update all no. of
+                        #  players in the display
+                        if noted_n_players[room[0]] != room[2]:
+                            # so this code will run when we recved a new num for no. of players
+                            # update display
+                            stringvars[room[0]].set(room[2])
+
+                        else:
+                            # means nothing to change
+                            # this is not possible as we only send data when we have a change
+                            print("There is a problem, no data change but recved new rooms list")
+
 def ok_but_room_num_clkd():
+    room_num_display_frame.grid_forget()
     room_label.grid_forget()
     room_num_entry.grid_forget()
     ok_but_room_num.grid_forget()
     room = room_num_entry.get()
-    client.send(bytes(room,'utf-8'))
-    status = client.recv(1024).decode('utf-8')
+    client.send(pickle.dumps(room))
+
+def analyze_stat(status):
 
     if str(status) == "error":
         # for now only
@@ -118,12 +210,9 @@ def ok_but_for_username_clicked():
     username_entry.grid_forget()
     username = str(username_entry.get())
     print("sending username")
-    username_sendable = f"{len(username):<{HEADER}}" + username
-    client.send(bytes(username_sendable, 'utf-8'))
+    client.send(pickle.dumps(username))
     check_on_new_thread_npl = recv_new_players_list_thread()
     check_on_new_thread_npl.start()
-    print("check for new players list",check_on_new_thread_npl.native_id)
-
 
 class recv_new_players_list_thread(threading.Thread):
     def __init__(self):
@@ -134,7 +223,7 @@ class recv_new_players_list_thread(threading.Thread):
         # accept new players list as new players do join and the list needs to be updated
         global check_for_new_players_list_stat, start_game_btn, player_desig
         start_btn_shown = False
-        print("checking for new players list on",threading.Thread.getName(self))
+        print("checking for new players list on ",threading.Thread.getName(self))
 
         while True:
             new_players_list = client.recv(1024)
@@ -165,7 +254,7 @@ class recv_new_players_list_thread(threading.Thread):
 
 def start_game_host():
     start_game_btn.grid_forget()
-    client.send(bytes("start the game",'utf-8'))
+    client.send(pickle.dumps("start the game"))
     print("player started the game")
 
 def recv_game_details():
@@ -192,7 +281,11 @@ def choose_color():
     # scr = sendable color tuple
     scr = (username, color_code[1])
     # send our server the color our client chose
-    client.send(pickle.dumps(scr))
+    scr = pickle.dumps(scr)
+    scr_length = len(scr)
+    print(scr_length)
+    client.send(pickle.dumps(scr_length))
+    client.send(scr)
     get_color_updates()
 
 def get_color_updates():
@@ -206,7 +299,7 @@ def get_color_updates():
         if npc == "end":
             break
         data_holder["game info"][npc[0]]["color"] = npc[1]
-        print(data_holder)
+        print(data_holder["game info"][npc[0]]["color"])
         created_objs.update({npc[0]:Player(main_frame,status_frame,data_holder,npc[0])})
         print('object created:',npc[0])
 
@@ -408,7 +501,6 @@ def seek_chance():
             # display roll dice and other stuff like that
         else:
             time.sleep(1.0)
-
 
 # ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
 
