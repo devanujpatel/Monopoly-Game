@@ -136,10 +136,10 @@ class recv_rooms_list_thread(threading.Thread):
                     if room[0] not in noted_rooms:
 
                         stringvars.update({room[0]:tk.StringVar()})
-                        #stringvars[room[0]].set(str(room[2]))
-                        # add data for the player in treeview
+                        stringvars[room[0]].set(str(room[2]))
+                        #add data for the player in treeview
 
-                        rooms_view.insert(parent="", index="end", text="", values=(room[0],room[1],stringvars[room[0]]))
+                        rooms_view.insert(parent="", index="end", text="", values=(room[0],room[1],stringvars[room[0]].get()))
 
                         # add the player in noted players so we do not double display the player
                         noted_rooms.append(room[0])
@@ -250,7 +250,7 @@ class recv_new_players_list_thread(threading.Thread):
 
         recv_details_thread = threading.Thread(target=recv_game_details)
         recv_details_thread.start()
-        print("recv game setails thread:",recv_details_thread.native_id)
+        print("recv game details thread:",recv_details_thread.native_id)
 
 def start_game_host():
     start_game_btn.grid_forget()
