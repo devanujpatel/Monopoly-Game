@@ -219,19 +219,51 @@ class recv_new_players_list_thread(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        print("for thread recv new players list")
+
+        # display a list of players on the screen
+        # it would be in the form of a treeview (of ttk)
+
+        # define our treeview
+
+        global people_view
+        people_view = ttk.Treeview(container)
+
+        # format our columns
+        people_view["columns"] = ("Name", "Designation", "Chance")
+        people_view.column("#0", width=0)
+        people_view.column("Name", width=150, minwidth=50, anchor="w")
+        people_view.column("Designation", width=150, minwidth=40, anchor="w")
+        people_view.column("Chance", width=100, minwidth=20, anchor="w")
+
+        # create headings
+        people_view.heading("#0", text="")
+        people_view.heading("Name", text="Player Name", anchor="w")
+        people_view.heading("Designation", text="Designation", anchor="w")
+        people_view.heading("Chance", text="Chance", anchor="w")
+
+        # pack to the screen
+        people_view.grid()
+
+        # we will add data as and when we recv stuff
+
         # accept new players list as new players do join and the list needs to be updated
+
         global check_for_new_players_list_stat, start_game_btn, player_desig
+
         start_btn_shown = False
-        print("checking for new players list on ",threading.Thread.getName(self))
+        print("checking for new players list on", threading.Thread.getName(self))
+
+        # list of players we have taken note of
+        noted_players = []
 
         while True:
+            time.sleep(1)
             new_players_list = client.recv(1024)
             if new_players_list:
                 new_players_list = pickle.loads(new_players_list)
 
                 if new_players_list == "start game":
-                    print("recved start game",username)
+                    print("recved start game", username)
                     break
 
                 else:
@@ -239,8 +271,8 @@ class recv_new_players_list_thread(threading.Thread):
                     # only display start btn when more than one player is there in the room and also dont show again
                     # if already on grid!
                     if len(new_players_list) > 1 and start_btn_shown == False and player_desig == "host":
-                        start_game_btn = tk.Button(start_frame, text="Start Game",command=lambda: start_game_host())
-                        start_game_btn.grid(row=4, column=3)
+                        start_game_btn = tk.Button(start_frame, text="Start Game", command=lambda: start_game_host())
+                        start_game_btn.grid(row=2, column=1)
                         start_btn_shown = True
 
                     # incase a player joins and then leaves
@@ -248,9 +280,62 @@ class recv_new_players_list_thread(threading.Thread):
                         start_game_btn.grid_forget()
                         start_btn_shown = False
 
+                    for player in new_players_list:
+                        if player not in noted_players:
+
+                            # if player index in the list is zero it means he is a host
+                            if new_players_list[0] == player:
+                                desig = "Host"
+
+                            else:
+                                desig = "Player"
+
+                            # add data for the player in treeview
+                            # new_players_list.index(player) returns the index of the item in the list
+                            people_view.insert(parent="", index="end", text="",
+                                               values=(player, desig, new_players_list.index(player) + 1))
+
+                            # add the player in noted players so we do not double display the player
+                            noted_players.append(player)
+
+                        else:
+                            pass
+            time.sleep(1)
+
         recv_details_thread = threading.Thread(target=recv_game_details)
         recv_details_thread.start()
-        print("recv game details thread:",recv_details_thread.native_id)
+        """        print("for thread recv new players list")
+                # accept new players list as new players do join and the list needs to be updated
+                global check_for_new_players_list_stat, start_game_btn, player_desig
+                start_btn_shown = False
+                print("checking for new players list on ",threading.Thread.getName(self))
+        
+                while True:
+                    new_players_list = client.recv(1024)
+                    if new_players_list:
+                        new_players_list = pickle.loads(new_players_list)
+        
+                        if new_players_list == "start game":
+                            print("recved start game",username)
+                            break
+        
+                        else:
+                            print("new players list = ", new_players_list)
+                            # only display start btn when more than one player is there in the room and also dont show again
+                            # if already on grid!
+                            if len(new_players_list) > 1 and start_btn_shown == False and player_desig == "host":
+                                start_game_btn = tk.Button(start_frame, text="Start Game",command=lambda: start_game_host())
+                                start_game_btn.grid(row=4, column=3)
+                                start_btn_shown = True
+        
+                            # incase a player joins and then leaves
+                            if len(new_players_list) == 1 and start_btn_shown == True:
+                                start_game_btn.grid_forget()
+                                start_btn_shown = False
+        
+                recv_details_thread = threading.Thread(target=recv_game_details)
+                recv_details_thread.start()
+                print("recv game details thread:",recv_details_thread.native_id)"""
 
 def start_game_host():
     start_game_btn.grid_forget()
