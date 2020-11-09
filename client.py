@@ -208,25 +208,31 @@ def ask_username():
     username_entry.grid(row=3, column=3)
     ok_but_for_username.grid(row=4, column=3)
 
-
 def ok_but_for_username_clicked():
     global username
     username_label.grid_forget()
     ok_but_for_username.grid_forget()
     username_entry.grid_forget()
-    username = str(username_entry.get())
-    print("sending username")
+
+    username = username_entry.get()
+
+    username = str(username)
     client.send(pickle.dumps(username))
-    container.title(username)
-    check_on_new_thread_npl = recv_new_players_list_thread()
-    check_on_new_thread_npl.start()
+    response = pickle.loads(client.recv(1024))
+    print(response)
+    if response == "occupied username":
+        ask_username()
+    else:
+        container.title(username)
+        check_on_new_thread_npl = recv_new_players_list_thread()
+        check_on_new_thread_npl.start()
 
 class recv_new_players_list_thread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
 
     def run(self):
-
+        print("running")
         # display a list of players on the screen
         # it would be in the form of a treeview (of ttk)
 
@@ -268,7 +274,7 @@ class recv_new_players_list_thread(threading.Thread):
             new_players_list = client.recv(1024)
             if new_players_list:
                 new_players_list = pickle.loads(new_players_list)
-
+                print("npl = ", new_players_list)
                 if new_players_list == "start game":
                     print("recved start game", username)
                     break
@@ -335,11 +341,14 @@ def choose_color():
     # variable to store hexadecimal code of color
     color_code = colorchooser.askcolor(title="Choose color")
     print("color code = ",color_code)
-    # scr = sendable color tuple
-    scr = (username, color_code[1])
-    # send our server the color our client chose
-    client.send(pickle.dumps(scr))
-    get_color_updates()
+    if color_code[1] == None:
+        choose_color()
+    else:
+        # scr = sendable color tuple
+        scr = (username, color_code[1])
+        # send our server the color our client chose
+        client.send(pickle.dumps(scr))
+        get_color_updates()
 
 def get_color_updates():
     global created_objs
