@@ -1,3 +1,4 @@
+import random
 import socket, pickle, threading, time
 import tkinter as tk
 from prop_class_for_online_version import my_property_class
@@ -7,7 +8,7 @@ from player_class_online_version import Player
 from tkinter import colorchooser, ttk
 
 client = socket.socket()
-client.connect(("192.168.29.201", 9999))
+client.connect(("192.168.29.202", 9999))
 
 container = tk.Tk()
 
@@ -50,6 +51,7 @@ def create_room():
     print("sending to create new room!")
     client.send(pickle.dumps("create room"))
     ask_username()
+
 
 def join_room():
     global player_desig
@@ -208,6 +210,7 @@ def ask_username():
     username_entry.grid(row=3, column=3)
     ok_but_for_username.grid(row=4, column=3)
 
+
 def ok_but_for_username_clicked():
     global username
     username_label.grid_forget()
@@ -226,6 +229,7 @@ def ok_but_for_username_clicked():
         container.title(username)
         check_on_new_thread_npl = recv_new_players_list_thread()
         check_on_new_thread_npl.start()
+
 
 class recv_new_players_list_thread(threading.Thread):
     def __init__(self):
@@ -318,10 +322,12 @@ class recv_new_players_list_thread(threading.Thread):
         recv_details_thread = threading.Thread(target=recv_game_details)
         recv_details_thread.start()
 
+
 def start_game_host():
     start_game_btn.grid_forget()
     client.send(pickle.dumps("start the game"))
     print("player started the game")
+
 
 def recv_game_details():
     global data_holder
@@ -329,18 +335,19 @@ def recv_game_details():
     print("recving game info")
     data_holder = client.recv(1024)
     data_holder = pickle.loads(data_holder)
-    print("\n",data_holder,"\n")
+    print("\n", data_holder, "\n")
     display_thread = threading.Thread(target=display_game_screen())
     display_thread.start()
     cc_thread = threading.Thread(target=choose_color())
     cc_thread.start()
+
 
 def choose_color():
     # this blocks the execution of all the threads so a work arond is made , u will see later
 
     # variable to store hexadecimal code of color
     color_code = colorchooser.askcolor(title="Choose color")
-    print("color code = ",color_code)
+    print("color code = ", color_code)
     if color_code[1] == None:
         choose_color()
     else:
@@ -350,14 +357,16 @@ def choose_color():
         client.send(pickle.dumps(scr))
         get_color_updates()
 
+
 def get_color_updates():
     global created_objs
     created_objs = {}
     created_objs_list = []
-    #client.send(pickle.dumps("start"))
+    # client.send(pickle.dumps("start"))
     while True:
         npc = pickle.loads(client.recv(1024))
-        print("npc =",npc)
+
+        print("\n", data_holder, "\n")
 
         if len(created_objs_list) == data_holder["chance alloc num"]:
             break
@@ -365,6 +374,7 @@ def get_color_updates():
         data_holder["game info"][npc[0]]["color"] = npc[1]
         created_objs.update({npc[0]: Player(main_frame, status_frame, data_holder, npc[0])})
         print('object created:', npc[0])
+
 
 def display_game_screen():
     start_frame.grid_forget()
@@ -537,6 +547,8 @@ def display_game_screen():
                                  highlightbackground="black", highlightthickness=1, width=sf_width, height=sf_height)
     status_frame.grid(rowspan=4, columnspan=9, row=1, column=1)
 
+    final_data_holder()
+
 
 # still working on how the game will come about
 # till now the idea is show roll dice and other btns stuff like that to the player whose chance is there and then send stuff to the server
@@ -545,29 +557,91 @@ def display_game_screen():
 # host can lock room , kick players out , etc
 # players can also later change their token color, name, chat with others, etc
 
-# CODE TILL NOW
+def final_data_holder():
+    global data_holder
+    data_holder = pickle.loads(client.recv(1024))
+    print(data_holder)
+
+    global rd_obj
+    rd_obj = roll_dice_class()
+
+    seek_chance_thread = threading.Thread(target=seek_chance())
+    seek_chance_thread.start()
+
+    recv_data_updates_thread = threading.Thread(target=recv_game_details())
+    recv_data_updates_thread.start()
+
 def recv_data_updates():
     while True:
         data_update = pickle.loads(client.recv(1024))
         print(data_update)
-        if len(data_update) == 3:
-            data_holder[[data_update[0]]][[data_update[1]]] = data_update[2]
+        if len(data_update) == 4:
+            data_holder[data_update[0]][data_update[1]] = data_update[2]
         elif len(data_update) == 2:
-            data_holder[[data_update[0]]] = data_update[1]
-        print(data_holder)
+            data_holder[data_update[0]] = data_update[1]
+            print(data_holder)
+        else:
+            if data_update == "end my turn":
+                # ignore as already the updates are sent before
+                pass
+
         # run update info method here
 
 
 def seek_chance():
     while True:
-        time.sleep(1.0)
+
         if data_holder["chance"] == data_holder["player chances"][username]:
-            pass
-            # display roll dice and other stuff like that
+            rd_obj.fake_init()
+            # other things will be handled by the server and our data update method
+
         else:
-            time.sleep(1.0)
+            time.sleep(5)
 
 
-# ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+class roll_dice_class:
+
+    def fake_init(self):
+        self.roll_dice_d = tk.Button(main_frame, text="Roll Dice!", bg="orange", font=font,
+                                     command=lambda: self.virtual_dice())
+        self.roll_dice_d.grid(row=6, column=6)
+
+    def virtual_dice(self):
+        self.roll_dice_d.grid_forget()
+        self.dice_roll1 = random.randint(1, 6)
+        self.dice_roll2 = random.randint(1, 6)
+        self.dice_roll = self.dice_roll1 + self.dice_roll2
+        self.show_dice = tk.StringVar()
+        self.label_dice = "Dice Roll = " + str(self.dice_roll)
+        self.show_dice.set(self.label_dice)
+        self.rd_label = tk.Label(main_frame, textvariable=self.show_dice, bg="green", fg="orange", width=12, height=2)
+        self.rd_label.grid(row=7, column=5)
+
+        self.end_turn = tk.Button(main_frame, text="End Turn!", font=font, command=lambda: self.end_turn_clicked())
+        self.end_turn.grid(row=6, column=6)
+
+        # send our server so it munches down the data
+        client.send(pickle.dumps((username, "position", self.dice_roll)))
+        # then the data muncher on our side will recv and update the screen
+
+    def end_turn_clicked(self):
+        client.send(pickle.dumps("end my turn"))
+        self.end_turn.grid_forget()
+        self.roll_dice_d.grid(row=6, column=6)
+
 
 container.mainloop()
+
+"""
+        position += dice_roll
+
+        if position >= 40:
+            position -= 40
+            
+{'host': 'Patel', 'status': 'game started', 'players list': ['Patel', 'p2'], 'chance alloc num': 2, 'game info': {
+'Patel': {'color': ('Patel', '#874df4'), 'money': 1800, 'position': 0, 'properties': {}}, 'p2': {'color': ('p2', 
+'#800080'), 'money': 1800, 'position': 0, 'properties': {}}}, 'player chances': {'Patel': 0, 'p2': 1}, 'chance': 0, 
+'rounds completed': 0, 'token dir': {'Patel': 'SW', 'p2': 'NW'}, 'send flag': True, 'start game count': 2} 
+
+            
+"""

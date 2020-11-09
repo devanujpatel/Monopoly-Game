@@ -28,8 +28,8 @@ send_room_num_clients = []
 # a list to contain all info to be sent to client in send_room_num_clients
 send_room_info_list = {}
 
-def send_room_nums():
 
+def send_room_nums():
     if len(send_room_num_clients) != 0:
         send_item = []
 
@@ -42,6 +42,7 @@ def send_room_nums():
                     client.send(pickle.dumps(send_item))
                 except ConnectionError:
                     send_room_num_clients.remove(client)
+
 
 class threaded_Client(threading.Thread):
     def __init__(self, client, addr):
@@ -131,26 +132,27 @@ class threaded_Client(threading.Thread):
         send_room_num_clients.remove(self.client)
         self.check_recved_room_num()
 
-            # there are three states of status - room locked, looking for players and game started
-            # for a room to be locked status should be room locked ,either the game has starteed or not in this state no more players will be able to join
-            # else it will be-looking for players or game started
-            # players can join the room in game started or in looking for players mode but no when room is locked
+        # there are three states of status - room locked, looking for players and game started
+        # for a room to be locked status should be room locked ,either the game has starteed or not in this state no more players will be able to join
+        # else it will be-looking for players or game started
+        # players can join the room in game started or in looking for players mode but no when room is locked
 
     def ask_and_verify_username(self):
-        self.username = pickle.loads(self.client.recv(1024))
+        while True:
+            self.username = pickle.loads(self.client.recv(1024))
 
-        if self.what_to_do == "join room":
-            if self.username in rooms[self.room]['players list']:
-                self.client.send(pickle.dumps("occupied username"))
-                # again try to recv a username and validate again
-                self.ask_and_verify_username()
+            if self.what_to_do == "join room":
+                if self.username in rooms[self.room]['players list']:
+                    self.client.send(pickle.dumps("occupied username"))
+                    # again try to recv a username and validate again
+
+                else:
+                    self.client.send(pickle.dumps("go ahead"))
+                    return self.username
 
             else:
                 self.client.send(pickle.dumps("go ahead"))
                 return self.username
-        else:
-            self.client.send(pickle.dumps("go ahead"))
-            return self.username
 
     def allocate_chance_num(self):
         # chance alloc num is a number which will be allocated to a player when he joins
@@ -291,12 +293,17 @@ class threaded_Client(threading.Thread):
                     self.not_reachable.remove(player)
 
             if len(self.not_reachable) == 0:
-                #for player in rooms[self.room]["players list"]:
+                # for player in rooms[self.room]["players list"]:
                 #    room_player_objs[self.room][player].send(pickle.dumps("end"))
                 break
 
         # after this we start the actual game!
         # main game
+        self.no_response = 0
+
+        if rooms[self.room]["host"] == self.username:
+            del rooms[self.room]["color responses"]
+            print(rooms[self.room])
 
     def main_game(self):
 
@@ -304,7 +311,7 @@ class threaded_Client(threading.Thread):
         # when while loop (2) gets over their is a doubt whether the client is disconnected
         # so when the main while loop(1) ends the conn will get over
 
-        # when the player leaves many things can be done- stop game , continue and forget the left player
+        # when the player leaves many things can be done- stop game , continue or forget the left player
 
         # can make a option to save and leave game when one player leaves ,to the host
         # if host decides to continue the game then the player will be erased (new option on the way)
@@ -325,54 +332,86 @@ class threaded_Client(threading.Thread):
             # it is to be read as change xyz of abc name to pqr
             # or else it could be : (what to do , player desig) for cases like end turn, leave game, end game,etc...
             try:
+                self.client.settimeout(30)
                 while True:
 
                     data_tup = self.client.recv(1024)
                     if data_tup:
-                        pickle.loads(data_tup)
+                        try:
+                            pickle.loads(data_tup)
+                        except socket.timeout:
+                            self.no_response += 1
+
+                            if self.no_response == 3:
+                                return "check if active"
+                            else:
+                                self.end_turn()
+
+                        self.client.settimeout(None)
                         break
                     else:
                         pass
+
             except ConnectionResetError as e:
                 print(e, self.username, self.room)
                 # give loop(2) chance to assess the situation then if client has to leave then break from main loop too
                 # if not then continue to run loop(1) which will then run loop(2)
                 return "check if active"
 
-            # if it is to end our turn then do so; sent only when 30 sec timeout happens or end turn btn clicked on client's side
+            # if it is to end our turn then do so; sent only when 30 sec timeout happens or end turn btn clicked on
+            # client's side
             if data_tup == "end my turn":
-                # increase chance num by one
-                rooms[self.room]["chance"] += 1
-                # while increasing chance we also need to see if chance number is within limit
-                if rooms[self.room]["chance"] == len(rooms[self.room]["players list"]):
-                    rooms[self.room]["rounds completed"] += 1
-                    rooms[self.room]["chance"] = 0
+                self.end_turn()
 
             # player leaves gracefully!
             elif data_tup[0] == "leave" and data_tup[1] == "player":
-                leave_confirmation_status = "ask again player"
-                return leave_confirmation_status
+                # leave_confirmation_status = "ask again player"
+                return "ask again player"
 
             elif data_tup[0] == "leave" and data_tup[1] == "host":
-                leave_confirmation_status = "ask again host"
-                return leave_confirmation_status
+                # leave_confirmation_status = "ask again host"
+                return "ask again host"
 
             # host sends to end game
             elif data_tup[0] == "end game" and data_tup[1] == "host":
-                leave_confirmation_status = "ask to save"
-                return leave_confirmation_status
+                # leave_confirmation_status = "ask to save"
+                return "ask to save"
 
             else:
                 # LET'S MUNCH DOWN OUR DATA
-                rooms[self.room][[data_tup][0]][[data_tup][1]] = [[data_tup][2]]
-                # send the same to others
+                print(data_tup, "= data tup")
+
+                if len(data_tup) == 4:
+                    rooms[self.room][data_tup[0]]["game info"][data_tup[1]] = data_tup[2]
+                elif len(data_tup) == 2:
+                    rooms[self.room][data_tup[0]] = data_tup[1]
+                else:
+                    pass
+                # send the same to others.
+                """if rooms[self.room]["send flag"] == True:
+                    rooms[self.room]["send flag"] = False
+                    for player in rooms[self.room]["players list"]:
+                        if player != data_tup[0]:
+                            room_player_objs[self.room][player].send(pickle.dumps(data_tup))
+                        else:
+                            pass
+                    rooms[self.room]["send flag"] = True
+                else:"""
+
+                self.send_updates(data_tup)
+
+    def send_updates(self, data_tup):
+        while True:
+            time.sleep(1)
+            if rooms[self.room]["send flag"] == True:
                 rooms[self.room]["send flag"] = False
                 for player in rooms[self.room]["players list"]:
-                    if player != data_tup[0]:
-                        room_player_objs[self.room][player].send(pickle.dumps(data_tup))
-                    else:
-                        pass
+                    room_player_objs[self.room][player].send(pickle.dumps(data_tup))
+
                 rooms[self.room]["send flag"] = True
+                break
+            else:
+                time.sleep(0.5)
 
     def assess_situation(self):
 
@@ -383,13 +422,12 @@ class threaded_Client(threading.Thread):
             lcs = self.main_game()
 
             # assess the situation possible situations: 1> CLIENT LEAVES GRACEFULLY 2> CLIENT GETS DISCONNECTED (
-            # doubt if player is active) 3> HOST ENDS THE GAME 4> HOST LEAVES ABRUPTLY
-            # situation 1 : make the player leave but keep his dicto alive, ->then ask host if he wants to still continue the game if yes then
-            # erase the player dicto and distribute props to bank and if no then ask host to save the game
-            # sit 2,the player will be asked if he/she is still in the game with a timeout of 20 seconds if timeout happens
-            # then proceed as situation 1 after '->'
-            # situation 3 : ask host to save game
-            # situation 4 : ask player1 the option to end and save game
+            # doubt if player is active) 3> HOST ENDS THE GAME 4> HOST LEAVES ABRUPTLY situation 1 : make the player
+            # leave but keep his dicto alive, ->then ask host if he wants to still continue the game if yes then
+            # erase the player dicto and distribute props to bank and if no then ask host to save the game sit 2,
+            # the player will be asked if he/she is still in the game with a timeout of 20 seconds if timeout happens
+            # then proceed as situation 1 after '->' situation 3 : ask host to save game situation 4 : ask player1
+            # the option to end and save game
 
             print(lcs)
             # lcs = leave_confirmation_status and wtd = what_to_do
@@ -409,10 +447,21 @@ class threaded_Client(threading.Thread):
 
     # still left to do, associated with the main game and play game functions
 
+    def end_turn(self):
+        # increase chance num by one
+        rooms[self.room]["chance"] += 1
+        # while increasing chance we also need to see if chance number is within limit
+        if rooms[self.room]["chance"] == len(rooms[self.room]["players list"]):
+            rooms[self.room]["rounds completed"] += 1
+            rooms[self.room]["chance"] = 0
+
+        self.client.send(pickle.dumps(("chance", rooms[self.room]["chance"])))
+        self.client.send(pickle.dumps(("rounds completed", rooms[self.room]["rounds completed"])))
+
     def confirm_leave(self, player_desig):
-        pass
         # return a value ; active or not , if host not active then ask player1
         # if player not active then ask host his options
+        pass
 
     def save_room(self):
         pass
@@ -439,12 +488,8 @@ class threaded_Client(threading.Thread):
 
 while True:
     client, addr = server.accept()
-    print("Accepted connection from", addr)
-    print("creating new thread")
     client_thread = threaded_Client(client, addr)
     client_thread.start()
-    print("Looking for more clients in main thread")
-    print(threading.enumerate())
 
 # TODO
 #   give timeouts so that you can reomove a person who is inactive for a long time like 120 seconds or 3 times inactive for 30 sec
@@ -465,5 +510,5 @@ while True:
 
 
 # DONE
-# ask layer to chooose color agian if he she doesnt choose one
+# ask layer to choose color agian if he she doesnt choose one
 #

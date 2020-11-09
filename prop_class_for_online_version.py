@@ -15,7 +15,7 @@ my_places = {'go_box': [], 'old kent road': [], 'community1': [], 'Whitechapel R
              'pacific_avenue': [], 'north_carolina_avenue': [], 'community3': [], 'pennsylvania_avenue': [],
              'shortline': [], 'chance3': [], 'park_place': [], 'luxury_tax': [], 'board_walk': [], }
 
-#contains information about properties -- imp for save feaure
+# contains information about properties -- imp for save feaure
 prop_info = {}
 place_num = {}
 # properties apart from normal properties - need special attention
@@ -23,8 +23,9 @@ special_properties = ["chance", "community chest", "jail", "go_to_jail", "water 
                       "go box", "free parking", "luxury tax", "income tax"]
 prop_id = {}
 
+
 class my_property_class:
-    def __init__(self, main_frame_para,property_str, row, column, width, height, color=None, rent=None, price=None,
+    def __init__(self, main_frame_para, property_str, row, column, width, height, color=None, rent=None, price=None,
                  one_house_rent=None, two_house_rent=None,
                  three_house_rent=None, four_house_rent=None, hotel_rent=None, cost_of_house=None,
                  cost_of_hotel=None, mortgage_value=None, color_box_side=None):
@@ -51,8 +52,9 @@ class my_property_class:
         column_coordinates.update({property_str: column})
 
         if self.property_str not in special_properties:
-            prop_info.update({self.property_str: {"price": self.price, "houses": 0, "owner": None, "players on site": []}})
-            self.prop_box = tk.Frame(main_frame, width=width, height=height,bg = self.color, highlightbackground="black",
+            prop_info.update(
+                {self.property_str: {"price": self.price, "houses": 0, "owner": None, "players on site": []}})
+            self.prop_box = tk.Frame(main_frame, width=width, height=height, bg=self.color, highlightbackground="black",
                                      highlightthickness=1)
             self.prop_box.grid(row=row, column=column)
 
@@ -60,7 +62,8 @@ class my_property_class:
                                         command=lambda: self.buy_prop())
 
         if self.property_str in special_properties:
-            prop_info.update({self.property_str: {"price": self.price, "houses": 0, "owner": None, "players on site": []}})
+            prop_info.update(
+                {self.property_str: {"price": self.price, "houses": 0, "owner": None, "players on site": []}})
             self.prop_box = tk.Frame(main_frame, width=width, height=height, highlightbackground="black",
                                      highlightthickness=1)
             self.prop_box.grid(row=row, column=column)
@@ -71,12 +74,12 @@ class my_property_class:
 
     def property_manager(self):
         self.show_details()
-        #prop_info[self.property_str]["players on site"] = player_names[player_chances[chance]]
+        # prop_info[self.property_str]["players on site"] = player_names[player_chances[chance]]
 
-        if prop_info[self.property_str]["owner"] == None:
+        if prop_info[self.property_str]["owner"] is None:
             self.buy_button.grid(row=6, column=8)
 
-        if prop_info[self.property_str]["owner"] != None:
+        if prop_info[self.property_str]["owner"] is not None:
             if prop_info[self.property_str]["owner"] == prop_info[self.property_str]["players on site"][-1]:
                 print("non owner on site")
                 print(prop_info)
@@ -89,8 +92,8 @@ class my_property_class:
     def buy_prop(self):
         print("buying property!")
         self.buy_button.grid_forget()
-        #prop_info[self.property_str]["owner"] = player_chances[chance]
-        #tk.Label(main_frame, text=player_chances[chance] + " successfully bought-" + self.property_str,
+        # prop_info[self.property_str]["owner"] = player_chances[chance]
+        # tk.Label(main_frame, text=player_chances[chance] + " successfully bought-" + self.property_str,
         #        bg=self.color).grid(columnspan=3, row=6, column=6)
         print(prop_info)
 
@@ -154,7 +157,8 @@ class my_property_class:
                                            font=("Courier", 12), highlightbackground="black",
                                            highlightthickness=1)
         self.mortgage_value_dis.pack(side="top")
-        
+
+
 # created the objects below for testing, to see the objects refer to client file after recv_game_info !
 """
 width = main_frame.winfo_screenwidth()  # width of screen
@@ -324,4 +328,3 @@ status_frame = tk.LabelFrame(main_frame, text="Status Box", bg="light green", fg
 status_frame.grid(rowspan=4, columnspan=9, row=1, column=1)
 
 main_frame.mainloop()"""
-

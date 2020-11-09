@@ -1,9 +1,10 @@
 import tkinter as tk
 
+
 # not yet completed! ☺☺
 class Player:
     # this class is meant only for display updates
-    def __init__(self, main_frame_para,stat_box_para,dicto_para,name):
+    def __init__(self, main_frame_para, stat_box_para, dicto_para, name):
         # this is the same main frame from client file code
         global main_frame, stat_box, data_holder
         data_holder = dicto_para
@@ -13,9 +14,10 @@ class Player:
         self.dis_token()
 
     def dis_token(self):
-        self.token = tk.Label(main_frame, text = "T"+str(data_holder["player chances"][self.name]+1),
-                              bg=data_holder["game info"][self.name]["color"], width = 3, height = 2)
-        self.token.grid(row =  10 , column = 10, sticky=data_holder["token dir"][self.name])
+        self.token = tk.Label(main_frame, text="T" + str(data_holder["player chances"][self.name] + 1),
+                              bg=data_holder["game info"][self.name]["color"], width=3, height=2)
+        self.token.grid(row=10, column=10, sticky=data_holder["token dir"][self.name])
+
 
 
 # ignore
@@ -46,9 +48,3 @@ class Player:
     def dis_stat_update(self):
         # update whatever changes happen
         pass'''
-
-
-
-
-
-
