@@ -1,4 +1,7 @@
-import socket, threading, pickle, time
+import pickle
+import socket
+import threading
+import time
 
 # create a af_inet streaming server
 server = socket.socket()
@@ -24,7 +27,9 @@ send_room_num_clients = []
 
 # a list to contain all info to be sent to client in send_room_num_clients
 send_room_info_list = {}
+
 def send_room_nums():
+    print("WILL SEND TO", send_room_num_clients)
     if len(send_room_num_clients) != 0:
         send_item = []
 
@@ -34,7 +39,7 @@ def send_room_nums():
 
             for client in send_room_num_clients:
                 try:
-                    print("sending to client",client)
+                    print("sending to client", client)
                     client.send(pickle.dumps(send_item))
                 except ConnectionError:
                     send_room_num_clients.remove(client)
@@ -59,7 +64,7 @@ class threaded_Client(threading.Thread):
 
         # join a room
         if what_to_do == "join room":
-            self.join_room ()
+            self.join_room()
 
     def create_room(self):
         global rooms, room
@@ -84,31 +89,32 @@ class threaded_Client(threading.Thread):
         # the rooms dicto will be updated with a room no. and other necessary information
         # the game info key is the main key in which the game data will be stored and sent to all the clients at the
         # start of the game after which the server and all the clients will maintain it according to the instructions sent
-        rooms.update({self.room: {"host": self.username, "status": "looking for players", "color responses": [0, [],{}],
-                                  "players list": [], "chance alloc num": 0, "game info": {}, "player chances": {},
-                                  "chance": 0,"rounds completed": 0,"token dir":{} ,"send flag": True}})
+        rooms.update(
+            {self.room: {"host": self.username, "status": "looking for players", "color responses": [0, [], {}],
+                         "players list": [], "chance alloc num": 0, "game info": {}, "player chances": {},
+                         "chance": 0, "rounds completed": 0, "token dir": {}, "send flag": True}})
 
         # now that the room is properly established we can send it to our clients
-        send_room_info_list.update({self.room:[self.room, self.username, 1]})
+        send_room_info_list.update({self.room: [self.room, self.username, 1]})
         send_room_nums()
 
         # for storing and then allocating different poistions to players to avoid overlapping of tokens (these are sticky options of tkinter)
-        token_dir.update({self.room:["N","S","E","W","NE","SE","NW","SW"]})
+        token_dir.update({self.room: ["N", "S", "E", "W", "NE", "SE", "NW", "SW"]})
         # contains the client objects of particular room
-        room_player_objs.update({self.room:{}})
+        room_player_objs.update({self.room: {}})
 
         # the names are self explanatory
         self.allocate_chance_num()
         self.new_player_dicto_update()
 
-        print(self.username+"'s chance is", str(self.chance))
+        print(self.username + "'s chance is", str(self.chance))
         # send our host the players in his room (at the moment;it would be only one player i.e the host itself)
         self.client.send(pickle.dumps(rooms[self.room]["players list"]))
 
         # recv a msg to know that host wants to start the game -- recall blocking sockets
         self.start_game = pickle.loads(self.client.recv(1024))
         rooms[self.room]["status"] = "room locked temp"
-        rooms[self.room].update({"start game count":0})
+        rooms[self.room].update({"start game count": 0})
         print("starting the game for room", self.room, "whose host is", self.username)
         print("sending to", self.username)
         # when recved by client he/she starts to recv things sent further after, this is a type of signal
@@ -170,6 +176,7 @@ class threaded_Client(threading.Thread):
     def recv_room_num(self):
         self.room = pickle.loads(self.client.recv(1024))
         self.room = int(self.room)
+        send_room_num_clients.remove(self.client)
         self.check_recved_room_num()
 
     def check_recved_room_num(self):
@@ -191,7 +198,6 @@ class threaded_Client(threading.Thread):
                 self.new_player_dicto_update()
                 print(self.username, "'s chance is", str(self.chance))
                 print(rooms)
-
 
                 # send all the players the new players list
                 for player in rooms[self.room]["players list"]:
@@ -255,10 +261,10 @@ class threaded_Client(threading.Thread):
         # send flag is True
 
         # first of all we get the favourite color of each player
-        rooms[self.room]["color responses"][2].update({self.username:"not ready"})
+        rooms[self.room]["color responses"][2].update({self.username: "not ready"})
         self.fav_color = pickle.loads(self.client.recv(1024))
         print("fav color = ", self.fav_color)
-        rooms[self.room]["color responses"][2].update({self.username:"ready"})
+        rooms[self.room]["color responses"][2].update({self.username: "ready"})
 
         rooms[self.room]["game info"][self.username]["color"] = self.fav_color
         # + color responses
@@ -279,17 +285,21 @@ class threaded_Client(threading.Thread):
         print(self.not_reachable)
         # send the leftover players the color
         while True:
+            time.sleep(1)
             for player in self.not_reachable:
-                time.sleep(0.3)
+                time.sleep(1)
                 if rooms[self.room]["color responses"][2][player] == "ready":
                     room_player_objs[self.room][player].send(pickle.dumps(self.fav_color))
                     self.sent.append(player)
                     self.not_reachable.remove(player)
 
-                if len(self.not_reachable) == 0:
-                    for player in rooms[self.room]["players list"]:
-                        room_player_objs[self.room][player].send(pickle.dumps("end"))
-                    break
+            if len(self.not_reachable) == 0:
+                #for player in rooms[self.room]["players list"]:
+                #    room_player_objs[self.room][player].send(pickle.dumps("end"))
+                break
+
+        print(self.sent)
+        print(self.not_reachable)
 
         # after this we start the actual game!
         # main game
@@ -403,7 +413,6 @@ class threaded_Client(threading.Thread):
         # ACC TO WTD(what to do) REACT FURTHER (like run a fnc) AND THEN AFTER THAT RESPECTIVE FNC has completed execution REACT ACC. TO THE NEW WTD I.E PROBABLY BREAK
         # OR RUN MAIN_GAME_AGAIN WHICH MEANS TO JUST CONTINUE THE LOOP OF GAME AS USUAL
 
-
     # still left to do, associated with the main game and play game functions
 
     def confirm_leave(self, player_desig):
@@ -432,6 +441,7 @@ class threaded_Client(threading.Thread):
 
     def waiting_mode(self):
         pass
+
 
 while True:
     client, addr = server.accept()

@@ -7,7 +7,7 @@ from player_class_online_version import Player
 from tkinter import colorchooser, ttk
 
 client = socket.socket()
-client.connect(("192.168.29.202", 9999))
+client.connect(("192.168.29.201", 9999))
 
 container = tk.Tk()
 
@@ -217,6 +217,7 @@ def ok_but_for_username_clicked():
     username = str(username_entry.get())
     print("sending username")
     client.send(pickle.dumps(username))
+    container.title(username)
     check_on_new_thread_npl = recv_new_players_list_thread()
     check_on_new_thread_npl.start()
 
@@ -316,18 +317,17 @@ def start_game_host():
     client.send(pickle.dumps("start the game"))
     print("player started the game")
 
-
 def recv_game_details():
     global data_holder
     print(threading.enumerate())
     print("recving game info")
     data_holder = client.recv(1024)
     data_holder = pickle.loads(data_holder)
+    print("\n",data_holder,"\n")
     display_thread = threading.Thread(target=display_game_screen())
     display_thread.start()
     cc_thread = threading.Thread(target=choose_color())
     cc_thread.start()
-
 
 def choose_color():
     # this blocks the execution of all the threads so a work arond is made , u will see later
@@ -344,12 +344,13 @@ def choose_color():
 def get_color_updates():
     global created_objs
     created_objs = {}
+    created_objs_list = []
     #client.send(pickle.dumps("start"))
     while True:
         npc = pickle.loads(client.recv(1024))
         print("npc =",npc)
 
-        if npc == "end":
+        if len(created_objs_list) == data_holder["chance alloc num"]:
             break
 
         data_holder["game info"][npc[0]]["color"] = npc[1]
