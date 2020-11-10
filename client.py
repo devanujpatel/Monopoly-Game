@@ -557,37 +557,87 @@ def display_game_screen():
                                  highlightbackground="black", highlightthickness=1, width=sf_width, height=sf_height)
     status_frame.grid(rowspan=4, columnspan=9, row=1, column=1)
 
+    final_data_holder()
+
 
 # still working on how the game will come about
 # till now the idea is show roll dice and other btns stuff like that to the player whose chance is there and then send stuff to the server
 # for changes (data tup- as discussed in the server side code)
 # one thread will check for anything to recv
 # host can lock room , kick players out , etc
-# players can also later change their token color, name, chat with others, etc
+# players can also later change their token color, name, etc
 
-# CODE TILL NOW
+def final_data_holder():
+    global data_holder
+    data_holder = pickle.loads(client.recv(1024))
+    print(data_holder)
+
+    global rd_obj
+    rd_obj = roll_dice_class()
+
+    seek_chance_thread = threading.Thread(target=seek_chance())
+    seek_chance_thread.start()
+
+    recv_data_updates_thread = threading.Thread(target=recv_game_details())
+    recv_data_updates_thread.start()
+
 def recv_data_updates():
     while True:
         data_update = pickle.loads(client.recv(1024))
         print(data_update)
-        if len(data_update) == 3:
-            data_holder[[data_update[0]]][[data_update[1]]] = data_update[2]
+        if len(data_update) == 4:
+            data_holder[data_update[0]][data_update[1]] = data_update[2]
         elif len(data_update) == 2:
-            data_holder[[data_update[0]]] = data_update[1]
-        print(data_holder)
+            data_holder[data_update[0]] = data_update[1]
+            print(data_holder)
+        else:
+            if data_update == "end my turn":
+                # ignore as already the updates are sent before
+                pass
+
         # run update info method here
 
 
 def seek_chance():
     while True:
-        time.sleep(1.0)
+
         if data_holder["chance"] == data_holder["player chances"][username]:
-            pass
-            # display roll dice and other stuff like that
+            rd_obj.fake_init()
+            # other things will be handled by the server and our data update method
+
         else:
-            time.sleep(1.0)
+            time.sleep(5)
 
 
-# ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+class roll_dice_class:
+
+    def fake_init(self):
+        self.roll_dice_d = tk.Button(main_frame, text="Roll Dice!", bg="orange", font=font,
+                                     command=lambda: self.virtual_dice())
+        self.roll_dice_d.grid(row=6, column=6)
+
+    def virtual_dice(self):
+        self.roll_dice_d.grid_forget()
+        self.dice_roll1 = random.randint(1, 6)
+        self.dice_roll2 = random.randint(1, 6)
+        self.dice_roll = self.dice_roll1 + self.dice_roll2
+        self.show_dice = tk.StringVar()
+        self.label_dice = "Dice Roll = " + str(self.dice_roll)
+        self.show_dice.set(self.label_dice)
+        self.rd_label = tk.Label(main_frame, textvariable=self.show_dice, bg="green", fg="orange", width=12, height=2)
+        self.rd_label.grid(row=7, column=5)
+
+        self.end_turn = tk.Button(main_frame, text="End Turn!", font=font, command=lambda: self.end_turn_clicked())
+        self.end_turn.grid(row=6, column=6)
+
+        # send our server so it munches down the data
+        client.send(pickle.dumps((username, "position", self.dice_roll)))
+        # then the data muncher on our side will recv and update the screen
+
+    def end_turn_clicked(self):
+        client.send(pickle.dumps("end my turn"))
+        self.end_turn.grid_forget()
+        self.roll_dice_d.grid(row=6, column=6)
+
 
 container.mainloop()
