@@ -154,7 +154,7 @@ class recv_rooms_list_thread(threading.Thread):
                         else:
                             # means nothing to change
                             # this is not possible as we only send data when we have a change
-
+                            pass
 
 
 def ok_but_room_num_clkd():
@@ -615,18 +615,19 @@ class roll_dice_class:
         self.rd_label = tk.Label(main_frame, textvariable=self.show_dice, bg="green", fg="orange", width=12, height=2)
         self.rd_label.grid(row=7, column=5)
 
+        # send our server so it munches down the data
+        client.send(pickle.dumps((username, "position", self.dice_roll)))
+
         self.end_turn = tk.Button(main_frame, text="End Turn!", font=font, command=lambda: self.end_turn_clicked())
         self.end_turn.grid(row=6, column=6)
 
-        # send our server so it munches down the data
-        client.send(pickle.dumps((username, "position", self.dice_roll)))
         # then the data muncher on our side will recv and update the screen
 
     def end_turn_clicked(self):
         client.send(pickle.dumps("end my turn"))
+        # display btns when necessary only
         self.roll_dice_d.grid_forget()
         self.end_turn.grid_forget()
-        self.roll_dice_d.grid(row=6, column=6)
-
+        self.label_dice.grid_forget()
 
 container.mainloop()
