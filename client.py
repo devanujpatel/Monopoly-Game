@@ -72,11 +72,10 @@ def ask_room_num():
 
     room_label = tk.Label(start_frame, text="Enter the number of the room which you want to join!", font=font)
     room_label.grid(row=2, column=2, columnspan=3)
-    room_num_entry = tk.Entry(start_frame)
-    room_num_entry.grid(row=3, column=3)
+    """room_num_entry = tk.Entry(start_frame)
+    room_num_entry.grid(row=3, column=3)"""
     ok_but_room_num = tk.Button(start_frame, text="Ok", command=lambda: ok_but_room_num_clkd())
     ok_but_room_num.grid(row=4, column=3)
-
 
 class recv_rooms_list_thread(threading.Thread):
     def __init__(self):
@@ -90,7 +89,7 @@ class recv_rooms_list_thread(threading.Thread):
         # define our treeview
 
         global rooms_view
-        rooms_view = ttk.Treeview(room_num_display_frame)
+        rooms_view = ttk.Treeview(room_num_display_frame, selectmode = "browse")
 
         # format our columns
         rooms_view["columns"] = ("Room Number", "Host Name", "No. of Players")
@@ -164,12 +163,33 @@ class recv_rooms_list_thread(threading.Thread):
 
 
 def ok_but_room_num_clkd():
-    room_num_display_frame.grid_forget()
-    room_label.grid_forget()
+    """    room_label.grid_forget()
     room_num_entry.grid_forget()
     ok_but_room_num.grid_forget()
+
     room = room_num_entry.get()
-    client.send(pickle.dumps(room))
+
+    try:
+        room = int(room)
+        client.send(pickle.dumps(room))
+        room_num_display_frame.grid_forget()
+    except ValueError as e:
+        print("asking again", e)
+        wrong_username_ask_again()"""
+    try:
+        s = rooms_view.selection()[0]
+
+        ok_but_room_num.grid_forget()
+        room_num_display_frame.grid_forget()
+        room_label.grid_forget()
+        selected = rooms_view.focus()
+        room = rooms_view.item(selected, "values")
+        room = room[0]
+        print(room)
+        client.send(pickle.dumps(room))
+
+    except IndexError:
+        print("None selected")
 
 
 def analyze_stat(status):
@@ -239,7 +259,7 @@ class recv_new_players_list_thread(threading.Thread):
         # define our treeview
 
         global people_view
-        people_view = ttk.Treeview(container)
+        people_view = ttk.Treeview(container, selectmode = "none")
 
         # format our columns
         people_view["columns"] = ("Name", "Designation", "Chance")
