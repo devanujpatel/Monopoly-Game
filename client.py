@@ -295,6 +295,7 @@ class recv_new_players_list_thread(threading.Thread):
             if new_players_list:
                 new_players_list = pickle.loads(new_players_list)
                 print("npl = ", new_players_list)
+
                 if new_players_list == "start game":
                     print("recved start game", username)
                     break
@@ -374,7 +375,7 @@ def get_color_updates():
     global created_objs
     created_objs = {}
     created_objs_list = []
-    #client.send(pickle.dumps("start"))
+
     while True:
         npc = pickle.loads(client.recv(1024))
         print("npc =",npc)
@@ -385,6 +386,8 @@ def get_color_updates():
         data_holder["game info"][npc[0]]["color"] = npc[1]
         created_objs.update({npc[0]: Player(main_frame, status_frame, data_holder, npc[0])})
         print('object created:', npc[0])
+
+    final_stage_tweaks()
 
 def display_game_screen():
     start_frame.grid_forget()
@@ -557,28 +560,21 @@ def display_game_screen():
                                  highlightbackground="black", highlightthickness=1, width=sf_width, height=sf_height)
     status_frame.grid(rowspan=4, columnspan=9, row=1, column=1)
 
-    final_data_holder()
 
-
-# still working on how the game will come about
-# till now the idea is show roll dice and other btns stuff like that to the player whose chance is there and then send stuff to the server
-# for changes (data tup- as discussed in the server side code)
-# one thread will check for anything to recv
-# host can lock room , kick players out , etc
-# players can also later change their token color, name, etc
-
-def final_data_holder():
+def final_stage_tweaks():
     global data_holder
-    data_holder = pickle.loads(client.recv(1024))
+    """data_holder = pickle.loads(client.recv(1024))
+    print(data_holder)"""
+    
+    del data_holder["color responses"]
     print(data_holder)
-
     global rd_obj
     rd_obj = roll_dice_class()
 
     seek_chance_thread = threading.Thread(target=seek_chance())
     seek_chance_thread.start()
 
-    recv_data_updates_thread = threading.Thread(target=recv_game_details())
+    recv_data_updates_thread = threading.Thread(target=recv_data_updates())
     recv_data_updates_thread.start()
 
 def recv_data_updates():
