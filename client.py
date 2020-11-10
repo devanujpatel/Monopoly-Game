@@ -48,7 +48,6 @@ def create_room():
     two_btns_label.grid_forget()
     join_room_btn.grid_forget()
     create_room_btn.grid_forget()
-    print("sending to create new room!")
     client.send(pickle.dumps("create room"))
     ask_username()
 
@@ -59,7 +58,6 @@ def join_room():
     two_btns_label.grid_forget()
     join_room_btn.grid_forget()
     create_room_btn.grid_forget()
-    print("sending to join room!")
     client.send(pickle.dumps("join room"))
     ask_room_num()
 
@@ -110,8 +108,6 @@ class recv_rooms_list_thread(threading.Thread):
 
         # we will add data as and when we recv stuff
 
-        print("checking for new players list on", threading.Thread.getName(self))
-
         # list of players we have taken note of
         noted_rooms = []
         # contains the n_players of all room nums recved so as later we can change the display when n-players change
@@ -123,11 +119,9 @@ class recv_rooms_list_thread(threading.Thread):
 
         while True:
             time.sleep(0.5)
-            print("recving rooms list")
 
             rooms_list = pickle.loads(client.recv(1024))
 
-            print("new rooms list = ", rooms_list)
 
             if rooms_list in stat_list:
                 analyze_stat(rooms_list)
@@ -160,7 +154,7 @@ class recv_rooms_list_thread(threading.Thread):
                         else:
                             # means nothing to change
                             # this is not possible as we only send data when we have a change
-                            print("There is a problem, no data change but recved new rooms list")
+
 
 
 def ok_but_room_num_clkd():
@@ -173,7 +167,7 @@ def ok_but_room_num_clkd():
         selected = rooms_view.focus()
         room = rooms_view.item(selected, "values")
         room = room[0]
-        print(room)
+
         client.send(pickle.dumps(room))
 
     except IndexError:
@@ -192,12 +186,12 @@ def analyze_stat(status):
 
     if str(status) == "room doesn't exist":
         # ask client to enter a valid room no.
-        print(str(status))
+
         ask_room_num()
 
     if str(status) == "unable to join temp":
         # ask client to wait for some time and then try to join again (this is the most rare to happen)
-        print("please try to join the room in a few seconds")
+
         ask_room_num()
 
     if str(status) == "room locked":
@@ -228,7 +222,6 @@ def ok_but_for_username_clicked():
     username = str(username)
     client.send(pickle.dumps(username))
     response = pickle.loads(client.recv(1024))
-    print(response)
     if response == "occupied username":
         ask_username()
     else:
@@ -273,7 +266,7 @@ class recv_new_players_list_thread(threading.Thread):
         global check_for_new_players_list_stat, start_game_btn, player_desig
 
         start_btn_shown = False
-        print("checking for new players list on", threading.Thread.getName(self))
+
 
         # list of players we have taken note of
         noted_players = []
@@ -283,14 +276,14 @@ class recv_new_players_list_thread(threading.Thread):
             new_players_list = client.recv(1024)
             if new_players_list:
                 new_players_list = pickle.loads(new_players_list)
-                print("npl = ", new_players_list)
+
 
                 if new_players_list == "start game":
-                    print("recved start game", username)
+
                     break
 
                 else:
-                    print("new players list = ", new_players_list)
+
                     # only display start btn when more than one player is there in the room and also dont show again
                     # if already on grid!
                     if len(new_players_list) > 1 and start_btn_shown == False and player_desig == "host":
@@ -331,13 +324,11 @@ class recv_new_players_list_thread(threading.Thread):
 def start_game_host():
     start_game_btn.grid_forget()
     client.send(pickle.dumps("start the game"))
-    print("player started the game")
 
 
 def recv_game_details():
     global data_holder
     print(threading.enumerate())
-    print("recving game info")
     data_holder = pickle.loads(client.recv(2048))
     print("\n", data_holder, "\n")
     display_thread = threading.Thread(target=display_game_screen())
@@ -351,7 +342,6 @@ def choose_color():
 
     # variable to store hexadecimal code of color
     color_code = colorchooser.askcolor(title="Choose color")
-    print("color code = ", color_code)
     if color_code[1] is None:
         choose_color()
     else:
@@ -370,22 +360,19 @@ def get_color_updates():
 
     while True:
 
-        print("still running")
         npc = pickle.loads(client.recv(1024))
-        print("npc =", npc)
+
 
         data_holder["game info"][npc[0]]["color"] = npc[1]
         created_objs.update({npc[0]: Player(main_frame, status_frame, data_holder, npc[0])})
         created_objs_list.append(npc)
-        print('object created:', npc[0])
+
         print(len(created_objs_list), len(data_holder["players list"]))
-        print("checking for breaking loop")
+
         if len(created_objs_list) == len(data_holder["players list"]):
-            print("breaking while loop")
             final_stage_tweaks()
             break
 
-    print("while true ended")
 
 
 def display_game_screen():
@@ -561,7 +548,7 @@ def display_game_screen():
 
 
 def final_stage_tweaks():
-    print("final stage tweaking")
+
     global data_holder
     del data_holder["color responses"]
     print(data_holder)

@@ -215,16 +215,15 @@ class threaded_Client(threading.Thread):
                 while True:
                     time.sleep(0.6)
                     if rooms[self.room]["status"] == "room locked temp":
-                        print("room lock temp received")
+
                         break
 
                     else:
                         time.sleep(0.6)
-                print("sending data holder")
                 # runs only after stat is rlt
                 room_player_objs[self.room][self.username].send(pickle.dumps("start game"))
                 room_player_objs[self.room][self.username].send(pickle.dumps(rooms[self.room]))
-                print("sent")
+
                 rooms[self.room]["start game count"] += 1
 
                 if rooms[self.room]["start game count"] == len(rooms[self.room]["players list"]):
@@ -288,8 +287,6 @@ class threaded_Client(threading.Thread):
             elif rooms[self.room]["color responses"][2][player] == "not ready":
                 self.not_reachable.append(player)
 
-        print(self.sent, self.not_reachable, self.username)
-
         # send the leftover players the color
         while True:
             time.sleep(1)
@@ -299,18 +296,13 @@ class threaded_Client(threading.Thread):
 
             for player in self.not_reachable:
                 if rooms[self.room]["color responses"][2][player] == "ready":
-                    print("sending to " + player)
                     room_player_objs[self.room][player].send(pickle.dumps(self.fav_color))
-                    print("appending player", player, "in self.sent")
                     self.sent.append(player)
                     self.not_reachable.remove(player)
 
         # after this we start the actual game!
         self.no_response = 0
         self.responded = False
-
-        print("over", self.username)
-        print(self.sent, self.not_reachable, self.username)
 
         self.main_game()
 
