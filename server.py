@@ -78,9 +78,9 @@ class threaded_Client(threading.Thread):
         # the player might have to choose who he/she is from the saved room
         self.ask_and_verify_username()
 
-        # the rooms dicto will be updated with a room no. and other necessary information
-        # the game info key is the main key in which the game data will be stored and sent to all the clients at the
-        # start of the game after which the server and all the clients will maintain it according to the instructions sent
+        # the rooms dicto will be updated with a room no. and other necessary information the game info key is the
+        # main key in which the game data will be stored and sent to all the clients at the start of the game after
+        # which the server and all the clients will maintain it according to the instructions sent
         rooms.update(
             {self.room: {"host": self.username, "status": "looking for players", "color responses": [0, [], {}],
                          "players list": [], "chance alloc num": 0, "game info": {}, "player chances": {},
@@ -90,7 +90,8 @@ class threaded_Client(threading.Thread):
         send_room_info_list.update({self.room: [self.room, self.username, 1]})
         send_room_nums()
 
-        # for storing and then allocating different poistions to players to avoid overlapping of tokens (these are sticky options of tkinter)
+        # for storing and then allocating different poistions to players to avoid overlapping of tokens (these are
+        # sticky options of tkinter)
         token_dir.update({self.room: ["N", "S", "E", "W", "NE", "SE", "NW", "SW"]})
         # contains the client objects of particular room
         room_player_objs.update({self.room: {}})
@@ -132,10 +133,10 @@ class threaded_Client(threading.Thread):
         send_room_num_clients.remove(self.client)
         self.check_recved_room_num()
 
-        # there are three states of status - room locked, looking for players and game started
-        # for a room to be locked status should be room locked ,either the game has starteed or not in this state no more players will be able to join
-        # else it will be-looking for players or game started
-        # players can join the room in game started or in looking for players mode but no when room is locked
+        # there are three states of status - room locked, looking for players and game started for a room to be
+        # locked status should be room locked ,either the game has starteed or not in this state no more players will
+        # be able to join else it will be-looking for players or game started players can join the room in game
+        # started or in looking for players mode but no when room is locked
 
     def ask_and_verify_username(self):
         while True:
@@ -214,12 +215,12 @@ class threaded_Client(threading.Thread):
                 while True:
                     time.sleep(0.6)
                     if rooms[self.room]["status"] == "room locked temp":
-                        print("room lock temp rcved")
+                        print("room lock temp received")
                         break
 
                     else:
                         time.sleep(0.6)
-                print("sedning datat holder")
+                print("sending data holder")
                 # runs only after stat is rlt
                 room_player_objs[self.room][self.username].send(pickle.dumps("start game"))
                 room_player_objs[self.room][self.username].send(pickle.dumps(rooms[self.room]))
@@ -237,18 +238,17 @@ class threaded_Client(threading.Thread):
             #   will be developed soon!
 
             elif rooms[self.room]["status"] == "room locked temp":
-                # send the client that room is locked
-                # locking the room is in the hands of the host but when the host starts the actual game
-                # then for some seconds the room will be locked(room locked temp)
-                # then again it will be unlocked as it is the default though the host can lock it later
-                # the room was locked temporarily as the client side code can only recv one thing at a time
-                # and it would already be looking for new pltheayers list incase someone new joins
-                # whenever someone new joins the new comer sends all the other players the new updated players list
-                # but when the host starts the game all the clients need to recv the msg so the room is locked temporarily
-                # so that no new player can join the room and send the new players list when the host is trying to start
-                # the game ----- this is a precautionary measure this is to handle a situation where the starting of game command
-                # from the host and joining of a new player doesn't collide so that the client code
-                # do not gets confused what it has to recv and also the client side thread on the server gets to know what is happening
+                # send the client that room is locked locking the room is in the hands of the host but when the host
+                # starts the actual game then for some seconds the room will be locked(room locked temp) then again
+                # it will be unlocked as it is the default though the host can lock it later the room was locked
+                # temporarily as the client side code can only recv one thing at a time and it would already be
+                # looking for new pltheayers list incase someone new joins whenever someone new joins the new comer
+                # sends all the other players the new updated players list but when the host starts the game all the
+                # clients need to recv the msg so the room is locked temporarily so that no new player can join the
+                # room and send the new players list when the host is trying to start the game ----- this is a
+                # precautionary measure this is to handle a situation where the starting of game command from the
+                # host and joining of a new player doesn't collide so that the client code do not gets confused what
+                # it has to recv and also the client side thread on the server gets to know what is happening
                 self.client.send(bytes("unable to join temp"))
                 # the client side code will then inform our client to try entering the room after a few seconds
                 self.recv_room_num()
@@ -301,18 +301,14 @@ class threaded_Client(threading.Thread):
                 if rooms[self.room]["color responses"][2][player] == "ready":
                     print("sending to " + player)
                     room_player_objs[self.room][player].send(pickle.dumps(self.fav_color))
-                    print("appending player",player,"in self.sent")
+                    print("appending player", player, "in self.sent")
                     self.sent.append(player)
                     self.not_reachable.remove(player)
 
         # after this we start the actual game!
         self.no_response = 0
+        self.responded = False
 
-        """if rooms[self.room]["host"] == self.username:
-            del rooms[self.room]["color responses"]
-            print(rooms[self.room])
-            for client in room_player_objs:
-                client.send(pickle.dumps(rooms[self.room]))"""
         print("over", self.username)
         print(self.sent, self.not_reachable, self.username)
 
@@ -326,12 +322,11 @@ class threaded_Client(threading.Thread):
 
         # when the player leaves many things can be done- stop game , continue or forget the left player
 
-        # can make a option to save and leave game when one player leaves ,to the host
-        # if host decides to continue the game then the player will be erased (new option on the way)
-        # elif host decides to save the game then the game will end, inference drawn, and saved too(ofcourse)
-        # host can simply just end the game also
-        # it is to be decided how to manage the game after the removal of the player (as we can allow to let the player join again)
-        # if host leaves the whole game is disbanded and option to save the game goes to player 1
+        # can make a option to save and leave game when one player leaves ,to the host if host decides to continue
+        # the game then the player will be erased (new option on the way) elif host decides to save the game then the
+        # game will end, inference drawn, and saved too(of course) host can simply just end the game also it is to be
+        # decided how to manage the game after the removal of the player (as we can allow to let the player join
+        # again) if host leaves the whole game is disbanded and option to save the game goes to player 1
 
         # the loop(2) is responsible to run the game
         # whereas the loop(1) is responsible to confirm disconnections
@@ -345,13 +340,16 @@ class threaded_Client(threading.Thread):
             # it is to be read as change xyz of abc name to pqr
             # or else it could be : (what to do , player desig) for cases like end turn, leave game, end game,etc...
             try:
-                self.client.settimeout(30)
+                if rooms[self.room]["chance"] == rooms[self.room]["player chances"][self.username] and self.responded == False:
+                    self.client.settimeout(30)
+
                 while True:
 
                     data_tup = self.client.recv(1024)
                     if data_tup:
                         try:
-                            pickle.loads(data_tup)
+                            data_tup = pickle.loads(data_tup)
+                            print(data_tup)
                         except socket.timeout:
                             self.no_response += 1
 
@@ -390,6 +388,13 @@ class threaded_Client(threading.Thread):
                 # leave_confirmation_status = "ask to save"
                 return "ask to save"
 
+            elif data_tup[0] == "round" and data_tup[1] == "completed":
+                self.responded = False
+
+            elif data_tup[0] == self.username and data_tup[1] == "rolled":
+                # means our player has rolled the dice
+                self.responded = True
+
             else:
                 # LET'S MUNCH DOWN OUR DATA
                 print(data_tup, "= data tup")
@@ -401,22 +406,12 @@ class threaded_Client(threading.Thread):
                 else:
                     pass
                 # send the same to others.
-                """if rooms[self.room]["send flag"] == True:
-                    rooms[self.room]["send flag"] = False
-                    for player in rooms[self.room]["players list"]:
-                        if player != data_tup[0]:
-                            room_player_objs[self.room][player].send(pickle.dumps(data_tup))
-                        else:
-                            pass
-                    rooms[self.room]["send flag"] = True
-                else:"""
-
                 self.send_updates(data_tup)
 
     def send_updates(self, data_tup):
         while True:
             time.sleep(1)
-            if rooms[self.room]["send flag"] == True:
+            if rooms[self.room]["send flag"] is True:
                 rooms[self.room]["send flag"] = False
                 for player in rooms[self.room]["players list"]:
                     room_player_objs[self.room][player].send(pickle.dumps(data_tup))
@@ -455,16 +450,21 @@ class threaded_Client(threading.Thread):
 
             # more lcs on the way
 
-        # ACC TO WTD(what to do) REACT FURTHER (like run a fnc) AND THEN AFTER THAT RESPECTIVE FNC has completed execution REACT ACC. TO THE NEW WTD I.E PROBABLY BREAK
-        # OR RUN MAIN_GAME_AGAIN WHICH MEANS TO JUST CONTINUE THE LOOP OF GAME AS USUAL
+        # ACC TO WTD(what to do) REACT FURTHER (like run a fnc) AND THEN AFTER THAT RESPECTIVE FNC has completed
+        # execution REACT ACC. TO THE NEW WTD I.E PROBABLY BREAK OR RUN MAIN_GAME_AGAIN WHICH MEANS TO JUST CONTINUE
+        # THE LOOP OF GAME AS USUAL
 
     # still left to do, associated with the main game and play game functions
 
     def end_turn(self):
+        self.responded = True
         # increase chance num by one
         rooms[self.room]["chance"] += 1
         # while increasing chance we also need to see if chance number is within limit
         if rooms[self.room]["chance"] == len(rooms[self.room]["players list"]):
+            # set everyone's responded to False
+            # send client this update then client will send the server will recv it to set everyone's responded to False
+            self.send_updates(("round", "completed"))
             rooms[self.room]["rounds completed"] += 1
             rooms[self.room]["chance"] = 0
 

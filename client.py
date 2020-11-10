@@ -1,3 +1,4 @@
+import random
 import socket, pickle, threading, time
 import tkinter as tk
 from prop_class_for_online_version import my_property_class
@@ -7,7 +8,7 @@ from player_class_online_version import Player
 from tkinter import colorchooser, ttk
 
 client = socket.socket()
-client.connect(("192.168.29.201", 9999))
+client.connect(("192.168.29.202", 9999))
 
 container = tk.Tk()
 
@@ -51,6 +52,7 @@ def create_room():
     client.send(pickle.dumps("create room"))
     ask_username()
 
+
 def join_room():
     global player_desig
     player_desig = "player"
@@ -72,8 +74,9 @@ def ask_room_num():
 
     room_label = tk.Label(start_frame, text="Enter the number of the room which you want to join!", font=font)
     room_label.grid(row=2, column=2, columnspan=3)
-    ok_but_room_num = tk.Button(start_frame, text="Okay", command=lambda: ok_but_room_num_clkd())
+    ok_but_room_num = tk.Button(start_frame, text="Okay", font=font, command=lambda: ok_but_room_num_clkd())
     ok_but_room_num.grid(row=4, column=3)
+
 
 class recv_rooms_list_thread(threading.Thread):
     def __init__(self):
@@ -87,7 +90,7 @@ class recv_rooms_list_thread(threading.Thread):
         # define our treeview
 
         global rooms_view
-        rooms_view = ttk.Treeview(room_num_display_frame, selectmode = "browse")
+        rooms_view = ttk.Treeview(room_num_display_frame, selectmode="browse")
 
         # format our columns
         rooms_view["columns"] = ("Room Number", "Host Name", "No. of Players")
@@ -161,25 +164,12 @@ class recv_rooms_list_thread(threading.Thread):
 
 
 def ok_but_room_num_clkd():
-    """    room_label.grid_forget()
-    room_num_entry.grid_forget()
-    ok_but_room_num.grid_forget()
-
-    room = room_num_entry.get()
-
     try:
-        room = int(room)
-        client.send(pickle.dumps(room))
-        room_num_display_frame.grid_forget()
-    except ValueError as e:
-        print("asking again", e)
-        wrong_username_ask_again()"""
-    try:
-        s = rooms_view.selection()[0]
-
         ok_but_room_num.grid_forget()
         room_num_display_frame.grid_forget()
         room_label.grid_forget()
+
+        s = rooms_view.selection()[0]
         selected = rooms_view.focus()
         room = rooms_view.item(selected, "values")
         room = room[0]
@@ -226,6 +216,7 @@ def ask_username():
     username_entry.grid(row=3, column=3)
     ok_but_for_username.grid(row=4, column=3)
 
+
 def ok_but_for_username_clicked():
     global username
     username_label.grid_forget()
@@ -245,6 +236,7 @@ def ok_but_for_username_clicked():
         check_on_new_thread_npl = recv_new_players_list_thread()
         check_on_new_thread_npl.start()
 
+
 class recv_new_players_list_thread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
@@ -256,7 +248,7 @@ class recv_new_players_list_thread(threading.Thread):
         # define our treeview
 
         global people_view
-        people_view = ttk.Treeview(container, selectmode = "none")
+        people_view = ttk.Treeview(container, selectmode="none")
 
         # format our columns
         people_view["columns"] = ("Name", "Designation", "Chance")
@@ -341,24 +333,26 @@ def start_game_host():
     client.send(pickle.dumps("start the game"))
     print("player started the game")
 
+
 def recv_game_details():
     global data_holder
     print(threading.enumerate())
     print("recving game info")
     data_holder = pickle.loads(client.recv(2048))
-    print("\n",data_holder,"\n")
+    print("\n", data_holder, "\n")
     display_thread = threading.Thread(target=display_game_screen())
     display_thread.start()
     cc_thread = threading.Thread(target=choose_color())
     cc_thread.start()
 
+
 def choose_color():
-    # this blocks the execution of all the threads so a work arond is made , u will see later
+    # this blocks the execution of all the threads so a work around is made , u will see later
 
     # variable to store hexadecimal code of color
     color_code = colorchooser.askcolor(title="Choose color")
-    print("color code = ",color_code)
-    if color_code[1] == None:
+    print("color code = ", color_code)
+    if color_code[1] is None:
         choose_color()
     else:
         # scr = sendable color tuple
@@ -367,23 +361,32 @@ def choose_color():
         client.send(pickle.dumps(scr))
         get_color_updates()
 
+
 def get_color_updates():
     global created_objs
     created_objs = {}
     created_objs_list = []
+    print(threading.enumerate())
 
     while True:
-        npc = pickle.loads(client.recv(1024))
-        print("npc =",npc)
 
-        if len(created_objs_list) == data_holder["chance alloc num"]:
-            break
+        print("still running")
+        npc = pickle.loads(client.recv(1024))
+        print("npc =", npc)
 
         data_holder["game info"][npc[0]]["color"] = npc[1]
         created_objs.update({npc[0]: Player(main_frame, status_frame, data_holder, npc[0])})
+        created_objs_list.append(npc)
         print('object created:', npc[0])
+        print(len(created_objs_list), len(data_holder["players list"]))
+        print("checking for breaking loop")
+        if len(created_objs_list) == len(data_holder["players list"]):
+            print("breaking while loop")
+            final_stage_tweaks()
+            break
 
-    final_stage_tweaks()
+    print("while true ended")
+
 
 def display_game_screen():
     start_frame.grid_forget()
@@ -558,47 +561,56 @@ def display_game_screen():
 
 
 def final_stage_tweaks():
+    print("final stage tweaking")
     global data_holder
     del data_holder["color responses"]
     print(data_holder)
     global rd_obj
     rd_obj = roll_dice_class()
 
-    seek_chance_thread = threading.Thread(target=seek_chance())
-    seek_chance_thread.start()
+    seek_chance()
 
     recv_data_updates_thread = threading.Thread(target=recv_data_updates())
     recv_data_updates_thread.start()
 
+
 def recv_data_updates():
+    print("recving data updates")
     while True:
+        time.sleep(3)
         data_update = pickle.loads(client.recv(1024))
         print(data_update)
-        if len(data_update) == 4:
-            data_holder[data_update[0]][data_update[1]] = data_update[2]
+
+        if len(data_update) == 3:
+            data_holder["game info"][data_update[0]][data_update[1]] = data_update[2]
+            print(data_holder["game info"])
+
         elif len(data_update) == 2:
             data_holder[data_update[0]] = data_update[1]
-            print(data_holder)
+            print(data_holder["game info"])
+
         else:
             if data_update == "end my turn":
-                # ignore as already the updates are sent before
-                pass
+                # ignore as already the updates are sent before(from server) and whose chance it wasn't then seek chance would do the
+                # work
+                seek_chance()
 
         # run update info method here
 
 
 def seek_chance():
-    while True:
+    time.sleep(5)
+    if data_holder["chance"] == data_holder["player chances"][username]:
+        print("My Chance")
+        rd_obj.show_dice_btn()
+        # other things will be handled by the server and our data update method
 
-        if data_holder["chance"] == data_holder["player chances"][username]:
-            rd_obj.fake_init()
-            # other things will be handled by the server and our data update method
-
-        else:
-            time.sleep(5)
 
 
 class roll_dice_class:
+
+    def __init__(self):
+        print("obj created for dice")
 
     def show_dice_btn(self):
         self.roll_dice_d = tk.Button(main_frame, text="Roll Dice!", bg="orange", font=font,
