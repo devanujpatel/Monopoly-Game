@@ -1,4 +1,3 @@
-import random
 import socket, pickle, threading, time
 import tkinter as tk
 from prop_class_for_online_version import my_property_class
@@ -8,7 +7,7 @@ from player_class_online_version import Player
 from tkinter import colorchooser, ttk
 
 client = socket.socket()
-client.connect(("192.168.29.202", 9999))
+client.connect(("192.168.29.201", 9999))
 
 container = tk.Tk()
 
@@ -52,7 +51,6 @@ def create_room():
     client.send(pickle.dumps("create room"))
     ask_username()
 
-
 def join_room():
     global player_desig
     player_desig = "player"
@@ -74,11 +72,10 @@ def ask_room_num():
 
     room_label = tk.Label(start_frame, text="Enter the number of the room which you want to join!", font=font)
     room_label.grid(row=2, column=2, columnspan=3)
-    room_num_entry = tk.Entry(start_frame)
-    room_num_entry.grid(row=3, column=3)
+    """room_num_entry = tk.Entry(start_frame)
+    room_num_entry.grid(row=3, column=3)"""
     ok_but_room_num = tk.Button(start_frame, text="Ok", command=lambda: ok_but_room_num_clkd())
     ok_but_room_num.grid(row=4, column=3)
-
 
 class recv_rooms_list_thread(threading.Thread):
     def __init__(self):
@@ -92,7 +89,7 @@ class recv_rooms_list_thread(threading.Thread):
         # define our treeview
 
         global rooms_view
-        rooms_view = ttk.Treeview(room_num_display_frame)
+        rooms_view = ttk.Treeview(room_num_display_frame, selectmode = "browse")
 
         # format our columns
         rooms_view["columns"] = ("Room Number", "Host Name", "No. of Players")
@@ -166,12 +163,33 @@ class recv_rooms_list_thread(threading.Thread):
 
 
 def ok_but_room_num_clkd():
-    room_num_display_frame.grid_forget()
-    room_label.grid_forget()
+    """    room_label.grid_forget()
     room_num_entry.grid_forget()
     ok_but_room_num.grid_forget()
+
     room = room_num_entry.get()
-    client.send(pickle.dumps(room))
+
+    try:
+        room = int(room)
+        client.send(pickle.dumps(room))
+        room_num_display_frame.grid_forget()
+    except ValueError as e:
+        print("asking again", e)
+        wrong_username_ask_again()"""
+    try:
+        s = rooms_view.selection()[0]
+
+        ok_but_room_num.grid_forget()
+        room_num_display_frame.grid_forget()
+        room_label.grid_forget()
+        selected = rooms_view.focus()
+        room = rooms_view.item(selected, "values")
+        room = room[0]
+        print(room)
+        client.send(pickle.dumps(room))
+
+    except IndexError:
+        print("None selected")
 
 
 def analyze_stat(status):
@@ -210,7 +228,6 @@ def ask_username():
     username_entry.grid(row=3, column=3)
     ok_but_for_username.grid(row=4, column=3)
 
-
 def ok_but_for_username_clicked():
     global username
     username_label.grid_forget()
@@ -230,7 +247,6 @@ def ok_but_for_username_clicked():
         check_on_new_thread_npl = recv_new_players_list_thread()
         check_on_new_thread_npl.start()
 
-
 class recv_new_players_list_thread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
@@ -243,7 +259,7 @@ class recv_new_players_list_thread(threading.Thread):
         # define our treeview
 
         global people_view
-        people_view = ttk.Treeview(container)
+        people_view = ttk.Treeview(container, selectmode = "none")
 
         # format our columns
         people_view["columns"] = ("Name", "Designation", "Chance")
@@ -322,12 +338,10 @@ class recv_new_players_list_thread(threading.Thread):
         recv_details_thread = threading.Thread(target=recv_game_details)
         recv_details_thread.start()
 
-
 def start_game_host():
     start_game_btn.grid_forget()
     client.send(pickle.dumps("start the game"))
     print("player started the game")
-
 
 def recv_game_details():
     global data_holder
@@ -335,19 +349,18 @@ def recv_game_details():
     print("recving game info")
     data_holder = client.recv(1024)
     data_holder = pickle.loads(data_holder)
-    print("\n", data_holder, "\n")
+    print("\n",data_holder,"\n")
     display_thread = threading.Thread(target=display_game_screen())
     display_thread.start()
     cc_thread = threading.Thread(target=choose_color())
     cc_thread.start()
-
 
 def choose_color():
     # this blocks the execution of all the threads so a work arond is made , u will see later
 
     # variable to store hexadecimal code of color
     color_code = colorchooser.askcolor(title="Choose color")
-    print("color code = ", color_code)
+    print("color code = ",color_code)
     if color_code[1] == None:
         choose_color()
     else:
@@ -357,16 +370,14 @@ def choose_color():
         client.send(pickle.dumps(scr))
         get_color_updates()
 
-
 def get_color_updates():
     global created_objs
     created_objs = {}
     created_objs_list = []
-    # client.send(pickle.dumps("start"))
+    #client.send(pickle.dumps("start"))
     while True:
         npc = pickle.loads(client.recv(1024))
-
-        print("\n", data_holder, "\n")
+        print("npc =",npc)
 
         if len(created_objs_list) == data_holder["chance alloc num"]:
             break
@@ -374,7 +385,6 @@ def get_color_updates():
         data_holder["game info"][npc[0]]["color"] = npc[1]
         created_objs.update({npc[0]: Player(main_frame, status_frame, data_holder, npc[0])})
         print('object created:', npc[0])
-
 
 def display_game_screen():
     start_frame.grid_forget()
@@ -555,7 +565,7 @@ def display_game_screen():
 # for changes (data tup- as discussed in the server side code)
 # one thread will check for anything to recv
 # host can lock room , kick players out , etc
-# players can also later change their token color, name, chat with others, etc
+# players can also later change their token color, name, etc
 
 def final_data_holder():
     global data_holder
@@ -631,17 +641,3 @@ class roll_dice_class:
 
 
 container.mainloop()
-
-"""
-        position += dice_roll
-
-        if position >= 40:
-            position -= 40
-            
-{'host': 'Patel', 'status': 'game started', 'players list': ['Patel', 'p2'], 'chance alloc num': 2, 'game info': {
-'Patel': {'color': ('Patel', '#874df4'), 'money': 1800, 'position': 0, 'properties': {}}, 'p2': {'color': ('p2', 
-'#800080'), 'money': 1800, 'position': 0, 'properties': {}}}, 'player chances': {'Patel': 0, 'p2': 1}, 'chance': 0, 
-'rounds completed': 0, 'token dir': {'Patel': 'SW', 'p2': 'NW'}, 'send flag': True, 'start game count': 2} 
-
-            
-"""
