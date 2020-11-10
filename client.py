@@ -72,9 +72,7 @@ def ask_room_num():
 
     room_label = tk.Label(start_frame, text="Enter the number of the room which you want to join!", font=font)
     room_label.grid(row=2, column=2, columnspan=3)
-    """room_num_entry = tk.Entry(start_frame)
-    room_num_entry.grid(row=3, column=3)"""
-    ok_but_room_num = tk.Button(start_frame, text="Ok", command=lambda: ok_but_room_num_clkd())
+    ok_but_room_num = tk.Button(start_frame, text="Okay", command=lambda: ok_but_room_num_clkd())
     ok_but_room_num.grid(row=4, column=3)
 
 class recv_rooms_list_thread(threading.Thread):
@@ -252,7 +250,6 @@ class recv_new_players_list_thread(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        print("running")
         # display a list of players on the screen
         # it would be in the form of a treeview (of ttk)
 
@@ -335,9 +332,9 @@ class recv_new_players_list_thread(threading.Thread):
                         else:
                             pass
             time.sleep(1)
-
         recv_details_thread = threading.Thread(target=recv_game_details)
         recv_details_thread.start()
+
 
 def start_game_host():
     start_game_btn.grid_forget()
@@ -348,8 +345,7 @@ def recv_game_details():
     global data_holder
     print(threading.enumerate())
     print("recving game info")
-    data_holder = client.recv(1024)
-    data_holder = pickle.loads(data_holder)
+    data_holder = pickle.loads(client.recv(2048))
     print("\n",data_holder,"\n")
     display_thread = threading.Thread(target=display_game_screen())
     display_thread.start()
@@ -563,9 +559,6 @@ def display_game_screen():
 
 def final_stage_tweaks():
     global data_holder
-    """data_holder = pickle.loads(client.recv(1024))
-    print(data_holder)"""
-    
     del data_holder["color responses"]
     print(data_holder)
     global rd_obj
@@ -607,7 +600,7 @@ def seek_chance():
 
 class roll_dice_class:
 
-    def fake_init(self):
+    def show_dice_btn(self):
         self.roll_dice_d = tk.Button(main_frame, text="Roll Dice!", bg="orange", font=font,
                                      command=lambda: self.virtual_dice())
         self.roll_dice_d.grid(row=6, column=6)
