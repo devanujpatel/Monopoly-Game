@@ -583,11 +583,11 @@ def recv_data_updates():
 
         if len(data_update) == 3:
             data_holder["game info"][data_update[0]][data_update[1]] = data_update[2]
-            print(data_holder["game info"])
+            print(data_holder)
 
         elif len(data_update) == 2:
             data_holder[data_update[0]] = data_update[1]
-            print(data_holder["game info"])
+            print(data_holder)
 
         else:
             if data_update == "end my turn":
@@ -637,6 +637,7 @@ class roll_dice_class:
 
     def end_turn_clicked(self):
         client.send(pickle.dumps("end my turn"))
+        self.roll_dice_d.grid_forget()
         self.end_turn.grid_forget()
         self.roll_dice_d.grid(row=6, column=6)
 

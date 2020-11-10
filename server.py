@@ -410,7 +410,6 @@ class threaded_Client(threading.Thread):
 
     def send_updates(self, data_tup):
         while True:
-            time.sleep(1)
             if rooms[self.room]["send flag"] is True:
                 rooms[self.room]["send flag"] = False
                 for player in rooms[self.room]["players list"]:
@@ -419,7 +418,7 @@ class threaded_Client(threading.Thread):
                 rooms[self.room]["send flag"] = True
                 break
             else:
-                time.sleep(0.5)
+                time.sleep(0.4)
 
     def assess_situation(self):
 
@@ -468,8 +467,9 @@ class threaded_Client(threading.Thread):
             rooms[self.room]["rounds completed"] += 1
             rooms[self.room]["chance"] = 0
 
-        self.client.send(pickle.dumps(("chance", rooms[self.room]["chance"])))
-        self.client.send(pickle.dumps(("rounds completed", rooms[self.room]["rounds completed"])))
+        # send all our clients the update
+        self.send_updates(("chance", rooms[self.room]["chance"]))
+        self.send_updates(("rounds completed", rooms[self.room]["rounds completed"]))
 
     def confirm_leave(self, player_desig):
         # return a value ; active or not , if host not active then ask player1
@@ -481,9 +481,6 @@ class threaded_Client(threading.Thread):
 
     def end_game_confirm(self):
         # it is ; ask to save room or end game now
-        pass
-
-    def end_game(self):
         pass
 
     def check_if_active(self):
