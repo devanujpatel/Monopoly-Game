@@ -300,6 +300,7 @@ class threaded_Client(threading.Thread):
                     self.sent.append(player)
                     self.not_reachable.remove(player)
 
+
         # after this we start the actual game!
         self.no_response = 0
         self.responded = False
@@ -337,11 +338,11 @@ class threaded_Client(threading.Thread):
 
                 while True:
 
-                    data_tup = self.client.recv(1024)
-                    if data_tup:
+                    self.data_tup = self.client.recv(1024)
+                    if self.data_tup:
                         try:
-                            data_tup = pickle.loads(data_tup)
-                            print(data_tup)
+                            self.data_tup = pickle.loads(self.data_tup)
+                            print(self.data_tup)
                         except socket.timeout:
                             self.no_response += 1
 
@@ -363,54 +364,59 @@ class threaded_Client(threading.Thread):
 
             # if it is to end our turn then do so; sent only when 30 sec timeout happens or end turn btn clicked on
             # client's side
-            if data_tup == "end my turn":
+            if self.data_tup == "end my turn":
                 self.end_turn()
 
             # player leaves gracefully!
-            elif data_tup[0] == "leave" and data_tup[1] == "player":
+            elif self.data_tup[0] == "leave" and self.data_tup[1] == "player":
                 # leave_confirmation_status = "ask again player"
                 return "ask again player"
 
-            elif data_tup[0] == "leave" and data_tup[1] == "host":
+            elif self.data_tup[0] == "leave" and self.data_tup[1] == "host":
                 # leave_confirmation_status = "ask again host"
                 return "ask again host"
 
             # host sends to end game
-            elif data_tup[0] == "end game" and data_tup[1] == "host":
+            elif self.data_tup[0] == "end game" and self.data_tup[1] == "host":
                 # leave_confirmation_status = "ask to save"
                 return "ask to save"
 
-            elif data_tup[0] == "round" and data_tup[1] == "completed":
+            elif self.data_tup[0] == "round" and self.data_tup[1] == "completed":
                 self.responded = False
 
-            elif data_tup[0] == self.username and data_tup[1] == "rolled":
+            elif self.data_tup[0] == self.username and self.data_tup[1] == "rolled":
                 # means our player has rolled the dice
                 self.responded = True
 
             else:
                 # LET'S MUNCH DOWN OUR DATA
-                print(data_tup, "= data tup")
+                print(self.data_tup, "= data tup")
 
-                if len(data_tup) == 4:
-                    rooms[self.room][data_tup[0]]["game info"][data_tup[1]] = data_tup[2]
-                elif len(data_tup) == 2:
-                    rooms[self.room][data_tup[0]] = data_tup[1]
+                if len(self.data_tup) == 4:
+                    rooms[self.room][self.data_tup[0]]["game info"][self.data_tup[1]] = self.data_tup[2]
+                elif len(self.data_tup) == 2:
+                    rooms[self.room][self.data_tup[0]] = self.data_tup[1]
                 else:
                     pass
                 # send the same to others.
-                self.send_updates(data_tup)
+
+                self.send_updates(self.data_tup)
 
     def send_updates(self, data_tup):
+        # false means don't send and true means send
         while True:
             if rooms[self.room]["send flag"] is True:
                 rooms[self.room]["send flag"] = False
+                data_tup = pickle.dumps(data_tup)
                 for player in rooms[self.room]["players list"]:
-                    room_player_objs[self.room][player].send(pickle.dumps(data_tup))
+                    time.sleep(0.3)
+                    print("sending data tup", pickle.loads(data_tup),"to",player)
+                    room_player_objs[self.room][player].send(data_tup)
 
                 rooms[self.room]["send flag"] = True
                 break
             else:
-                time.sleep(0.4)
+                time.sleep(0.5)
 
     def assess_situation(self):
 
@@ -462,6 +468,9 @@ class threaded_Client(threading.Thread):
         # send all our clients the update
         self.send_updates(("chance", rooms[self.room]["chance"]))
         self.send_updates(("rounds completed", rooms[self.room]["rounds completed"]))
+        # send to end turn so client can check if he has to show dice btn
+        self.send_updates(self.data_tup)
+
 
     def confirm_leave(self, player_desig):
         # return a value ; active or not , if host not active then ask player1

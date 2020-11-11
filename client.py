@@ -8,7 +8,7 @@ from player_class_online_version import Player
 from tkinter import colorchooser, ttk
 
 client = socket.socket()
-client.connect(("192.168.29.202", 9999))
+client.connect(("192.168.29.201", 9999))
 
 container = tk.Tk()
 
@@ -279,7 +279,7 @@ class recv_new_players_list_thread(threading.Thread):
 
 
                 if new_players_list == "start game":
-
+                    people_view.grid_forget()
                     break
 
                 else:
@@ -564,7 +564,6 @@ def final_stage_tweaks():
 def recv_data_updates():
     print("recving data updates")
     while True:
-        time.sleep(3)
         data_update = pickle.loads(client.recv(1024))
         print(data_update)
 
@@ -586,7 +585,6 @@ def recv_data_updates():
 
 
 def seek_chance():
-    time.sleep(5)
     if data_holder["chance"] == data_holder["player chances"][username]:
         print("My Chance")
         rd_obj.show_dice_btn()
@@ -628,6 +626,6 @@ class roll_dice_class:
         # display btns when necessary only
         self.roll_dice_d.grid_forget()
         self.end_turn.grid_forget()
-        self.label_dice.grid_forget()
+        self.rd_label.grid_forget()
 
 container.mainloop()
