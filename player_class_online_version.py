@@ -18,7 +18,7 @@ class Player:
                               bg=data_holder["game info"][self.name]["color"], width=3, height=2)
         self.token.grid(row=10, column=10, sticky=self.sticky)
 
-    def update_position(self, row_coord, col_coord, place_num, old_pos, new_pos, place_id, dice_roll):
+    def update_position(self, row_coord, col_coord, place_num, old_pos, new_pos, place_id):
         print("new pos old pos",new_pos, old_pos)
         destination = place_num[new_pos]
         dest_row = row_coord[destination]
@@ -26,8 +26,8 @@ class Player:
         print("dest",dest_row, dest_col)
 
         showcase_num = 0
-        show_dice = tk.IntVar()
-        show_dice.set(showcase_num)
+        show_dice = tk.StringVar()
+        show_dice.set(str(showcase_num))
 
         self.rd_label = tk.Label(main_frame, textvariable=show_dice, bg="green", fg="orange", width=12, height=2, font = ("Courier", 13))
         self.rd_label.grid(row=7, column=5)
@@ -43,10 +43,11 @@ class Player:
             time.sleep(0.3)
             self.token.grid(row = row, column = col, sticky = self.sticky)
             showcase_num += 1
-            show_dice.set(showcase_num)
+            show_dice.set(str(showcase_num))
             time.sleep(1)
             if dest_col == col and dest_row == row:
                 print("dest reached")
+                show_dice.set("Dice Roll: "+str(showcase_num))
                 break
 
             old_pos = place_id[next_spot]

@@ -391,16 +391,11 @@ class threaded_Client(threading.Thread):
             elif self.data_tup[0] == "round" and self.data_tup[1] == "completed":
                 self.responded = False
 
-            elif self.data_tup[0] == self.username and self.data_tup[1] == "rolled":
-                # means our player has rolled the dice
-                self.responded = True
-
-
             elif self.data_tup == ("RC"):
                 self.responded = False
 
-            elif self.data_tup[0] == "dice roll":
-                self.send_updates(self.data_tup)
+            elif self.data_tup == ("rolled"):
+                self.responded = True
 
             else:
                 # LET'S MUNCH DOWN OUR DATA
@@ -431,7 +426,7 @@ class threaded_Client(threading.Thread):
                 rooms[self.room]["send flag"] = True
                 break
             else:
-                time.sleep(0.5)
+                time.sleep(0.2)
 
     def assess_situation(self):
 
