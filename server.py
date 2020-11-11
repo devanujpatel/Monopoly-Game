@@ -109,7 +109,7 @@ class threaded_Client(threading.Thread):
         rooms[self.room].update({"start game count": 0})
 
         # when recved by client he/she starts to recv things sent further after, this is a type of signal
-        #room_player_objs[self.room][self.username].send(pickle.dumps("start game"))
+        self.client.send(pickle.dumps("start game"))
         # send data holder
         room_player_objs[self.room][self.username].send(pickle.dumps(rooms[self.room]))
         print("sent")
@@ -344,19 +344,19 @@ class threaded_Client(threading.Thread):
                     self.client.settimeout(30)
 
                 while True:
+                    try:
+                        self.data_tup = self.client.recv(1024)
+                    except socket.timeout:
+                        self.no_response += 1
 
-                    self.data_tup = self.client.recv(1024)
+                        if self.no_response == 3:
+                            return "check if active"
+                        else:
+                            self.end_turn()
+
                     if self.data_tup:
-                        try:
-                            self.data_tup = pickle.loads(self.data_tup)
-                            print(self.data_tup)
-                        except socket.timeout:
-                            self.no_response += 1
-
-                            if self.no_response == 3:
-                                return "check if active"
-                            else:
-                                self.end_turn()
+                        self.data_tup = pickle.loads(self.data_tup)
+                        print(self.data_tup)
 
                         self.client.settimeout(None)
                         break
@@ -395,6 +395,7 @@ class threaded_Client(threading.Thread):
                 # means our player has rolled the dice
                 self.responded = True
 
+
             elif self.data_tup == ("RC"):
                 self.responded = False
 
@@ -406,7 +407,7 @@ class threaded_Client(threading.Thread):
                 print(self.data_tup, "= data tup")
 
                 if len(self.data_tup) == 3:
-                    rooms[self.room][self.data_tup[0]]["game info"][self.data_tup[1]] = self.data_tup[2]
+                    rooms[self.room]["game info"][self.data_tup[0]][self.data_tup[1]] = self.data_tup[2]
                 elif len(self.data_tup) == 2:
                     rooms[self.room][self.data_tup[0]] = self.data_tup[1]
                 else:
@@ -418,6 +419,7 @@ class threaded_Client(threading.Thread):
     def send_updates(self, data_tup):
         # false means don't send and true means send
         while True:
+            time.sleep(0.2)
             if rooms[self.room]["send flag"] is True:
                 rooms[self.room]["send flag"] = False
                 data_tup = pickle.dumps(data_tup)
@@ -484,7 +486,6 @@ class threaded_Client(threading.Thread):
         self.send_updates(("rounds completed", rooms[self.room]["rounds completed"]))
         # send to end turn so client can check if he has to show dice btn
         self.send_updates(self.data_tup)
-
 
     def confirm_leave(self, player_desig):
         # return a value ; active or not , if host not active then ask player1

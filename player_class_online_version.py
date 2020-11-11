@@ -52,7 +52,6 @@ class Player:
             old_pos = place_id[next_spot]
             print("round completed")
 
-        return show_dice
 
 
 

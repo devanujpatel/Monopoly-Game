@@ -1,14 +1,15 @@
 import random
 import socket, pickle, threading, time
 import tkinter as tk
-from prop_class_for_online_version import my_property_class, row_coordinates, column_coordinates, place_num, place_id_place_to_pos
+from prop_class_for_online_version import my_property_class, row_coordinates, column_coordinates, place_num, \
+    place_id_place_to_pos
 from player_class_online_version import Player
 
 # importing the choosecolor package
 from tkinter import colorchooser, ttk
 
 client = socket.socket()
-client.connect(("192.168.29.201", 9999))
+client.connect(("192.168.29.202", 9999))
 
 container = tk.Tk()
 
@@ -65,17 +66,17 @@ def join_room():
 def ask_room_num():
     global room_num_entry, ok_but_room_num, room_label, room_num_display_frame
     room_num_display_frame = tk.Frame(container)
-    #room_num_display_frame.grid()
+    room_num_display_frame.grid()
 
     print("room num asking")
     recv_rooms_list_thread_OBJECT = recv_rooms_list_thread()
     recv_rooms_list_thread_OBJECT.start()
     print("obj created")
-    #room_label = tk.Label(start_frame, text="Enter the number of the room which you want to join!", font=font)
-    #room_label.grid(row=2, column=2, columnspan=3)
-    #ok_but_room_num = tk.Button(start_frame, text="Okay", font=font, command=lambda: ok_but_room_num_clkd())
-    #ok_but_room_num.grid(row=4, column=3)
-    ok_but_room_num_clkd()
+    room_label = tk.Label(start_frame, text="Enter the number of the room which you want to join!", font=font)
+    room_label.grid(row=2, column=2, columnspan=3)
+    ok_but_room_num = tk.Button(start_frame, text="Okay", font=font, command=lambda: ok_but_room_num_clkd())
+    ok_but_room_num.grid(row=4, column=3)
+
 
 class recv_rooms_list_thread(threading.Thread):
     def __init__(self):
@@ -105,7 +106,7 @@ class recv_rooms_list_thread(threading.Thread):
         rooms_view.heading("No. of Players", text="No. of Players", anchor="w")
 
         # pack to the screen
-        #rooms_view.pack()
+        rooms_view.pack()
 
         # we will add data as and when we recv stuff
 
@@ -156,23 +157,21 @@ class recv_rooms_list_thread(threading.Thread):
 
 
 def ok_but_room_num_clkd():
+    try:
+        ok_but_room_num.grid_forget()
+        room_num_display_frame.grid_forget()
+        room_label.grid_forget()
 
-   # try:
-    #ok_but_room_num.grid_forget()
-    #room_num_display_frame.grid_forget()
-    #room_label.grid_forget()
-    #
-   #     s = rooms_view.selection()[0]
-   #     selected = rooms_view.focus()
-   #     room = rooms_view.item(selected, "values")
-   #     room = room[0]
-    #
-   #     client.send(pickle.dumps(room))
-    #
-   # except IndexError:
-   #     print("None selected")
-    client.send(pickle.dumps(100))
-    print("sent")
+        s = rooms_view.selection()[0]
+        selected = rooms_view.focus()
+        room = rooms_view.item(selected, "values")
+        room = room[0]
+
+        client.send(pickle.dumps(room))
+
+    except IndexError:
+        print("None selected")
+
 
 def analyze_stat(status):
     if str(status) == "error":
@@ -182,12 +181,10 @@ def analyze_stat(status):
     if str(status) == "joined successfully":
         # ask and then send the username
         # ask for username
-        print("asking")
         ask_username()
 
     if str(status) == "room doesn't exist":
         # ask client to enter a valid room no.
-
         ask_room_num()
 
     if str(status) == "unable to join temp":
@@ -203,38 +200,31 @@ def analyze_stat(status):
 
 def ask_username():
     # ask for username
-    #global ok_but_for_username, username_entry, username_label
-    #username_label = tk.Label(start_frame, text="Enter your username", font=font)
-    #username_label.grid(row=2, column=3)
-    #username_entry = tk.Entry(start_frame)
-    #ok_but_for_username = tk.Button(start_frame, text="Okay", font=font, command=lambda: ok_but_for_username_clicked())
-    #username_entry.grid(row=3, column=3)
-    #ok_but_for_username.grid(row=4, column=3)
-    global n
-    n = 1
-    ok_but_for_username_clicked()
+    global ok_but_for_username, username_entry, username_label
+    username_label = tk.Label(start_frame, text="Enter your username", font=font)
+    username_label.grid(row=2, column=3)
+    username_entry = tk.Entry(start_frame)
+    ok_but_for_username = tk.Button(start_frame, text="Okay", font=font, command=lambda: ok_but_for_username_clicked())
+    username_entry.grid(row=3, column=3)
+    ok_but_for_username.grid(row=4, column=3)
 
 def ok_but_for_username_clicked():
-    global username, n
-    #username_label.grid_forget()
-    #ok_but_for_username.grid_forget()
-    #username_entry.grid_forget()
-    #
-    #username = username_entry.get()
+     global username
+     username_label.grid_forget()
+     ok_but_for_username.grid_forget()
+     username_entry.grid_forget()
 
-    #username = str(username)
+     username = username_entry.get()
+     username = str(username)
 
-    username = "P"+str(n)
-    print(username)
-    client.send(pickle.dumps(username))
-    response = pickle.loads(client.recv(1024))
-    if response == "occupied username":
-        n+=1
-        ok_but_for_username_clicked()
-    else:
-        container.title(username)
-        check_on_new_thread_npl = recv_new_players_list_thread()
-        check_on_new_thread_npl.start()
+     client.send(pickle.dumps(username))
+     response = pickle.loads(client.recv(1024))
+     if response == "occupied username":
+         ok_but_for_username_clicked()
+     else:
+         container.title(username)
+         check_on_new_thread_npl = recv_new_players_list_thread()
+         check_on_new_thread_npl.start()
 
 
 class recv_new_players_list_thread(threading.Thread):
@@ -278,16 +268,12 @@ class recv_new_players_list_thread(threading.Thread):
         noted_players = []
 
         while True:
-            time.sleep(1)
             new_players_list = client.recv(1024)
             if new_players_list:
                 new_players_list = pickle.loads(new_players_list)
-
-
+                print(new_players_list)
                 if new_players_list == "start game":
                     people_view.grid_forget()
-                    recv_details_thread = threading.Thread(target=recv_game_details)
-                    recv_details_thread.start()
                     break
 
                 else:
@@ -295,14 +281,13 @@ class recv_new_players_list_thread(threading.Thread):
                     # only display start btn when more than one player is there in the room and also dont show again
                     # if already on grid!
                     if len(new_players_list) > 1 and start_btn_shown == False and player_desig == "host":
-                        #start_game_btn = tk.Button(start_frame, text="Start Game", command=lambda: start_game_host())
-                        #start_game_btn.grid(row=2, column=1)
+                        start_game_btn = tk.Button(start_frame, text="Start Game", command=lambda: start_game_host())
+                        start_game_btn.grid(row=2, column=1)
                         start_btn_shown = True
                         time.sleep(5)
-                        start_game_host()
 
                     # incase a player joins and then leaves
-                    if len(new_players_list) == 1 and start_btn_shown == True:
+                    if len(new_players_list) == 1 and start_btn_shown is True:
                         start_game_btn.grid_forget()
                         start_btn_shown = False
 
@@ -327,14 +312,14 @@ class recv_new_players_list_thread(threading.Thread):
                         else:
                             pass
 
-
+        recv_details_thread = threading.Thread(target=recv_game_details)
+        recv_details_thread.start()
 
 
 def start_game_host():
-    #start_game_btn.grid_forget()
+    start_game_btn.grid_forget()
     client.send(pickle.dumps("start the game"))
-    recv_details_thread = threading.Thread(target=recv_game_details)
-    recv_details_thread.start()
+
 
 def recv_game_details():
     global data_holder
@@ -351,18 +336,17 @@ def choose_color():
     # this blocks the execution of all the threads so a work around is made , u will see later
 
     # variable to store hexadecimal code of color
-    #color_code = colorchooser.askcolor(title="Choose color")
-    #print(color_code)
-    #if color_code[1] is None:
-    #    choose_color()
-    #else:
-    # scr = sendable color tuple
-    #scr = (username, color_code[1])
-    time.sleep(0.5)
-    scr = (username, '#fd7e00')
-    # send our server the color our client chose
-    client.send(pickle.dumps(scr))
-    get_color_updates()
+    color_code = colorchooser.askcolor(title="Choose color")
+    print(color_code)
+    if color_code[1] is None:
+       choose_color()
+    else:
+        #scr = sendable color tuple
+        scr = (username, color_code[1])
+        time.sleep(0.5)
+        # send our server the color our client chose
+        client.send(pickle.dumps(scr))
+        get_color_updates()
 
 
 def get_color_updates():
@@ -384,7 +368,6 @@ def get_color_updates():
         if len(created_objs_list) == len(data_holder["players list"]):
             final_stage_tweaks()
             break
-
 
 
 def display_game_screen():
@@ -560,7 +543,6 @@ def display_game_screen():
 
 
 def final_stage_tweaks():
-
     global data_holder
     del data_holder["color responses"]
     print(data_holder)
@@ -577,6 +559,7 @@ def recv_data_updates():
     global dice_roll
     print("recving data updates")
     while True:
+        time.sleep(0.5)
         data_update = pickle.loads(client.recv(1024))
         print(data_update)
 
@@ -597,16 +580,16 @@ def recv_data_updates():
 
         else:
             if data_update == ("end my turn"):
-                # ignore as already the updates are sent before(from server) and whose chance it wasn't then seek chance would do the
-                # work
+                # ignore as already the updates are sent before(from server) and whose chance it wasn't then seek
+                # chance would do the work
                 seek_chance()
 
             if data_update == ("RC"):
                 client.send(pickle.dumps(data_update))
 
             if data_update[0] == "dice roll":
+                print("recved dice roll")
                 dice_roll = data_update[1]
-        # run update info method here
 
 
 def seek_chance():
@@ -615,21 +598,21 @@ def seek_chance():
         rd_obj.show_dice_btn()
         # other things will be handled by the server and our data update method
 
+
 def update_caller(data_update):
     global created_objs, call_to
     # gives the name of player so that we can call that person from created objects dictionary
     call_to = data_update[0]
-    print("calling update for",call_to)
-    print("what is to be changed",data_update[1])
-    print("what it will be changed to",data_update[2])
+    print("calling update for", call_to)
+    print("what is to be changed", data_update[1])
+    print("what it will be changed to", data_update[2])
 
     # we may have to change- position, money, any other stat in status bo,etc
 
     # for position change
     if data_update[1] == "position":
         print(old_pos)
-        # show dice obj is made to return
-        # so that when player ends turn we can grid forget it
+
         created_objs[call_to].update_position(row_coordinates, column_coordinates, place_num, old_pos, data_update[2],
                                               place_id_place_to_pos, dice_roll)
         # just this and our work is done
@@ -667,23 +650,20 @@ class roll_dice_class:
 
         client.send(pickle.dumps((username, "rolled")))
         # send our server the no. rolled
-        # the two "" sre there to change its len to 4 so our data mucher doesnt update the dictionares for it
-        client.send(pickle.dumps(("dice roll",self.dice_roll,"","")))
+        # the two "" are there to change its len to 4 so our data muncher doesnt update the dictionaries for it
+        client.send(pickle.dumps(("dice roll", position)))
         # send our server so it munches down the data
         client.send(pickle.dumps((username, "position", position)))
 
         self.end_turn = tk.Button(main_frame, text="End Turn!", font=font, command=lambda: self.end_turn_clicked())
         self.end_turn.grid(row=6, column=6)
-
         # then the data muncher on our side will recv and update the screen
 
     def end_turn_clicked(self):
         client.send(pickle.dumps(("end my turn")))
-        show_dice_obj.grid_forget()
-        created_objs[call_to].show_dice
         # display btns when necessary only
         self.roll_dice_d.grid_forget()
         self.end_turn.grid_forget()
-        #self.rd_label.grid_forget()
+
 
 container.mainloop()
