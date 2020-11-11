@@ -31,7 +31,7 @@ tk.Frame(start_frame, width=width / 7, height=height / 7).grid(row=0, column=5)
 tk.Frame(start_frame, width=width / 7, height=height / 7).grid(row=0, column=6)
 tk.Frame(start_frame, width=width / 7, height=height / 7).grid(row=0, column=7)
 
-font = ("Courier", 14)
+font = ("Courier", 13)
 
 two_btns_label = tk.Label(start_frame, text="What do you want to do?", font=font)
 two_btns_label.grid(row=2, column=2, columnspan=3)
@@ -171,7 +171,6 @@ def ok_but_room_num_clkd():
     #
    # except IndexError:
    #     print("None selected")
-    time.sleep(1)
     client.send(pickle.dumps(100))
     print("sent")
 
@@ -247,7 +246,7 @@ class recv_new_players_list_thread(threading.Thread):
         # it would be in the form of a treeview (of ttk)
 
         # define our treeview
-        time.sleep(1)
+
         global people_view
         people_view = ttk.Treeview(container, selectmode="none")
 
@@ -275,7 +274,6 @@ class recv_new_players_list_thread(threading.Thread):
 
         start_btn_shown = False
 
-
         # list of players we have taken note of
         noted_players = []
 
@@ -288,6 +286,8 @@ class recv_new_players_list_thread(threading.Thread):
 
                 if new_players_list == "start game":
                     people_view.grid_forget()
+                    recv_details_thread = threading.Thread(target=recv_game_details)
+                    recv_details_thread.start()
                     break
 
                 else:
@@ -295,9 +295,11 @@ class recv_new_players_list_thread(threading.Thread):
                     # only display start btn when more than one player is there in the room and also dont show again
                     # if already on grid!
                     if len(new_players_list) > 1 and start_btn_shown == False and player_desig == "host":
-                        start_game_btn = tk.Button(start_frame, text="Start Game", command=lambda: start_game_host())
-                        start_game_btn.grid(row=2, column=1)
+                        #start_game_btn = tk.Button(start_frame, text="Start Game", command=lambda: start_game_host())
+                        #start_game_btn.grid(row=2, column=1)
                         start_btn_shown = True
+                        time.sleep(5)
+                        start_game_host()
 
                     # incase a player joins and then leaves
                     if len(new_players_list) == 1 and start_btn_shown == True:
@@ -325,14 +327,14 @@ class recv_new_players_list_thread(threading.Thread):
                         else:
                             pass
 
-        recv_details_thread = threading.Thread(target=recv_game_details)
-        recv_details_thread.start()
+
 
 
 def start_game_host():
-    start_game_btn.grid_forget()
+    #start_game_btn.grid_forget()
     client.send(pickle.dumps("start the game"))
-
+    recv_details_thread = threading.Thread(target=recv_game_details)
+    recv_details_thread.start()
 
 def recv_game_details():
     global data_holder
@@ -349,15 +351,18 @@ def choose_color():
     # this blocks the execution of all the threads so a work around is made , u will see later
 
     # variable to store hexadecimal code of color
-    color_code = colorchooser.askcolor(title="Choose color")
-    if color_code[1] is None:
-        choose_color()
-    else:
-        # scr = sendable color tuple
-        scr = (username, color_code[1])
-        # send our server the color our client chose
-        client.send(pickle.dumps(scr))
-        get_color_updates()
+    #color_code = colorchooser.askcolor(title="Choose color")
+    #print(color_code)
+    #if color_code[1] is None:
+    #    choose_color()
+    #else:
+    # scr = sendable color tuple
+    #scr = (username, color_code[1])
+    time.sleep(0.5)
+    scr = (username, '#fd7e00')
+    # send our server the color our client chose
+    client.send(pickle.dumps(scr))
+    get_color_updates()
 
 
 def get_color_updates():
@@ -569,6 +574,7 @@ def final_stage_tweaks():
 
 
 def recv_data_updates():
+    global dice_roll
     print("recving data updates")
     while True:
         data_update = pickle.loads(client.recv(1024))
@@ -577,7 +583,9 @@ def recv_data_updates():
         if len(data_update) == 3:
             # save old position
             global old_pos
-            old_pos = data_holder["game info"][username]["position"]
+            chance_num = data_holder["chance"]
+            chance_person = data_holder["inverted chances"][chance_num]
+            old_pos = data_holder["game info"][chance_person]["position"]
             print(old_pos)
             data_holder["game info"][data_update[0]][data_update[1]] = data_update[2]
             print(data_holder)
@@ -588,11 +596,16 @@ def recv_data_updates():
             print(data_holder)
 
         else:
-            if data_update == "end my turn":
+            if data_update == ("end my turn"):
                 # ignore as already the updates are sent before(from server) and whose chance it wasn't then seek chance would do the
                 # work
                 seek_chance()
 
+            if data_update == ("RC"):
+                client.send(pickle.dumps(data_update))
+
+            if data_update[0] == "dice roll":
+                dice_roll = data_update[1]
         # run update info method here
 
 
@@ -603,7 +616,7 @@ def seek_chance():
         # other things will be handled by the server and our data update method
 
 def update_caller(data_update):
-    global created_objs
+    global created_objs, call_to
     # gives the name of player so that we can call that person from created objects dictionary
     call_to = data_update[0]
     print("calling update for",call_to)
@@ -615,7 +628,10 @@ def update_caller(data_update):
     # for position change
     if data_update[1] == "position":
         print(old_pos)
-        created_objs[call_to].update_position(row_coordinates, column_coordinates, place_num, old_pos, data_update[2], place_id_place_to_pos)
+        # show dice obj is made to return
+        # so that when player ends turn we can grid forget it
+        created_objs[call_to].update_position(row_coordinates, column_coordinates, place_num, old_pos, data_update[2],
+                                              place_id_place_to_pos, dice_roll)
         # just this and our work is done
 
     # more on the way
@@ -632,6 +648,7 @@ class roll_dice_class:
         self.roll_dice_d.grid(row=6, column=6)
 
     def virtual_dice(self):
+        global dice_roll
         self.roll_dice_d.grid_forget()
         self.dice_roll1 = random.randint(1, 6)
         self.dice_roll2 = random.randint(1, 6)
@@ -639,11 +656,21 @@ class roll_dice_class:
         self.show_dice = tk.StringVar()
         self.label_dice = "Dice Roll = " + str(self.dice_roll)
         self.show_dice.set(self.label_dice)
-        self.rd_label = tk.Label(main_frame, textvariable=self.show_dice, bg="green", fg="orange", width=12, height=2)
-        self.rd_label.grid(row=7, column=5)
 
+        position = data_holder["game info"][username]["position"]
+        position += self.dice_roll
+        # last place is no.39 , so limit position within 0 to 39
+        if position > 39:
+            # todo:
+            #   reward 200 to complete round
+            position -= 39
+
+        client.send(pickle.dumps((username, "rolled")))
+        # send our server the no. rolled
+        # the two "" sre there to change its len to 4 so our data mucher doesnt update the dictionares for it
+        client.send(pickle.dumps(("dice roll",self.dice_roll,"","")))
         # send our server so it munches down the data
-        client.send(pickle.dumps((username, "position", self.dice_roll)))
+        client.send(pickle.dumps((username, "position", position)))
 
         self.end_turn = tk.Button(main_frame, text="End Turn!", font=font, command=lambda: self.end_turn_clicked())
         self.end_turn.grid(row=6, column=6)
@@ -651,10 +678,12 @@ class roll_dice_class:
         # then the data muncher on our side will recv and update the screen
 
     def end_turn_clicked(self):
-        client.send(pickle.dumps("end my turn"))
+        client.send(pickle.dumps(("end my turn")))
+        show_dice_obj.grid_forget()
+        created_objs[call_to].show_dice
         # display btns when necessary only
         self.roll_dice_d.grid_forget()
         self.end_turn.grid_forget()
-        self.rd_label.grid_forget()
+        #self.rd_label.grid_forget()
 
 container.mainloop()

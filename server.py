@@ -83,7 +83,7 @@ class threaded_Client(threading.Thread):
         # which the server and all the clients will maintain it according to the instructions sent
         rooms.update(
             {self.room: {"host": self.username, "status": "looking for players", "color responses": [0, [], {}],
-                         "players list": [], "chance alloc num": 0, "game info": {}, "player chances": {},
+                         "players list": [], "chance alloc num": 0, "player chances": {},"game info": {},"inverted chances":{},
                          "chance": 0, "rounds completed": 0, "token dir": {}, "send flag": True}})
 
         # now that the room is properly established we can send it to our clients
@@ -109,8 +109,10 @@ class threaded_Client(threading.Thread):
         rooms[self.room].update({"start game count": 0})
 
         # when recved by client he/she starts to recv things sent further after, this is a type of signal
-        room_player_objs[self.room][self.username].send(pickle.dumps("start game"))
+        #room_player_objs[self.room][self.username].send(pickle.dumps("start game"))
+        # send data holder
         room_player_objs[self.room][self.username].send(pickle.dumps(rooms[self.room]))
+        print("sent")
         # just keeping a track of players
         rooms[self.room]["start game count"] += 1
 
@@ -177,6 +179,9 @@ class threaded_Client(threading.Thread):
         # react acc.
         rooms[self.room]["player chances"].update({self.username: self.chance})
 
+        # inverted chance is chance = whose chance it is
+        rooms[self.room]["inverted chances"].update({self.chance:self.username})
+
         # add him in players list
         rooms[self.room]["players list"].append(self.username)
 
@@ -189,7 +194,7 @@ class threaded_Client(threading.Thread):
     def check_recved_room_num(self):
         if self.room not in existing_rooms:
             # if room doesnt exist then notify the client about the same
-            self.client.send(pickle.dumps("room doesn't exist"))
+            self.client.send(pickle.dumps("room Fdoesn't exist"))
             # again wait for client to send room num
             self.recv_room_num()
 
@@ -366,7 +371,7 @@ class threaded_Client(threading.Thread):
 
             # if it is to end our turn then do so; sent only when 30 sec timeout happens or end turn btn clicked on
             # client's side
-            if self.data_tup == "end my turn":
+            if self.data_tup == ("end my turn"):
                 self.end_turn()
 
             # player leaves gracefully!
@@ -390,11 +395,17 @@ class threaded_Client(threading.Thread):
                 # means our player has rolled the dice
                 self.responded = True
 
+            elif self.data_tup == ("RC"):
+                self.responded = False
+
+            elif self.data_tup[0] == "dice roll":
+                self.send_updates(self.data_tup)
+
             else:
                 # LET'S MUNCH DOWN OUR DATA
                 print(self.data_tup, "= data tup")
 
-                if len(self.data_tup) == 4:
+                if len(self.data_tup) == 3:
                     rooms[self.room][self.data_tup[0]]["game info"][self.data_tup[1]] = self.data_tup[2]
                 elif len(self.data_tup) == 2:
                     rooms[self.room][self.data_tup[0]] = self.data_tup[1]
@@ -463,7 +474,8 @@ class threaded_Client(threading.Thread):
         if rooms[self.room]["chance"] == len(rooms[self.room]["players list"]):
             # set everyone's responded to False
             # send client this update then client will send the server will recv it to set everyone's responded to False
-            self.send_updates(("round", "completed"))
+            # RC for round completed
+            self.send_updates(("RC"))
             rooms[self.room]["rounds completed"] += 1
             rooms[self.room]["chance"] = 0
 
@@ -525,3 +537,4 @@ while True:
 # DONE
 # ask layer to chooose color agian if he she doesnt choose one
 #
+# '#fd7e00'
