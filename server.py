@@ -142,7 +142,7 @@ class threaded_Client(threading.Thread):
         while True:
             self.username = pickle.loads(self.client.recv(1024))
 
-            if self.what_to_do == "join room" and self.what_to_do == "join room":
+            if self.what_to_do == "join room":
 
                 if self.username in rooms[self.room]['players list']:
                     self.client.send(pickle.dumps("occupied username"))
@@ -196,6 +196,8 @@ class threaded_Client(threading.Thread):
         elif self.room in existing_rooms:
 
             if rooms[self.room]["status"] == "looking for players":
+                print("joined")
+                time.sleep(0.5)
                 self.client.send(pickle.dumps("joined successfully"))
 
                 self.ask_and_verify_username()

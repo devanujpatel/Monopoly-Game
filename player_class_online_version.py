@@ -1,7 +1,5 @@
 import tkinter as tk
-
-
-# not yet completed! ☺☺
+import time
 class Player:
     # this class is meant only for display updates
     def __init__(self, main_frame_para, stat_box_para, dicto_para, name):
@@ -11,12 +9,43 @@ class Player:
         stat_box = stat_box_para
         main_frame = main_frame_para
         self.name = name
+        self.sticky = data_holder["token dir"][self.name]
+
         self.dis_token()
 
     def dis_token(self):
         self.token = tk.Label(main_frame, text="T" + str(data_holder["player chances"][self.name] + 1),
                               bg=data_holder["game info"][self.name]["color"], width=3, height=2)
-        self.token.grid(row=10, column=10, sticky=data_holder["token dir"][self.name])
+        self.token.grid(row=10, column=10, sticky=self.sticky)
+
+    def update_position(self, row_coord, col_coord, place_num, old_pos, new_pos, place_id):
+        print(new_pos, old_pos)
+        print(place_num, place_id)
+        destination = place_num[new_pos]
+        dest_row = row_coord[destination]
+        dest_col = col_coord[destination]
+        print(dest_row, dest_col)
+        while True:
+            self.token.grid_forget()
+            next_spot = place_num[old_pos+1]
+            print(next_spot)
+            row = row_coord[next_spot]
+            col = col_coord[next_spot]
+
+            print(row,col)
+
+            time.sleep(1)
+            self.token.grid(row = row, column = col, sticky = self.sticky)
+            time.sleep(1)
+            if dest_col == col and dest_row == row:
+                print("dest reached")
+                break
+
+            old_pos = place_id[next_spot]
+            print("round completed")
+
+
+
 
 
 

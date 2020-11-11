@@ -22,7 +22,7 @@ place_num = {}
 special_properties = ["chance", "community chest", "jail", "go_to_jail", "water works", "electric company",
                       "go box", "free parking", "luxury tax", "income tax"]
 prop_id = {}
-
+place_id_place_to_pos = {}
 
 class my_property_class:
     def __init__(self, main_frame_para, property_str, row, column, width, height, color=None, rent=None, price=None,
@@ -48,6 +48,8 @@ class my_property_class:
         self.color_box_side = color_box_side
         self.height = height
         self.width = width
+        self.row = row
+        self.col = column
         row_coordinates.update({property_str: row})
         column_coordinates.update({property_str: column})
 
@@ -71,6 +73,7 @@ class my_property_class:
     def update_dicto(self, prop_obj, pos):
         prop_id.update({pos: prop_obj})
         place_num.update({pos: self.property_str})
+        place_id_place_to_pos.update({self.property_str: pos})
 
     def property_manager(self):
         self.show_details()

@@ -1,7 +1,7 @@
 import random
 import socket, pickle, threading, time
 import tkinter as tk
-from prop_class_for_online_version import my_property_class
+from prop_class_for_online_version import my_property_class, row_coordinates, column_coordinates, place_num, place_id_place_to_pos
 from player_class_online_version import Player
 
 # importing the choosecolor package
@@ -65,16 +65,17 @@ def join_room():
 def ask_room_num():
     global room_num_entry, ok_but_room_num, room_label, room_num_display_frame
     room_num_display_frame = tk.Frame(container)
-    room_num_display_frame.grid()
+    #room_num_display_frame.grid()
 
+    print("room num asking")
     recv_rooms_list_thread_OBJECT = recv_rooms_list_thread()
     recv_rooms_list_thread_OBJECT.start()
-
-    room_label = tk.Label(start_frame, text="Enter the number of the room which you want to join!", font=font)
-    room_label.grid(row=2, column=2, columnspan=3)
-    ok_but_room_num = tk.Button(start_frame, text="Okay", font=font, command=lambda: ok_but_room_num_clkd())
-    ok_but_room_num.grid(row=4, column=3)
-
+    print("obj created")
+    #room_label = tk.Label(start_frame, text="Enter the number of the room which you want to join!", font=font)
+    #room_label.grid(row=2, column=2, columnspan=3)
+    #ok_but_room_num = tk.Button(start_frame, text="Okay", font=font, command=lambda: ok_but_room_num_clkd())
+    #ok_but_room_num.grid(row=4, column=3)
+    ok_but_room_num_clkd()
 
 class recv_rooms_list_thread(threading.Thread):
     def __init__(self):
@@ -104,7 +105,7 @@ class recv_rooms_list_thread(threading.Thread):
         rooms_view.heading("No. of Players", text="No. of Players", anchor="w")
 
         # pack to the screen
-        rooms_view.pack()
+        #rooms_view.pack()
 
         # we will add data as and when we recv stuff
 
@@ -118,11 +119,8 @@ class recv_rooms_list_thread(threading.Thread):
         stat_list = ["error", "joined successfully", "room doesn't exist", "room locked"]
 
         while True:
-            time.sleep(0.5)
-
             rooms_list = pickle.loads(client.recv(1024))
-
-
+            print(rooms_list)
             if rooms_list in stat_list:
                 analyze_stat(rooms_list)
                 break
@@ -158,21 +156,24 @@ class recv_rooms_list_thread(threading.Thread):
 
 
 def ok_but_room_num_clkd():
-    try:
-        ok_but_room_num.grid_forget()
-        room_num_display_frame.grid_forget()
-        room_label.grid_forget()
 
-        s = rooms_view.selection()[0]
-        selected = rooms_view.focus()
-        room = rooms_view.item(selected, "values")
-        room = room[0]
-
-        client.send(pickle.dumps(room))
-
-    except IndexError:
-        print("None selected")
-
+   # try:
+    #ok_but_room_num.grid_forget()
+    #room_num_display_frame.grid_forget()
+    #room_label.grid_forget()
+    #
+   #     s = rooms_view.selection()[0]
+   #     selected = rooms_view.focus()
+   #     room = rooms_view.item(selected, "values")
+   #     room = room[0]
+    #
+   #     client.send(pickle.dumps(room))
+    #
+   # except IndexError:
+   #     print("None selected")
+    time.sleep(1)
+    client.send(pickle.dumps(100))
+    print("sent")
 
 def analyze_stat(status):
     if str(status) == "error":
@@ -182,6 +183,7 @@ def analyze_stat(status):
     if str(status) == "joined successfully":
         # ask and then send the username
         # ask for username
+        print("asking")
         ask_username()
 
     if str(status) == "room doesn't exist":
@@ -202,28 +204,34 @@ def analyze_stat(status):
 
 def ask_username():
     # ask for username
-    global ok_but_for_username, username_entry, username_label
-    username_label = tk.Label(start_frame, text="Enter your username", font=font)
-    username_label.grid(row=2, column=3)
-    username_entry = tk.Entry(start_frame)
-    ok_but_for_username = tk.Button(start_frame, text="Okay", font=font, command=lambda: ok_but_for_username_clicked())
-    username_entry.grid(row=3, column=3)
-    ok_but_for_username.grid(row=4, column=3)
-
+    #global ok_but_for_username, username_entry, username_label
+    #username_label = tk.Label(start_frame, text="Enter your username", font=font)
+    #username_label.grid(row=2, column=3)
+    #username_entry = tk.Entry(start_frame)
+    #ok_but_for_username = tk.Button(start_frame, text="Okay", font=font, command=lambda: ok_but_for_username_clicked())
+    #username_entry.grid(row=3, column=3)
+    #ok_but_for_username.grid(row=4, column=3)
+    global n
+    n = 1
+    ok_but_for_username_clicked()
 
 def ok_but_for_username_clicked():
-    global username
-    username_label.grid_forget()
-    ok_but_for_username.grid_forget()
-    username_entry.grid_forget()
+    global username, n
+    #username_label.grid_forget()
+    #ok_but_for_username.grid_forget()
+    #username_entry.grid_forget()
+    #
+    #username = username_entry.get()
 
-    username = username_entry.get()
+    #username = str(username)
 
-    username = str(username)
+    username = "P"+str(n)
+    print(username)
     client.send(pickle.dumps(username))
     response = pickle.loads(client.recv(1024))
     if response == "occupied username":
-        ask_username()
+        n+=1
+        ok_but_for_username_clicked()
     else:
         container.title(username)
         check_on_new_thread_npl = recv_new_players_list_thread()
@@ -239,7 +247,7 @@ class recv_new_players_list_thread(threading.Thread):
         # it would be in the form of a treeview (of ttk)
 
         # define our treeview
-
+        time.sleep(1)
         global people_view
         people_view = ttk.Treeview(container, selectmode="none")
 
@@ -316,7 +324,7 @@ class recv_new_players_list_thread(threading.Thread):
 
                         else:
                             pass
-            time.sleep(1)
+
         recv_details_thread = threading.Thread(target=recv_game_details)
         recv_details_thread.start()
 
@@ -361,7 +369,6 @@ def get_color_updates():
     while True:
 
         npc = pickle.loads(client.recv(1024))
-
 
         data_holder["game info"][npc[0]]["color"] = npc[1]
         created_objs.update({npc[0]: Player(main_frame, status_frame, data_holder, npc[0])})
@@ -438,8 +445,8 @@ def display_game_screen():
                                       130, 390, 900, 1100, 1275, 200, 200, 150, "w")
     oxford_street.update_dicto(free_parking, 32)
 
-    community_chest = my_property_class(main_frame, "community_chest", 3, 10, 160, height)
-    community_chest.update_dicto(community_chest, 33)
+    community_chest3 = my_property_class(main_frame, "community_chest 3", 3, 10, 160, height)
+    community_chest3.update_dicto(community_chest3, 33)
 
     bond_street = my_property_class(main_frame, "bond street", 4, 10, 160, height, "green", 28, 320,
                                     150, 450, 1000, 1200, 1400, 200, 200, 160, "w")
@@ -492,7 +499,7 @@ def display_game_screen():
                                           20, 60, 180, 320, 450, 50, 50, 30, "n")
     white_chapal_road.update_dicto(white_chapal_road, 3)
 
-    community_chest1 = my_property_class(main_frame, "community chest", 10, 8, width, 140)
+    community_chest1 = my_property_class(main_frame, "community chest 1", 10, 8, width, 140)
     community_chest1.update_dicto(community_chest1, 2)
 
     old_kent_road = my_property_class(main_frame, "old kent road", 10, 9, width, 140, "brown", 2, 60,
@@ -526,7 +533,7 @@ def display_game_screen():
                                    70, 200, 550, 750, 950, 100, 50 * 2, 90, "e")
     bow_street.update_dicto(bow_street, 16)
 
-    community_chest2 = my_property_class(main_frame, "community chest", 3, 0, 160, height)
+    community_chest2 = my_property_class(main_frame, "community chest 2", 3, 0, 160, height)
     community_chest2.update_dicto(community_chest2, 17)
 
     marlborough_street = my_property_class(main_frame, "marlborough street", 2, 0, 160, height, "orange", 14, 180,
@@ -568,8 +575,13 @@ def recv_data_updates():
         print(data_update)
 
         if len(data_update) == 3:
+            # save old position
+            global old_pos
+            old_pos = data_holder["game info"][username]["position"]
+            print(old_pos)
             data_holder["game info"][data_update[0]][data_update[1]] = data_update[2]
             print(data_holder)
+            update_caller(data_update)
 
         elif len(data_update) == 2:
             data_holder[data_update[0]] = data_update[1]
@@ -590,6 +602,23 @@ def seek_chance():
         rd_obj.show_dice_btn()
         # other things will be handled by the server and our data update method
 
+def update_caller(data_update):
+    global created_objs
+    # gives the name of player so that we can call that person from created objects dictionary
+    call_to = data_update[0]
+    print("calling update for",call_to)
+    print("what is to be changed",data_update[1])
+    print("what it will be changed to",data_update[2])
+
+    # we may have to change- position, money, any other stat in status bo,etc
+
+    # for position change
+    if data_update[1] == "position":
+        print(old_pos)
+        created_objs[call_to].update_position(row_coordinates, column_coordinates, place_num, old_pos, data_update[2], place_id_place_to_pos)
+        # just this and our work is done
+
+    # more on the way
 
 
 class roll_dice_class:
