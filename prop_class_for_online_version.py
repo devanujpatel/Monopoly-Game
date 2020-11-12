@@ -62,7 +62,7 @@ class my_property_class:
 
         if self.property_str not in special_properties:
             prop_info.update(
-                {self.property_str: {"price": self.price, "houses": 0, "owner": None, }})
+                {self.property_str: {"price": self.price, "houses": 0, "owner": None, "current rent": self.rent, "rent":self.rent }})
             self.prop_box = tk.Frame(main_frame, width=width, height=height, bg=self.color, highlightbackground="black",
                                      highlightthickness=1)
             self.prop_box.grid(row=row, column=column)

@@ -352,8 +352,8 @@ class threaded_Client(threading.Thread):
                         if self.no_response == 3:
                             return "check if active"
                         else:
-                            self.end_turn()
-
+                            #self.end_turn()
+                            pass
                     if self.data_tup:
                         self.data_tup = pickle.loads(self.data_tup)
                         print(self.data_tup)

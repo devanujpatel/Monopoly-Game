@@ -8,7 +8,7 @@ from player_class_online_version import Player
 from tkinter import colorchooser, ttk
 
 client = socket.socket()
-client.connect(("192.168.29.201", 9999))
+client.connect(("192.168.29.202", 9999))
 
 container = tk.Tk()
 
@@ -534,7 +534,7 @@ def display_game_screen():
     monopoly_dis.grid(row=5, column=5)
 
     global sf_width, sf_height
-    sf_width = 8 * width + 2
+    sf_width = 8 * width
     sf_height = 3 * height
     status_frame = tk.LabelFrame(main_frame, text="Status Box", bg="light green", fg="black",
                                  highlightbackground="black", highlightthickness=1, width=sf_width, height=sf_height)
@@ -559,6 +559,7 @@ def recv_data_updates():
     print("recving data updates")
     while True:
         time.sleep(0.2)
+
         data_update = pickle.loads(client.recv(1024))
         print(data_update)
 
@@ -589,6 +590,8 @@ def recv_data_updates():
                       bg="light blue")
                 update_reader.grid(columnspan=3, row=6, column=7)
 
+                created_objs[data_update[0]].property_update(data_update)
+
         else:
             if data_update == ("end my turn"):
                 prop_id[new_pos].info_box1.grid_forget()
@@ -598,6 +601,8 @@ def recv_data_updates():
                 prop_id[new_pos].info_box2.grid_forget()
                 prop_id[new_pos].buy_btn.grid()
                 prop_id[new_pos].buy_btn.grid_forget()
+                update_reader = tk.Frame(container)
+                update_reader.grid()
                 update_reader.grid_forget()
                 created_objs[call_to].rd_label.grid_forget()
                 # ignore as already the updates are sent before(from server) and whose chance it wasn't then seek
@@ -647,9 +652,7 @@ class roll_dice_class:
         print("obj created for dice")
 
     def show_dice_btn(self):
-        #self.roll_dice_d = tk.Button(main_frame, text="Roll Dice!", bg="orange", font=font,
-        #                             command=lambda: self.virtual_dice())
-        #self.roll_dice_d.grid(row=6, column=6)
+
         self.roll_dice_d = tk.Entry(main_frame)
         self.roll_dice_d.grid(row=6, column = 6)
         self.okay = tk.Button(main_frame, command = lambda :self.virtual_dice(), text ="Okay")
