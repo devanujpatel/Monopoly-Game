@@ -363,9 +363,10 @@ def get_color_updates():
         print(len(created_objs_list), len(data_holder["players list"]))
 
         if len(created_objs_list) == len(data_holder["players list"]):
+            for player in created_objs.values():
+                player.status_frame_display(sf_width, sf_height)
             final_stage_tweaks()
             break
-
 
 def display_game_screen():
     start_frame.grid_forget()
@@ -532,6 +533,7 @@ def display_game_screen():
     monopoly_dis = tk.Label(main_frame, text="Monopoly", bg="tomato1", fg="white")
     monopoly_dis.grid(row=5, column=5)
 
+    global sf_width, sf_height
     sf_width = 8 * width + 2
     sf_height = 3 * height
     status_frame = tk.LabelFrame(main_frame, text="Status Box", bg="light green", fg="black",
