@@ -1,5 +1,6 @@
 import tkinter as tk
 import time
+font = ("Courier", 12)
 class Player:
     # this class is meant only for display updates
     def __init__(self, main_frame_para, stat_box_para, dicto_para, name):
@@ -18,7 +19,7 @@ class Player:
                               bg=data_holder["game info"][self.name]["color"], width=3, height=2)
         self.token.grid(row=10, column=10, sticky=self.sticky)
 
-    def update_position(self, row_coord, col_coord, place_num, old_pos, new_pos, place_id):
+    def update_position(self, row_coord, col_coord, place_num, old_pos, new_pos, place_id, prop_obj_id, chance, username, client):
         print("new pos old pos",new_pos, old_pos)
         destination = place_num[new_pos]
         dest_row = row_coord[destination]
@@ -46,8 +47,8 @@ class Player:
             show_dice.set(str(showcase_num))
             time.sleep(1)
             if dest_col == col and dest_row == row:
-                print("dest reached")
                 show_dice.set("Dice Roll: "+str(showcase_num))
+                prop_obj_id[new_pos].playerOnSite(chance,username,client)
                 break
 
             old_pos = place_id[next_spot]

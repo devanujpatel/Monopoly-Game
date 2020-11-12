@@ -1,8 +1,7 @@
 import random
 import socket, pickle, threading, time
 import tkinter as tk
-from prop_class_for_online_version import my_property_class, row_coordinates, column_coordinates, place_num, \
-    place_id_place_to_pos
+from prop_class_for_online_version import my_property_class, row_coordinates, column_coordinates, place_num, prop_id, prop_info,place_id_place_to_pos
 from player_class_online_version import Player
 
 # importing the choosecolor package
@@ -429,7 +428,7 @@ def display_game_screen():
 
     oxford_street = my_property_class(main_frame, "oxford street", 2, 10, 160, height, "green", 26, 300,
                                       130, 390, 900, 1100, 1275, 200, 200, 150, "w")
-    oxford_street.update_dicto(free_parking, 32)
+    oxford_street.update_dicto(oxford_street, 32)
 
     community_chest3 = my_property_class(main_frame, "community_chest 3", 3, 10, 160, height)
     community_chest3.update_dicto(community_chest3, 33)
@@ -441,7 +440,7 @@ def display_game_screen():
     liverpool_st_station = my_property_class(main_frame, "liverpool_st_station", 5, 10, 160, height)
     liverpool_st_station.update_dicto(liverpool_st_station, 35)
 
-    chance3 = my_property_class(main_frame, "chance3", 6, 10, 160, height)
+    chance3 = my_property_class(main_frame, "Chance", 6, 10, 160, height)
     chance3.update_dicto(chance3, 36)
 
     park_lane = my_property_class(main_frame, "park_lane", 7, 10, 160, height, "dark blue", 35, 350,
@@ -512,14 +511,14 @@ def display_game_screen():
                                              180, 500, 700, 900, 100, 100, 80, "e")
     northumber_ld_avenue.update_dicto(northumber_ld_avenue, 14)
 
-    marylebone_station = my_property_class(main_frame, "marltbone station", 5, 0, 160, height)
+    marylebone_station = my_property_class(main_frame, "marlyebone station", 5, 0, 160, height)
     marylebone_station.update_dicto(marylebone_station, 15)
 
     bow_street = my_property_class(main_frame, "bow street", 4, 0, 160, height, "orange", 14, 180,
                                    70, 200, 550, 750, 950, 100, 50 * 2, 90, "e")
     bow_street.update_dicto(bow_street, 16)
 
-    community_chest2 = my_property_class(main_frame, "community chest 2", 3, 0, 160, height)
+    community_chest2 = my_property_class(main_frame, "community chest", 3, 0, 160, height)
     community_chest2.update_dicto(community_chest2, 17)
 
     marlborough_street = my_property_class(main_frame, "marlborough street", 2, 0, 160, height, "orange", 14, 180,
@@ -576,9 +575,28 @@ def recv_data_updates():
         elif len(data_update) == 2:
             data_holder[data_update[0]] = data_update[1]
             print(data_holder)
+        
+        elif len(data_update) == 4:
+            if data_update[2] == "update" and data_update[1] == "properties":
+                # means we have to add something o the dicto about properties
+                data_holder["game info"][data_update[0]][data_update[1]].update({data_update[3]:{
+                    "status":"normal", "houses":0, }}) 
+
+                prop_info[data_update[3]]["owner"] = data_update[0]
+                update_reader = tk.Label(main_frame, text=data_update[0] + " \nsuccessfully bought-\n" + data_update[3],font=font,
+                      bg="light blue")
+                update_reader.grid(columnspan=3, row=6, column=7)
 
         else:
             if data_update == ("end my turn"):
+                prop_id[new_pos].info_box1.grid_forget()
+                # we are not sure if info box 2 will be displayed so
+                prop_id[new_pos].info_box2.grid()
+                # then forget
+                prop_id[new_pos].info_box2.grid_forget()
+                prop_id[new_pos].buy_btn.grid()
+                prop_id[new_pos].buy_btn.grid_forget()
+                update_reader.grid_forget()
                 created_objs[call_to].rd_label.grid_forget()
                 # ignore as already the updates are sent before(from server) and whose chance it wasn't then seek
                 # chance would do the work
@@ -607,12 +625,12 @@ def update_caller(data_update):
 
     # for position change
     if data_update[1] == "position":
-        print(old_pos)
-
+        global new_pos
+        new_pos = data_update[2]
         created_objs[call_to].update_position(row_coordinates, column_coordinates, place_num, old_pos, data_update[2],
-                                              place_id_place_to_pos)
+                                              place_id_place_to_pos, prop_id, data_update[0], username, client)
 
-        # show end turn btns after token is moved and only if it is oyur chance
+        # show end turn btns after token is moved and only if it is your chance
         if data_update[0] == username:
             rd_obj.show_end_turn_btns()
 
@@ -627,16 +645,21 @@ class roll_dice_class:
         print("obj created for dice")
 
     def show_dice_btn(self):
-        self.roll_dice_d = tk.Button(main_frame, text="Roll Dice!", bg="orange", font=font,
-                                     command=lambda: self.virtual_dice())
-        self.roll_dice_d.grid(row=6, column=6)
+        #self.roll_dice_d = tk.Button(main_frame, text="Roll Dice!", bg="orange", font=font,
+        #                             command=lambda: self.virtual_dice())
+        #self.roll_dice_d.grid(row=6, column=6)
+        self.roll_dice_d = tk.Entry(main_frame)
+        self.roll_dice_d.grid(row=6, column = 6)
+        self.okay = tk.Button(main_frame, command = lambda :self.virtual_dice(), text ="Okay")
+        self.okay.grid(row = 7, column=6)
 
     def virtual_dice(self):
-        global dice_roll
-        self.roll_dice_d.grid_forget()
-        self.dice_roll1 = random.randint(1, 6)
-        self.dice_roll2 = random.randint(1, 6)
-        self.dice_roll = self.dice_roll1 + self.dice_roll2
+        #self.roll_dice_d.grid_forget()
+        #self.dice_roll1 = random.randint(1, 6)
+        #self.dice_roll2 = random.randint(1, 6)
+        #self.dice_roll = self.dice_roll1 + self.dice_roll2
+        self.okay.grid_forget()
+        self.dice_roll = int(self.roll_dice_d.get())
         self.show_dice = tk.StringVar()
         self.label_dice = "Dice Roll = " + str(self.dice_roll)
         self.show_dice.set(self.label_dice)

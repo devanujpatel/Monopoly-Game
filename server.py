@@ -409,6 +409,11 @@ class threaded_Client(threading.Thread):
             rooms[self.room]["game info"][self.data_tup[0]][self.data_tup[1]] = self.data_tup[2]
         elif len(self.data_tup) == 2:
             rooms[self.room][self.data_tup[0]] = self.data_tup[1]
+        elif len(self.data_tup) == 4:
+            if self.data_tup[2] == "update" and self.data_tup[1] == "properties":
+                # means we have to add something o the dicto about properties
+                rooms[self.room]["game info"][self.data_tup[0]][self.data_tup[1]].update({self.data_tup[3]:{
+                    "status":"normal", "houses":0, }})
         else:
             pass
         # send the same to others.

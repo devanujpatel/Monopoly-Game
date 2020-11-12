@@ -1,4 +1,6 @@
 import tkinter as tk
+import pickle
+font = ("Courier", 12)
 
 row_coordinates = {}
 column_coordinates = {}
@@ -19,8 +21,10 @@ my_places = {'go_box': [], 'old kent road': [], 'community1': [], 'Whitechapel R
 prop_info = {}
 place_num = {}
 # properties apart from normal properties - need special attention
-special_properties = ["chance", "community chest", "jail", "go_to_jail", "water works", "electric company",
-                      "go box", "free parking", "luxury tax", "income tax"]
+special_properties = ["Chance", "community chest", "jail", "just_visting", "go_to_jail", "water works", "electric company",
+                      "go box", "Free Parking", "luxury tax", "income tax!", "kings cross station", "fenchurch st station"
+                        , "liverpool_st_station", "marlyebone station", "chance"]
+
 prop_id = {}
 place_id_place_to_pos = {}
 
@@ -55,17 +59,17 @@ class my_property_class:
 
         if self.property_str not in special_properties:
             prop_info.update(
-                {self.property_str: {"price": self.price, "houses": 0, "owner": None, "players on site": []}})
+                {self.property_str: {"price": self.price, "houses": 0, "owner": None, }})
             self.prop_box = tk.Frame(main_frame, width=width, height=height, bg=self.color, highlightbackground="black",
                                      highlightthickness=1)
             self.prop_box.grid(row=row, column=column)
 
-            self.buy_button = tk.Button(main_frame, text="Buy", bg=self.color,
+            self.buy_btn = tk.Button(main_frame, text="Buy", bg=self.color,
                                         command=lambda: self.buy_prop())
 
         if self.property_str in special_properties:
             prop_info.update(
-                {self.property_str: {"price": self.price, "houses": 0, "owner": None, "players on site": []}})
+                {self.property_str:None})
             self.prop_box = tk.Frame(main_frame, width=width, height=height, highlightbackground="black",
                                      highlightthickness=1)
             self.prop_box.grid(row=row, column=column)
@@ -75,91 +79,107 @@ class my_property_class:
         place_num.update({pos: self.property_str})
         place_id_place_to_pos.update({self.property_str: pos})
 
+    def playerOnSite(self, player_name_para, username_para, client_para):
+        global username, player_name, client
+        client = client_para
+        player_name = player_name_para
+        username = username_para
+        self.property_manager()
+
     def property_manager(self):
+
         self.show_details()
-        # prop_info[self.property_str]["players on site"] = player_names[player_chances[chance]]
+        if self.property_str not in special_properties:
+            if prop_info[self.property_str]["owner"] is None and player_name == username:
+                self.buy_btn.grid(row=6, column=8)
 
-        if prop_info[self.property_str]["owner"] is None:
-            self.buy_button.grid(row=6, column=8)
+            if prop_info[self.property_str]["owner"] is not None:
+                if prop_info[self.property_str]["owner"] != player_name:
+                    print("owner not on site")
+                    print(prop_info)
+                    # dev here (take rent)
 
-        if prop_info[self.property_str]["owner"] is not None:
-            if prop_info[self.property_str]["owner"] == prop_info[self.property_str]["players on site"][-1]:
-                print("non owner on site")
-                print(prop_info)
-                # dev here (TRADE option or build house)
-            if prop_info[self.property_str]["owner"] == prop_info[self.property_str]["players on site"][-1]:
-                print("owner on site")
-                print(prop_info)
-                # dev here (take rent)
+                if prop_info[self.property_str]["owner"] == player_name:
+                    print("owner on site")
+                    print(prop_info)
+                    # dev here (build house)
+
+        else:
+            # means player on special property
+            # dev here , take 200 or tell to go somewhere on board
+            pass
 
     def buy_prop(self):
         print("buying property!")
-        self.buy_button.grid_forget()
-        # prop_info[self.property_str]["owner"] = player_chances[chance]
-        # tk.Label(main_frame, text=player_chances[chance] + " successfully bought-" + self.property_str,
-        #        bg=self.color).grid(columnspan=3, row=6, column=6)
+        self.buy_btn.grid_forget()
+        prop_info[self.property_str]["owner"] = username
         print(prop_info)
+        client.send(pickle.dumps((player_name, "properties", "update" ,self.property_str)))
 
     def show_details(self):
+        self.info_box1 = tk.Frame(main_frame, relief="raised", highlightbackground="black",highlightthickness=1)
 
-        self.info_box1 = tk.Frame(main_frame, relief="raised", highlightbackground="black", width=self.width * 4,
-                                  height=self.height * 4,
-                                  highlightthickness=1)
-        self.info_box1.grid(rowspan=6, columnspan=2, row=4, column=1)
+        self.info_box2 = tk.Frame(main_frame, relief="raised", highlightbackground="black",highlightthickness=1)
 
-        self.info_box2 = tk.Frame(main_frame, relief="raised", highlightbackground="black", width=self.width * 4,
-                                  height=self.height * 4,
-                                  highlightthickness=1)
-        self.info_box2.grid(rowspan=6, columnspan=2, row=4, column=3)
+        if self.property_str not in special_properties:
+            self.info_box1.grid(rowspan=6, columnspan=2, row=4, column=1)
+            self.info_box2.grid(rowspan=6, columnspan=2, row=4, column=3)
 
-        self.prop_name_dis = tk.Label(self.info_box1, text=self.property_str, bg=self.color, font=("Courier", 12),
-                                      highlightbackground="black",
-                                      highlightthickness=1)
-        self.prop_name_dis.pack(side="top", fill="x")
-
-        self.rent_dis = tk.Label(self.info_box1, text="RENT- SITE ONLY: " + str(self.rent), font=("Courier", 12),
-                                 highlightbackground="black",
-                                 highlightthickness=1)
-        self.rent_dis.pack(side="top")
-
-        self.house1 = tk.Label(self.info_box1, text="RENT- with 1 house: " + str(self.one_house_rent),
-                               font=("Courier", 12), highlightbackground="black",
-                               highlightthickness=1)
-        self.house1.pack(side="top")
-        self.house2 = tk.Label(self.info_box1, text="RENT-with 2 houses: " + str(self.two_house_rent),
-                               font=("Courier", 12), highlightbackground="black",
-                               highlightthickness=1)
-        self.house2.pack(side="top")
-
-        self.house3 = tk.Label(self.info_box1, text="RENT-with 3 houses: " + str(self.three_house_rent),
-                               font=("Courier", 12), highlightbackground="black",
-                               highlightthickness=1)
-        self.house3.pack(side="top")
-        self.house4 = tk.Label(self.info_box1, text="RENT-with 4 houses: " + str(self.four_house_rent),
-                               font=("Courier", 12), highlightbackground="black",
-                               highlightthickness=1)
-        self.house4.pack(side="top")
-
-        self.hotel = tk.Label(self.info_box2, text="RENT- with HOTEL: " + str(self.hotel_rent),
-                              font=("Courier", 12), highlightbackground="black",
-                              highlightthickness=1)
-        self.hotel.pack(side="top")
-
-        self.cost_of_house_dis = tk.Label(self.info_box2, text="cost of one house: " + str(self.cost_of_house),
-                                          font=("Courier", 12), highlightbackground="black",
+            self.prop_name_dis = tk.Label(self.info_box1, text=self.property_str, bg=self.color, font=("Courier", 12),
+                                          highlightbackground="black",
                                           highlightthickness=1)
-        self.cost_of_house_dis.pack(side="top")
+            self.prop_name_dis.pack(side="top", fill="x")
 
-        self.cost_hotel = tk.Label(self.info_box2,
-                                   text="cost of hotel: " + str(self.cost_of_hotel) + "\n+four houses",
+            self.rent_dis = tk.Label(self.info_box1, text="RENT- SITE ONLY: " + str(self.rent), font=("Courier", 12),
+                                     highlightbackground="black",
+                                     highlightthickness=1)
+            self.rent_dis.pack(side="top")
+
+            self.house1 = tk.Label(self.info_box1, text="RENT- with 1 house: " + str(self.one_house_rent),
                                    font=("Courier", 12), highlightbackground="black",
                                    highlightthickness=1)
-        self.cost_hotel.pack(side="top")
+            self.house1.pack(side="top")
+            self.house2 = tk.Label(self.info_box1, text="RENT-with 2 houses: " + str(self.two_house_rent),
+                                   font=("Courier", 12), highlightbackground="black",
+                                   highlightthickness=1)
+            self.house2.pack(side="top")
 
-        self.mortgage_value_dis = tk.Label(self.info_box2, text="Mortgage value: " + str(self.mortgage_value),
-                                           font=("Courier", 12), highlightbackground="black",
-                                           highlightthickness=1)
-        self.mortgage_value_dis.pack(side="top")
+            self.house3 = tk.Label(self.info_box1, text="RENT-with 3 houses: " + str(self.three_house_rent),
+                                   font=("Courier", 12), highlightbackground="black",
+                                   highlightthickness=1)
+            self.house3.pack(side="top")
+            self.house4 = tk.Label(self.info_box1, text="RENT-with 4 houses: " + str(self.four_house_rent),
+                                   font=("Courier", 12), highlightbackground="black",
+                                   highlightthickness=1)
+            self.house4.pack(side="top")
+
+            self.hotel = tk.Label(self.info_box2, text="RENT- with HOTEL: " + str(self.hotel_rent),
+                                  font=("Courier", 12), highlightbackground="black",
+                                  highlightthickness=1)
+            self.hotel.pack(side="top")
+
+            self.cost_of_house_dis = tk.Label(self.info_box2, text="cost of one house: " + str(self.cost_of_house),
+                                              font=("Courier", 12), highlightbackground="black",
+                                              highlightthickness=1)
+            self.cost_of_house_dis.pack(side="top")
+
+            self.cost_hotel = tk.Label(self.info_box2,
+                                       text="cost of hotel: " + str(self.cost_of_hotel) + "\n+four houses",
+                                       font=("Courier", 12), highlightbackground="black",
+                                       highlightthickness=1)
+            self.cost_hotel.pack(side="top")
+
+            self.mortgage_value_dis = tk.Label(self.info_box2, text="Mortgage value: " + str(self.mortgage_value),
+                                               font=("Courier", 12), highlightbackground="black",
+                                               highlightthickness=1)
+            self.mortgage_value_dis.pack(side="top")
+
+        else:
+            self.info_box1.grid(rowspan=6, columnspan=2, row=4, column=1)
+            self.label_of_info_box = tk.Label(self.info_box1, text = "You will be thrown \nto a random position or \n given 200 Rupees", font=font)
+            self.label_of_info_box.pack(side="top")
+
+
 
 
 # created the objects below for testing, to see the objects refer to client file after recv_game_info !
