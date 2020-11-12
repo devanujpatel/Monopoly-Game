@@ -65,7 +65,7 @@ class Player:
         self.sf_width = int(sf_width)
         self.sf_height = int(sf_height)
         # display smaller frame inside our stat box
-        self.inferior_status_frame = tk.LabelFrame(stat_box, text=self.name, bg="tomato1", relief="flat",font=("white", 1),
+        self.inferior_status_frame = tk.Label(stat_box, bg="tomato1", relief="flat",font=("white", 1),
                                                    width=sf_width/len(data_holder["players list"]), height=self.sf_height)
 
         self.inferior_status_frame.pack(side="left")
@@ -76,8 +76,8 @@ class Player:
         self.details_frame = tk.Frame(self.stat_notebook, bg="light blue")
         self.properties_frame = tk.Frame(self.stat_notebook, bg="light blue")
 
-        self.proptree = ttk.Treeview(self.properties_frame, selectmode="none", height = self.sf_height)
-        self.proptree.pack()
+        self.proptree = ttk.Treeview(self.properties_frame, selectmode="none",height = self.sf_height)
+        self.proptree.pack(fill ="x")
         self.proptree["columns"] = ("Property Name", "Price", "Houses", "Current Rent")
         self.proptree.column("#0", width=0)
         self.proptree.column("Property Name", width=60, minwidth=50, anchor="w")
