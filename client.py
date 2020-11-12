@@ -9,7 +9,7 @@ from player_class_online_version import Player
 from tkinter import colorchooser, ttk
 
 client = socket.socket()
-client.connect(("192.168.29.202", 9999))
+client.connect(("192.168.29.201", 9999))
 
 container = tk.Tk()
 
@@ -557,7 +557,7 @@ def recv_data_updates():
     global dice_roll
     print("recving data updates")
     while True:
-        time.sleep(0.5)
+        time.sleep(0.2)
         data_update = pickle.loads(client.recv(1024))
         print(data_update)
 
@@ -571,7 +571,7 @@ def recv_data_updates():
             data_holder["game info"][data_update[0]][data_update[1]] = data_update[2]
             print(data_holder)
             update_caller(data_update)
-            rd_obj.show_end_turn_btns()
+
 
         elif len(data_update) == 2:
             data_holder[data_update[0]] = data_update[1]
@@ -579,16 +579,13 @@ def recv_data_updates():
 
         else:
             if data_update == ("end my turn"):
+                created_objs[call_to].rd_label.grid_forget()
                 # ignore as already the updates are sent before(from server) and whose chance it wasn't then seek
                 # chance would do the work
                 seek_chance()
 
             if data_update == ("RC"):
                 client.send(pickle.dumps(data_update))
-
-            if data_update[0] == "dice roll":
-                print("recved dice roll")
-                dice_roll = data_update[1]
 
 
 def seek_chance():
@@ -614,6 +611,11 @@ def update_caller(data_update):
 
         created_objs[call_to].update_position(row_coordinates, column_coordinates, place_num, old_pos, data_update[2],
                                               place_id_place_to_pos)
+
+        # show end turn btns after token is moved and only if it is oyur chance
+        if data_update[0] == username:
+            rd_obj.show_end_turn_btns()
+
         # just this and our work is done
 
     # more on the way
@@ -648,20 +650,18 @@ class roll_dice_class:
             position -= 39
 
         # so that server makes responded to true
-        client.send(pickle.dumps("rolled"))
+        #client.send(pickle.dumps("rolled"))
         # send our server so it munches down the data
         client.send(pickle.dumps((username, "position", position)))
         # then the data muncher on our side will recv and update the screen
 
     def show_end_turn_btns(self):
-        self.end_turn = tk.Button(main_frame, text="End Turn!", font=font, command=lambda: self.end_turn_clicked())
-        self.end_turn.grid(row=6, column=6)
+        self.end_turn_btn = tk.Button(main_frame, text="End Turn!", font=font, command=lambda: self.end_turn_clicked())
+        self.end_turn_btn.grid(row=6, column=6)
 
     def end_turn_clicked(self):
-        client.send(pickle.dumps(("end my turn")))
         # display btns when necessary only
-        self.roll_dice_d.grid_forget()
-        self.end_turn.grid_forget()
-        created_objs[call_to].rd_label.grid_forget()
+        self.end_turn_btn.grid_forget()
+        client.send(pickle.dumps(("end my turn")))
 
 container.mainloop()

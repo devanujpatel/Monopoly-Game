@@ -29,7 +29,7 @@ class Player:
         show_dice = tk.StringVar()
         show_dice.set(str(showcase_num))
 
-        self.rd_label = tk.Label(main_frame, textvariable=show_dice, bg="green", fg="orange", width=12, height=2, font = ("Courier", 13))
+        self.rd_label = tk.Label(main_frame, textvariable=show_dice, bg="green", fg="orange", width=12, height=2, font = ("Courier", 11))
         self.rd_label.grid(row=7, column=5)
 
         while True:

@@ -394,27 +394,31 @@ class threaded_Client(threading.Thread):
             elif self.data_tup == ("RC"):
                 self.responded = False
 
-            elif self.data_tup == ("rolled"):
+            elif self.data_tup[1] == "position":
                 self.responded = True
+                self.munch_data()
 
             else:
                 # LET'S MUNCH DOWN OUR DATA
-                print(self.data_tup, "= data tup")
+                self.munch_data()
 
-                if len(self.data_tup) == 3:
-                    rooms[self.room]["game info"][self.data_tup[0]][self.data_tup[1]] = self.data_tup[2]
-                elif len(self.data_tup) == 2:
-                    rooms[self.room][self.data_tup[0]] = self.data_tup[1]
-                else:
-                    pass
-                # send the same to others.
+    def munch_data(self):
+        print(self.data_tup, "= data tup")
 
-                self.send_updates(self.data_tup)
+        if len(self.data_tup) == 3:
+            rooms[self.room]["game info"][self.data_tup[0]][self.data_tup[1]] = self.data_tup[2]
+        elif len(self.data_tup) == 2:
+            rooms[self.room][self.data_tup[0]] = self.data_tup[1]
+        else:
+            pass
+        # send the same to others.
+
+        self.send_updates(self.data_tup)
 
     def send_updates(self, data_tup):
         # false means don't send and true means send
         while True:
-            time.sleep(0.2)
+            #time.sleep(0.2)
             if rooms[self.room]["send flag"] is True:
                 rooms[self.room]["send flag"] = False
                 data_tup = pickle.dumps(data_tup)
