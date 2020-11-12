@@ -57,15 +57,15 @@ class my_property_class:
         row_coordinates.update({property_str: row})
         column_coordinates.update({property_str: column})
 
+        self.buy_btn = tk.Button(main_frame, text="Buy", bg=self.color,
+                                 command=lambda: self.buy_prop())
+
         if self.property_str not in special_properties:
             prop_info.update(
                 {self.property_str: {"price": self.price, "houses": 0, "owner": None, }})
             self.prop_box = tk.Frame(main_frame, width=width, height=height, bg=self.color, highlightbackground="black",
                                      highlightthickness=1)
             self.prop_box.grid(row=row, column=column)
-
-            self.buy_btn = tk.Button(main_frame, text="Buy", bg=self.color,
-                                        command=lambda: self.buy_prop())
 
         if self.property_str in special_properties:
             prop_info.update(

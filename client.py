@@ -580,7 +580,7 @@ def recv_data_updates():
             if data_update[2] == "update" and data_update[1] == "properties":
                 # means we have to add something o the dicto about properties
                 data_holder["game info"][data_update[0]][data_update[1]].update({data_update[3]:{
-                    "status":"normal", "houses":0, }}) 
+                    "houses":0, }})
 
                 prop_info[data_update[3]]["owner"] = data_update[0]
                 update_reader = tk.Label(main_frame, text=data_update[0] + " \nsuccessfully bought-\n" + data_update[3],font=font,
@@ -658,6 +658,7 @@ class roll_dice_class:
         #self.dice_roll1 = random.randint(1, 6)
         #self.dice_roll2 = random.randint(1, 6)
         #self.dice_roll = self.dice_roll1 + self.dice_roll2
+        self.roll_dice_d.grid_forget()
         self.okay.grid_forget()
         self.dice_roll = int(self.roll_dice_d.get())
         self.show_dice = tk.StringVar()

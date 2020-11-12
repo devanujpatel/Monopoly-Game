@@ -41,11 +41,11 @@ class Player:
             col = col_coord[next_spot]
 
             print("current position",row,col)
-            time.sleep(0.3)
+            #time.sleep(0.3)
             self.token.grid(row = row, column = col, sticky = self.sticky)
             showcase_num += 1
             show_dice.set(str(showcase_num))
-            time.sleep(1)
+            #time.sleep(0.4)
             if dest_col == col and dest_row == row:
                 show_dice.set("Dice Roll: "+str(showcase_num))
                 prop_obj_id[new_pos].playerOnSite(chance,username,client)
