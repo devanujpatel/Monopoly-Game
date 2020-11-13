@@ -544,11 +544,9 @@ def display_game_screen():
 
 
 def final_stage_tweaks():
-    global data_holder
     global data_holder, rd_obj
     del data_holder["color responses"]
     print(data_holder)
-    global rd_obj
     rd_obj = roll_dice_class()
 
     seek_chance()
@@ -558,7 +556,7 @@ def final_stage_tweaks():
 
 
 def recv_data_updates():
-    global dice_roll
+
     global dice_roll, update_reader
     update_reader = tk.Label(main_frame, font=font,
                              bg="light blue")
@@ -604,7 +602,7 @@ def recv_data_updates():
                 update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
 
             if data_update[2] == "update" and data_update[1] == "properties":
-                # means we have to add something o the dicto about properties
+                # means we have to add something of the dicto about properties
                 data_holder["game info"][data_update[0]][data_update[1]].update({data_update[3]: {
                     "houses": 0, }})
 

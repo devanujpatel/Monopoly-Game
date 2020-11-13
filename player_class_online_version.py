@@ -55,7 +55,6 @@ class Player:
             # time.sleep(0.4)
             if dest_col == col and dest_row == row:
                 show_dice.set("Dice Roll: " + str(showcase_num))
-                prop_obj_id[new_pos].playerOnSite(chance, player_name, client)
                 prop_obj_id[new_pos].playerOnSite(chance, player_name, client, data_holder)
                 break
 
@@ -67,12 +66,11 @@ class Player:
         self.sf_height = int(sf_height)
         # display smaller frame inside our stat box
         self.inferior_status_frame = tk.Label(stat_box, bg="tomato1", relief="flat", font=("white", 1),
-                                              width=sf_width / len(data_holder["players list"]), height=self.sf_height)
+                                              width=int(sf_width / len(data_holder["players list"])), height=self.sf_height)
+
         self.inferior_status_frame = tk.Label(stat_box, bg="tomato1", relief="flat",
                                               width=int(sf_width / len(data_holder["players list"])),
                                               height=self.sf_height - 10)
-
-        self.inferior_status_frame.pack(side="left")
 
         self.stat_notebook = ttk.Notebook(self.inferior_status_frame,
                                           width=int(self.sf_width / len(data_holder["players list"])),
