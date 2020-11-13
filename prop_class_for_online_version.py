@@ -349,5 +349,5 @@ status_frame = tk.LabelFrame(main_frame, text="Status Box", bg="light green", fg
                              highlightbackground="black", highlightthickness=1, width=sf_width,
                              height=sf_height)
 status_frame.grid(rowspan=4, columnspan=9, row=1, column=1)
-
+"""""""
 main_frame.mainloop()"""

@@ -178,5 +178,5 @@ class Player:
                            values=(self.name, str(data_holder["player chances"][self.name]) ,self.money_var, self.num_props))
 
 
-        
+        """""""
         '''
