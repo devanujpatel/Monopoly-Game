@@ -66,6 +66,7 @@ class my_property_class:
                 {self.property_str: {"price": self.price, "houses": 0, "owner": None, "current rent": self.rent, "rent":self.rent }})
             self.prop_box = tk.Frame(main_frame, width=width, height=height, bg=self.color, highlightbackground="black",
                                      highlightthickness=1)
+            self.current_rent = prop_info[self.property_str]["current rent"]
             self.prop_box.grid(row=row, column=column)
 
         if self.property_str in special_properties:
@@ -73,7 +74,6 @@ class my_property_class:
                 {self.property_str:None})
             self.prop_box = tk.Frame(main_frame, width=width, height=height, highlightbackground="black",
                                      highlightthickness=1)
-            self.current_rent = prop_info[self.property_str]["current rent"]
             self.prop_box.grid(row=row, column=column)
 
     def update_dicto(self, prop_obj, pos):
@@ -81,8 +81,6 @@ class my_property_class:
         place_num.update({pos: self.property_str})
         place_id_place_to_pos.update({self.property_str: pos})
 
-    def playerOnSite(self, player_name_para, username_para, client_para):
-        global username, player_name, client
     def playerOnSite(self, player_name_para, username_para, client_para, data_holder_para):
         global username, player_name, client, data_holder
         data_holder = data_holder_para
