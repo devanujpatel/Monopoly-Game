@@ -1,3 +1,4 @@
+import time
 import tkinter as tk
 import pickle
 font = ("Courier", 12)
@@ -72,6 +73,7 @@ class my_property_class:
                 {self.property_str:None})
             self.prop_box = tk.Frame(main_frame, width=width, height=height, highlightbackground="black",
                                      highlightthickness=1)
+            self.current_rent = prop_info[self.property_str]["current rent"]
             self.prop_box.grid(row=row, column=column)
 
     def update_dicto(self, prop_obj, pos):
@@ -81,6 +83,9 @@ class my_property_class:
 
     def playerOnSite(self, player_name_para, username_para, client_para):
         global username, player_name, client
+    def playerOnSite(self, player_name_para, username_para, client_para, data_holder_para):
+        global username, player_name, client, data_holder
+        data_holder = data_holder_para
         client = client_para
         player_name = player_name_para
         username = username_para
@@ -91,6 +96,8 @@ class my_property_class:
         self.show_details()
         if self.property_str not in special_properties:
             if prop_info[self.property_str]["owner"] is None and player_name == username:
+                self.price_btn = tk.Label(main_frame, text ="Price: "+str(self.price), font = font, bg = self.color)
+                self.price_btn.grid(row=5, column=8)
                 self.buy_btn.grid(row=6, column=8)
 
             if prop_info[self.property_str]["owner"] is not None:
@@ -98,6 +105,12 @@ class my_property_class:
                     print("owner not on site")
                     print(prop_info)
                     # dev here (take rent)
+                    if player_name == username:
+                        self.rent_btn = tk.Button(main_frame, text = "Give Rent", command=lambda:self.give_rent(), bg=self.color, font = font)
+                        self.rent_btn.grid(row=6, column=8)
+
+                        self.rent_label = tk.Label(main_frame,text = "Rent: "+str(self.current_rent), bg =self.color, font = font)
+
 
                 if prop_info[self.property_str]["owner"] == player_name:
                     print("owner on site")
@@ -109,12 +122,29 @@ class my_property_class:
             # dev here , take 200 or tell to go somewhere on board
             pass
 
+    def give_rent(self):
+        self.rent_btn.grid_forget()
+        self.rent_label.grid_forget()
+        client.send(pickle.dumps((username, "money", data_holder["game info"][player_name]["money"]-self.current_rent)))
+        client.send(pickle.dumps((prop_info[self.property_str]["owner"], "money", data_holder["game info"][player_name]["money"]+self.current_rent )))
+
     def buy_prop(self):
         print("buying property!")
+        self.price_btn.grid_forget()
         self.buy_btn.grid_forget()
         prop_info[self.property_str]["owner"] = username
         print(prop_info)
         client.send(pickle.dumps((player_name, "properties", "update" ,self.property_str)))
+
+        # check if player has enough money
+        if data_holder["game info"][player_name]["money"] > self.price:
+            prop_info[self.property_str]["owner"] = username
+            client.send(pickle.dumps((player_name, "properties", "update", self.property_str)))
+            time.sleep(1)
+            client.send(pickle.dumps((player_name,"money", data_holder["game info"][player_name]["money"]-self.price)))
+
+        else:
+            client.send(pickle.dumps((player_name , "coudn't buy", self.property_str, "because of lack of money.")))
 
     def show_details(self):
         self.info_box1 = tk.Frame(main_frame, relief="raised", highlightbackground="black",highlightthickness=1)
@@ -349,5 +379,6 @@ status_frame = tk.LabelFrame(main_frame, text="Status Box", bg="light green", fg
                              highlightbackground="black", highlightthickness=1, width=sf_width,
                              height=sf_height)
 status_frame.grid(rowspan=4, columnspan=9, row=1, column=1)
-"""""""
+
 main_frame.mainloop()"""
+

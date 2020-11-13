@@ -1,7 +1,8 @@
 import random
 import socket, pickle, threading, time
 import tkinter as tk
-from prop_class_for_online_version import my_property_class, row_coordinates, column_coordinates, place_num, prop_id, prop_info,place_id_place_to_pos
+from prop_class_for_online_version import my_property_class, row_coordinates, column_coordinates, place_num, prop_id, \
+    prop_info, place_id_place_to_pos
 from player_class_online_version import Player
 
 # importing the choosecolor package
@@ -9,6 +10,7 @@ from tkinter import colorchooser, ttk
 
 client = socket.socket()
 client.connect(("192.168.29.202", 9999))
+client.connect(("192.168.29.201", 9999))
 
 container = tk.Tk()
 
@@ -368,6 +370,7 @@ def get_color_updates():
             final_stage_tweaks()
             break
 
+
 def display_game_screen():
     start_frame.grid_forget()
     global main_frame, status_frame, width, height
@@ -543,6 +546,7 @@ def display_game_screen():
 
 def final_stage_tweaks():
     global data_holder
+    global data_holder, rd_obj
     del data_holder["color responses"]
     print(data_holder)
     global rd_obj
@@ -556,6 +560,19 @@ def final_stage_tweaks():
 
 def recv_data_updates():
     global dice_roll
+    global dice_roll, update_reader
+    update_reader = tk.Label(main_frame, font=font,
+                             bg="light blue")
+
+    col = "Chances:"
+    c = ","
+    for player in data_holder["players list"]:
+        if player == data_holder["players list"][-1]:
+            c = ""
+        col += " " + player + ":" + str(data_holder["player chances"][player]) + c
+    update_reader["text"] = col
+    update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
+
     print("recving data updates")
     while True:
         time.sleep(0.2)
@@ -570,6 +587,7 @@ def recv_data_updates():
             chance_person = data_holder["inverted chances"][chance_num]
             old_pos = data_holder["game info"][chance_person]["position"]
             print(old_pos)
+
             data_holder["game info"][data_update[0]][data_update[1]] = data_update[2]
             print(data_holder)
             update_caller(data_update)
@@ -578,19 +596,32 @@ def recv_data_updates():
         elif len(data_update) == 2:
             data_holder[data_update[0]] = data_update[1]
             print(data_holder)
-        
+
         elif len(data_update) == 4:
+
+            if data_update[1] == "coudn't buy":
+                t = data_update[0] + " " + data_update[1] + "\n " + data_update[2] + " " + data_update[3]
+                update_reader["text"] = t
+                update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
+
             if data_update[2] == "update" and data_update[1] == "properties":
                 # means we have to add something o the dicto about properties
-                data_holder["game info"][data_update[0]][data_update[1]].update({data_update[3]:{
-                    "houses":0, }})
+                data_holder["game info"][data_update[0]][data_update[1]].update({data_update[3]: {
+                    "houses": 0, }})
 
                 prop_info[data_update[3]]["owner"] = data_update[0]
-                update_reader = tk.Label(main_frame, text=data_update[0] + " \nsuccessfully bought-\n" + data_update[3],font=font,
-                      bg="light blue")
+                update_reader = tk.Label(main_frame, text=data_update[0] + " \nsuccessfully bought-\n" + data_update[3],
+                                         font=font,
+                                         bg="light blue")
                 update_reader.grid(columnspan=3, row=6, column=7)
+                update_reader["text"] = data_update[0] + " \nsuccessfully bought-\n" + data_update[3]
+                update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
 
                 created_objs[data_update[0]].property_update(data_update)
+                # created_objs[data_update[0]].num_props.set(len(data_holder["game info"][data_update[0]]["properties"]))
+                created_objs[data_update[0]].prop_num_label["text"] = "Properties in hand" + str(
+                    len(data_holder["game info"][data_update[0]]["properties"]))
+
 
         else:
             if data_update == ("end my turn"):
@@ -603,6 +634,7 @@ def recv_data_updates():
                 prop_id[new_pos].buy_btn.grid_forget()
                 update_reader = tk.Frame(container)
                 update_reader.grid()
+                update_reader.grid(row=6, column=8)
                 update_reader.grid_forget()
                 created_objs[call_to].rd_label.grid_forget()
                 # ignore as already the updates are sent before(from server) and whose chance it wasn't then seek
@@ -643,6 +675,10 @@ def update_caller(data_update):
 
         # just this and our work is done
 
+    if data_update[1] == "money":
+        # created_objs[call_to].money_var.set(data_update[2])
+        created_objs[call_to].money_label["text"] = "Money: " + str(data_update[2])
+
     # more on the way
 
 
@@ -652,17 +688,16 @@ class roll_dice_class:
         print("obj created for dice")
 
     def show_dice_btn(self):
-
         self.roll_dice_d = tk.Entry(main_frame)
-        self.roll_dice_d.grid(row=6, column = 6)
-        self.okay = tk.Button(main_frame, command = lambda :self.virtual_dice(), text ="Okay")
-        self.okay.grid(row = 7, column=6)
+        self.roll_dice_d.grid(row=6, column=6)
+        self.okay = tk.Button(main_frame, command=lambda: self.virtual_dice(), text="Okay")
+        self.okay.grid(row=7, column=6)
 
     def virtual_dice(self):
-        #self.roll_dice_d.grid_forget()
-        #self.dice_roll1 = random.randint(1, 6)
-        #self.dice_roll2 = random.randint(1, 6)
-        #self.dice_roll = self.dice_roll1 + self.dice_roll2
+        # self.roll_dice_d.grid_forget()
+        # self.dice_roll1 = random.randint(1, 6)
+        # self.dice_roll2 = random.randint(1, 6)
+        # self.dice_roll = self.dice_roll1 + self.dice_roll2
         self.roll_dice_d.grid_forget()
         self.okay.grid_forget()
         self.dice_roll = int(self.roll_dice_d.get())
@@ -679,7 +714,7 @@ class roll_dice_class:
             position -= 39
 
         # so that server makes responded to true
-        #client.send(pickle.dumps("rolled"))
+        # client.send(pickle.dumps("rolled"))
         # send our server so it munches down the data
         client.send(pickle.dumps((username, "position", position)))
         # then the data muncher on our side will recv and update the screen
@@ -693,5 +728,6 @@ class roll_dice_class:
         self.end_turn_btn.grid_forget()
         client.send(pickle.dumps(("end my turn")))
 
+
 container.mainloop()
-"""""""
+
