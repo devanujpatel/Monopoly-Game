@@ -60,6 +60,8 @@ class my_property_class:
 
         self.buy_btn = tk.Button(main_frame, text="Buy", bg=self.color,
                                  command=lambda: self.buy_prop())
+        self.rent_btn = tk.Button(main_frame, text="Give Rent", command=lambda: self.give_rent(), bg=self.color,
+                                  font=font)
 
         if self.property_str not in special_properties:
             prop_info.update(
@@ -104,11 +106,8 @@ class my_property_class:
                     print(prop_info)
                     # dev here (take rent)
                     if player_name == username:
-                        self.rent_btn = tk.Button(main_frame, text = "Give Rent", command=lambda:self.give_rent(), bg=self.color, font = font)
                         self.rent_btn.grid(row=6, column=8)
-
                         self.rent_label = tk.Label(main_frame,text = "Rent: "+str(self.current_rent), bg =self.color, font = font)
-
 
                 if prop_info[self.property_str]["owner"] == player_name:
                     print("owner on site")
@@ -131,8 +130,6 @@ class my_property_class:
         self.price_btn.grid_forget()
         self.buy_btn.grid_forget()
         prop_info[self.property_str]["owner"] = username
-        print(prop_info)
-        client.send(pickle.dumps((player_name, "properties", "update" ,self.property_str)))
 
         # check if player has enough money
         if data_holder["game info"][player_name]["money"] > self.price:
@@ -143,6 +140,8 @@ class my_property_class:
 
         else:
             client.send(pickle.dumps((player_name , "coudn't buy", self.property_str, "because of lack of money.")))
+
+
 
     def show_details(self):
         self.info_box1 = tk.Frame(main_frame, relief="raised", highlightbackground="black",highlightthickness=1)

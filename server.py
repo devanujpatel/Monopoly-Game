@@ -194,7 +194,7 @@ class threaded_Client(threading.Thread):
     def check_recved_room_num(self):
         if self.room not in existing_rooms:
             # if room doesnt exist then notify the client about the same
-            self.client.send(pickle.dumps("room Fdoesn't exist"))
+            self.client.send(pickle.dumps("room doesn't exist"))
             # again wait for client to send room num
             self.recv_room_num()
 

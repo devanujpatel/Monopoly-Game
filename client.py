@@ -616,9 +616,8 @@ def recv_data_updates():
 
                 created_objs[data_update[0]].property_update(data_update)
                 # created_objs[data_update[0]].num_props.set(len(data_holder["game info"][data_update[0]]["properties"]))
-                created_objs[data_update[0]].prop_num_label["text"] = "Properties in hand" + str(
+                created_objs[data_update[0]].prop_num_label["text"] = "Properties in hand: " + str(
                     len(data_holder["game info"][data_update[0]]["properties"]))
-
 
         else:
             if data_update == ("end my turn"):
@@ -627,10 +626,10 @@ def recv_data_updates():
                 prop_id[new_pos].info_box2.grid()
                 # then forget
                 prop_id[new_pos].info_box2.grid_forget()
+                prop_id[new_pos].rent_btn.grid()
                 prop_id[new_pos].buy_btn.grid()
+                prop_id[new_pos].rent_btn.grid_forget()
                 prop_id[new_pos].buy_btn.grid_forget()
-                update_reader = tk.Frame(container)
-                update_reader.grid()
                 update_reader.grid(row=6, column=8)
                 update_reader.grid_forget()
                 created_objs[call_to].rd_label.grid_forget()
