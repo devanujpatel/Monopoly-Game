@@ -352,8 +352,9 @@ class threaded_Client(threading.Thread):
                         if self.no_response == 3:
                             return "check if active"
                         else:
-                            #self.end_turn()
+                            self.data_tup = pickle.dumps((self.username, "chance missed"))
                             pass
+
                     if self.data_tup:
                         self.data_tup = pickle.loads(self.data_tup)
                         print(self.data_tup)
@@ -373,6 +374,12 @@ class threaded_Client(threading.Thread):
             # client's side
             if self.data_tup == ("end my turn"):
                 self.end_turn()
+
+            elif self.data_tup == (self.username, "chance missed"):
+                self.end_turn()
+
+            elif self.data_tup[1] == "coudn't buy":
+                self.send_updates(self.data_tup)
 
             # player leaves gracefully!
             elif self.data_tup[0] == "leave" and self.data_tup[1] == "player":

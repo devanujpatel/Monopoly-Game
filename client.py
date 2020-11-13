@@ -8,7 +8,7 @@ from player_class_online_version import Player
 from tkinter import colorchooser, ttk
 
 client = socket.socket()
-client.connect(("192.168.29.202", 9999))
+client.connect(("192.168.29.201", 9999))
 
 container = tk.Tk()
 
@@ -542,10 +542,9 @@ def display_game_screen():
 
 
 def final_stage_tweaks():
-    global data_holder
+    global data_holder, rd_obj
     del data_holder["color responses"]
     print(data_holder)
-    global rd_obj
     rd_obj = roll_dice_class()
 
     seek_chance()
@@ -555,7 +554,19 @@ def final_stage_tweaks():
 
 
 def recv_data_updates():
-    global dice_roll
+    global dice_roll, update_reader
+    update_reader = tk.Label(main_frame, font=font,
+                             bg="light blue")
+
+    col = "Chances:"
+    c = ","
+    for player in data_holder["players list"]:
+        if player == data_holder["players list"][-1]:
+            c = ""
+        col += " "+player+":"+str(data_holder["player chances"][player])+c
+    update_reader["text"] = col
+    update_reader.grid(columnspan=3,rowspan = 3,row=6, column=7)
+
     print("recving data updates")
     while True:
         time.sleep(0.2)
@@ -570,6 +581,7 @@ def recv_data_updates():
             chance_person = data_holder["inverted chances"][chance_num]
             old_pos = data_holder["game info"][chance_person]["position"]
             print(old_pos)
+
             data_holder["game info"][data_update[0]][data_update[1]] = data_update[2]
             print(data_holder)
             update_caller(data_update)
@@ -580,17 +592,26 @@ def recv_data_updates():
             print(data_holder)
         
         elif len(data_update) == 4:
+
+            if data_update[1] == "coudn't buy":
+                t= data_update[0]+" "+data_update[1]+"\n "+data_update[2]+" "+data_update[3]
+                update_reader["text"] = t
+                update_reader.grid(columnspan=3,rowspan = 3 ,row=6, column=7)
+
+
             if data_update[2] == "update" and data_update[1] == "properties":
                 # means we have to add something o the dicto about properties
                 data_holder["game info"][data_update[0]][data_update[1]].update({data_update[3]:{
                     "houses":0, }})
 
                 prop_info[data_update[3]]["owner"] = data_update[0]
-                update_reader = tk.Label(main_frame, text=data_update[0] + " \nsuccessfully bought-\n" + data_update[3],font=font,
-                      bg="light blue")
-                update_reader.grid(columnspan=3, row=6, column=7)
+                update_reader["text"] = data_update[0] + " \nsuccessfully bought-\n" + data_update[3]
+                update_reader.grid(columnspan=3,rowspan = 3 ,row=6, column=7)
 
                 created_objs[data_update[0]].property_update(data_update)
+                #created_objs[data_update[0]].num_props.set(len(data_holder["game info"][data_update[0]]["properties"]))
+                created_objs[data_update[0]].prop_num_label["text"] = "Properties in hand"+str(len(data_holder["game info"][data_update[0]]["properties"]))
+
 
         else:
             if data_update == ("end my turn"):
@@ -601,8 +622,7 @@ def recv_data_updates():
                 prop_id[new_pos].info_box2.grid_forget()
                 prop_id[new_pos].buy_btn.grid()
                 prop_id[new_pos].buy_btn.grid_forget()
-                update_reader = tk.Frame(container)
-                update_reader.grid()
+                update_reader.grid(row = 6, column = 8)
                 update_reader.grid_forget()
                 created_objs[call_to].rd_label.grid_forget()
                 # ignore as already the updates are sent before(from server) and whose chance it wasn't then seek
@@ -642,6 +662,10 @@ def update_caller(data_update):
             rd_obj.show_end_turn_btns()
 
         # just this and our work is done
+
+    if data_update[1] == "money":
+        #created_objs[call_to].money_var.set(data_update[2])
+        created_objs[call_to].money_label["text"] = "Money: " + str(data_update[2])
 
     # more on the way
 

@@ -55,7 +55,7 @@ class Player:
             # time.sleep(0.4)
             if dest_col == col and dest_row == row:
                 show_dice.set("Dice Roll: " + str(showcase_num))
-                prop_obj_id[new_pos].playerOnSite(chance, player_name, client)
+                prop_obj_id[new_pos].playerOnSite(chance, player_name, client, data_holder)
                 break
 
             old_pos = place_id[next_spot]
@@ -65,18 +65,16 @@ class Player:
         self.sf_width = int(sf_width)
         self.sf_height = int(sf_height)
         # display smaller frame inside our stat box
-        self.inferior_status_frame = tk.Label(stat_box, bg="tomato1", relief="flat",font=("white", 1),
-                                                   width=sf_width/len(data_holder["players list"]), height=self.sf_height)
+        self.inferior_status_frame = tk.Label(stat_box, bg="tomato1", relief="flat",
+                                                   width=int(sf_width/len(data_holder["players list"])), height=self.sf_height-10)
 
-        self.inferior_status_frame.pack(side="left")
-
-        self.stat_notebook = ttk.Notebook(self.inferior_status_frame, width=int(self.sf_width/len(data_holder["players list"])),height=self.sf_height)
+        self.stat_notebook = ttk.Notebook(self.inferior_status_frame, width=int(self.sf_width/len(data_holder["players list"])),height=self.sf_height-8)
         self.stat_notebook.pack()
 
         self.details_frame = tk.Frame(self.stat_notebook, bg="light blue")
         self.properties_frame = tk.Frame(self.stat_notebook, bg="light blue")
 
-        self.proptree = ttk.Treeview(self.properties_frame, selectmode="none",height = self.sf_height)
+        self.proptree = ttk.Treeview(self.properties_frame, selectmode="none",height = self.sf_height-8)
         self.proptree.pack(fill ="x")
         self.proptree["columns"] = ("Property Name", "Price", "Houses", "Current Rent")
         self.proptree.column("#0", width=0)
@@ -94,14 +92,7 @@ class Player:
         self.stat_notebook.add(self.details_frame, text=self.name + "'s Stats")
         self.stat_notebook.add(self.properties_frame, text=self.name + "'s Properties")
 
-        self.money_var = tk.StringVar()
-        self.money_var.set(data_holder["game info"][self.name]["money"])
 
-        self.num_props = tk.StringVar()
-        self.num_props.set(str(len(data_holder["game info"][self.name]["properties"])))
-
-        self.chance_var = tk.StringVar()
-        self.chance_var.set(data_holder["player chances"][self.name])
 
         self.name_label = tk.StringVar()
         self.name_label.set(self.name)
@@ -109,14 +100,16 @@ class Player:
         self.player_name_label = tk.Label(self.details_frame, text="Name: " + self.name_label.get())
         self.player_name_label.pack(pady=5, fill="x")
 
-        self.money_label = tk.Label(self.details_frame, text="Money: " + self.money_var.get())
+        self.money_label = tk.Label(self.details_frame, text="Money: " + str(data_holder["game info"][self.name]["money"]))
         self.money_label.pack(pady=5, fill="x")
 
-        self.prop_num_label = tk.Label(self.details_frame, text="Properties in hand: " + self.num_props.get())
+        self.prop_num_label = tk.Label(self.details_frame, text="Properties in hand: " + str(len(data_holder["game info"][self.name]["properties"])))
         self.prop_num_label.pack(pady=5, fill="x")
 
-        self.chance_label = tk.Label(self.details_frame, text="Chance: " + self.chance_var.get())
+        self.chance_label = tk.Label(self.details_frame, text="Chance: " + str(data_holder["player chances"][self.name]))
         self.chance_label.pack(pady=5, fill="x")
+
+        self.inferior_status_frame.pack(side="left")
 
     def property_update(self, update):
         self.proptree.insert(parent="", index="end", text="",
@@ -177,6 +170,13 @@ class Player:
         self.details.insert(parent="", index="end", text="",
                            values=(self.name, str(data_holder["player chances"][self.name]) ,self.money_var, self.num_props))
 
+        #self.money_var = tk.StringVar()
+        #self.money_var.set(data_holder["game info"][self.name]["money"])
 
+        #self.num_props = tk.StringVar()
+        #self.num_props.set(str(len(data_holder["game info"][self.name]["properties"])))
+
+        #self.chance_var = tk.StringVar()
+        #self.chance_var.set(data_holder["player chances"][self.name])
         
         '''
