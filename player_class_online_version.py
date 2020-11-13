@@ -66,7 +66,8 @@ class Player:
         self.sf_height = int(sf_height)
         # display smaller frame inside our stat box
         self.inferior_status_frame = tk.Label(stat_box, bg="tomato1", relief="flat", font=("white", 1),
-                                              width=int(sf_width / len(data_holder["players list"])), height=self.sf_height)
+                                              width=int(sf_width / len(data_holder["players list"])),
+                                              height=self.sf_height)
 
         self.inferior_status_frame = tk.Label(stat_box, bg="tomato1", relief="flat",
                                               width=int(sf_width / len(data_holder["players list"])),
@@ -133,6 +134,46 @@ class Player:
         self.chance_label.pack(pady=5, fill="x")
 
         self.inferior_status_frame.pack(side="left")
+
+        self.trade_tab()
+
+    def trade_tab(self):
+        self.trade_frame = tk.Frame(self.stat_notebook, width=int(self.sf_width / len(data_holder["players list"])),
+                                    height=self.sf_height - 10)
+        self.trade_with = ttk.Combobox(self.trade_frame, width=27)
+        self.trade_with["values"] = data_holder["players list"]
+        self.trade_with.bind("<<ComboboxSelected>>", self.trade_with_select)
+        self.trade_with.pack()
+
+        self.type_of_trade = ttk.Combobox(self.trade_with, width=27)
+        self.type_of_trade["values"] = ["only money", "only property", "money and property"]
+        self.type_of_trade.bind("<<ComboboxSelected>>", self.trade_type_select)
+        self.type_of_trade.pack()
+
+        self.okay = tk.Button(self.trade_frame, text="Okay", command=lambda: self.okay_btn())
+
+    def okay_btn(self):
+        self.trade_with.grid_forget()
+        self.type_of_trade.grid_forget()
+        self.trading_with = tk.Label(self.trade_frame, text="You are trying to trade with " + self.trade_player,
+                                     font=font)
+        self.trading_with.pack()
+        
+        self.type_of_trading = tk.Label(self.trade_frame, text = "Trade Type: "+self.trade_type, font=font)
+        self.type_of_trading.pack()
+
+        self.revert_btn = tk.Button(self.trade_frame, text = "Change Options", commanda=lambda:self.trade_tab())
+        self.revert_btn.pack()
+
+
+    def only_money_trade(self):
+        pass
+
+    def trade_type_select(self):
+        self.trade_type = self.type_of_trade.get()
+
+    def trade_with_select(self):
+        self.trade_player = self.trade_with.get()
 
     def property_update(self, update):
         self.proptree.insert(parent="", index="end", text="",
@@ -203,4 +244,3 @@ class Player:
         #self.chance_var.set(data_holder["player chances"][self.name])
 
         '''
-

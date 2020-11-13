@@ -201,6 +201,11 @@ class my_property_class:
                                                highlightthickness=1)
             self.mortgage_value_dis.pack(side="top")
 
+            self.price_label = tk.Label(self.info_box2, text="Price: " + str(self.price),
+                                               font=("Courier", 12), highlightbackground="black",
+                                               highlightthickness=1)
+            self.price_label.pack(padx=10)
+
         else:
             self.info_box1.grid(rowspan=6, columnspan=2, row=4, column=1)
             self.label_of_info_box = tk.Label(self.info_box1, text = "You will be thrown \nto a random position or \n given 200 Rupees", font=font)

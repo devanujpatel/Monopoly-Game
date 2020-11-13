@@ -9,7 +9,7 @@ from player_class_online_version import Player
 from tkinter import colorchooser, ttk
 
 client = socket.socket()
-client.connect(("192.168.29.201", 9999))
+client.connect(("192.168.29.202", 9999))
 
 container = tk.Tk()
 
@@ -554,6 +554,9 @@ def final_stage_tweaks():
     recv_data_updates_thread = threading.Thread(target=recv_data_updates())
     recv_data_updates_thread.start()
 
+def forget_update_reader():
+    global update_reader
+    update_reader.grid_forget()
 
 def recv_data_updates():
 
@@ -566,20 +569,20 @@ def recv_data_updates():
     for player in data_holder["players list"]:
         if player == data_holder["players list"][-1]:
             c = ""
-        col += " " + player + ":" + str(data_holder["player chances"][player]) + c
+        col += " " + player + ":" + str(data_holder["player chances"][player]+1) + c
     update_reader["text"] = col
     update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
+    container.after(3600*2,forget_update_reader)
 
     print("recving data updates")
     while True:
         time.sleep(0.2)
-
         data_update = pickle.loads(client.recv(1024))
         print(data_update)
 
         if len(data_update) == 3:
             # save old position
-            global old_pos
+            global old_pos, data_reader
             chance_num = data_holder["chance"]
             chance_person = data_holder["inverted chances"][chance_num]
             old_pos = data_holder["game info"][chance_person]["position"]
@@ -615,7 +618,6 @@ def recv_data_updates():
                 update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
 
                 created_objs[data_update[0]].property_update(data_update)
-                # created_objs[data_update[0]].num_props.set(len(data_holder["game info"][data_update[0]]["properties"]))
                 created_objs[data_update[0]].prop_num_label["text"] = "Properties in hand: " + str(
                     len(data_holder["game info"][data_update[0]]["properties"]))
 
