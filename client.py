@@ -723,7 +723,7 @@ class roll_dice_class:
             if t == 0:
                 self.timer_label['text'] = "You missed you chance!"
                 self.roll_dice_d.grid_forget()
-                self.okay_grid_box.grid_forget()
+                self.okay.grid_forget()
                 container.after(60*3, lambda :self.timer_label.grid_forget())
                 break
 

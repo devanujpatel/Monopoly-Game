@@ -311,7 +311,7 @@ class threaded_Client(threading.Thread):
         # after this we start the actual game!
         self.no_response = 0
         self.responded = False
-
+        self.rent_given = True
         self.main_game()
 
     def main_game(self):
@@ -354,10 +354,8 @@ class threaded_Client(threading.Thread):
                             if self.no_response == 3:
                                 return "check if active"
                             else:
-                                self.data_tup = pickle.dumps((self.username, "chance missed"))
+                                self.data_tup = ((self.username, "chance missed"))
                                 self.end_turn()
-
-
 
                         else:
                             if self.rent_given == False:
