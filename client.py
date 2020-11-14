@@ -592,7 +592,6 @@ def recv_data_updates():
             print(data_holder)
             update_caller(data_update)
 
-
         elif len(data_update) == 2:
             data_holder[data_update[0]] = data_update[1]
             print(data_holder)
@@ -634,9 +633,14 @@ def recv_data_updates():
                 prop_id[new_pos].buy_btn.grid_forget()
                 update_reader.grid(row=6, column=8)
                 update_reader.grid_forget()
+
                 created_objs[call_to].rd_label.grid_forget()
+
                 # ignore as already the updates are sent before(from server) and whose chance it wasn't then seek
                 # chance would do the work
+                seek_chance()
+
+            if data_update == ("chance missed"):
                 seek_chance()
 
             if data_update == ("RC"):
@@ -691,6 +695,8 @@ def update_caller(data_update):
         # created_objs[call_to].money_var.set(data_update[2])
         created_objs[call_to].money_label["text"] = "Money: " + str(data_update[2])
 
+
+
     # more on the way
 
 
@@ -708,7 +714,7 @@ class roll_dice_class:
         self.okay.grid(row=7, column=6)
 
         self.timer_label = tk.Label(main_frame, text = f"Click Before 30 seconds", )
-        self.timer_label.grid(row=7, column=7)
+        self.timer_label.grid(row=6, column=7)
         timer_thread = threading.Thread(target=self.roll_dice_timer())
         timer_thread.start()
 
@@ -724,7 +730,7 @@ class roll_dice_class:
                 self.timer_label['text'] = "You missed you chance!"
                 self.roll_dice_d.grid_forget()
                 self.okay.grid_forget()
-                container.after(60*3, lambda :self.timer_label.grid_forget())
+                container.after(3600*3, lambda :self.timer_label.grid_forget())
                 break
 
     def virtual_dice(self):

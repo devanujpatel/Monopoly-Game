@@ -385,9 +385,6 @@ class threaded_Client(threading.Thread):
             elif self.data_tup == None:
                 pass
 
-            elif self.data_tup == (self.username, "chance missed"):
-                self.end_turn()
-
             elif self.data_tup[2] == "rent":
                 self.client.settimeout(150)
                 self.rent_proposal = self.data_tup
@@ -536,10 +533,16 @@ class threaded_Client(threading.Thread):
             rooms[self.room]["chance"] = 0
 
         # send all our clients the update
+        if self.data_tup[1] != "chance missed":
+            self.send_updates(("end my turn"))
+        else:
+            self.send_updates(("chance missed"))
         self.send_updates(("chance", rooms[self.room]["chance"]))
         self.send_updates(("rounds completed", rooms[self.room]["rounds completed"]))
         # send to end turn so client can check if he has to show dice btn
-        self.send_updates(self.data_tup)
+        if self.data_tup[1] != "chance missed":
+            print("End my turn self.data tup",self.data_tup)
+            self.send_updates(self.data_tup)
 
     def confirm_leave(self, player_desig):
         # return a value ; active or not , if host not active then ask player1
