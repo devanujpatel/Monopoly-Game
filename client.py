@@ -683,7 +683,7 @@ def update_caller(data_update):
         global new_pos
         new_pos = data_update[2]
         created_objs[call_to].update_position(row_coordinates, column_coordinates, place_num, old_pos, data_update[2],
-                                              place_id_place_to_pos, prop_id, data_update[0], username, client)
+                                              place_id_place_to_pos, prop_id, data_update[0], username, client, rd_obj)
 
         # show end turn btns after token is moved and only if it is your chance
         if data_update[0] == username:
@@ -715,25 +715,32 @@ class roll_dice_class:
 
         self.timer_label = tk.Label(main_frame, text = f"Click Before 30 seconds", )
         self.timer_label.grid(row=6, column=7)
+        self.responded = False
         timer_thread = threading.Thread(target=self.roll_dice_timer())
         timer_thread.start()
 
     def roll_dice_timer(self):
         t = 30
         while True:
-            t -= 1
+            if self.responded == False:
+                t -= 1
 
-            self.timer_label["text"] = f"Click Before \n{t} seconds"
-            time.sleep(1)
+                self.timer_label["text"] = f"Click Before \n{t} seconds"
+                time.sleep(1)
 
-            if t == 0:
-                self.timer_label['text'] = "You missed you chance!"
-                self.roll_dice_d.grid_forget()
-                self.okay.grid_forget()
-                container.after(3600*3, lambda :self.timer_label.grid_forget())
+                if t == 0:
+                    self.timer_label['text'] = "You missed you chance!"
+                    self.roll_dice_d.grid_forget()
+                    self.okay.grid_forget()
+                    container.after(3600*3, lambda :self.timer_label.grid_forget())
+                    break
+
+            else:
+                self.timer_label.grid_forget()
                 break
 
     def virtual_dice(self):
+        self.responded = True
         # self.roll_dice_d.grid_forget()
         # self.dice_roll1 = random.randint(1, 6)
         # self.dice_roll2 = random.randint(1, 6)
