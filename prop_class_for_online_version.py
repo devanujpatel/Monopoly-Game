@@ -1,3 +1,4 @@
+import threading
 import time
 import tkinter as tk
 import pickle
@@ -113,6 +114,8 @@ class my_property_class:
                         self.rent_timer = tk.Label(main_frame, text = "Pay Rent in 150 sec", bg="yellow",font = font)
                         self.rent_timer.grid(row=6, column=9)
                         self.rent_label = tk.Label(main_frame,text = "Rent: "+str(self.current_rent), bg =self.color, font = font)
+                        timer_thread = threading.Thread(target=self.pay_rent_timer())
+                        timer_thread.start()
 
                 if prop_info[self.property_str]["owner"] == player_name:
                     print("owner on site")
