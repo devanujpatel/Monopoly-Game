@@ -9,7 +9,7 @@ from player_class_online_version import Player
 from tkinter import colorchooser, ttk
 
 client = socket.socket()
-client.connect(("192.168.29.202", 9999))
+client.connect(("192.168.29.201", 9999))
 
 container = tk.Tk()
 
@@ -642,6 +642,20 @@ def recv_data_updates():
             if data_update == ("RC"):
                 client.send(pickle.dumps(data_update))
 
+            if data_update[1] == "trade proposal":
+                if data_update[0] == username:
+                    pass
+                elif data_update[3] == username:
+                    created_objs[username].recv_trade_request()
+                else:
+                    created_objs[username].watch_trade()
+
+            if data_update[1] == "trade declined":
+                created_objs[username].trade_declined()
+
+            if data_update[1] == "trade finalised":
+                created_objs[username].trade_finalised()
+
 
 def seek_chance():
     if data_holder["chance"] == data_holder["player chances"][username]:
@@ -686,10 +700,32 @@ class roll_dice_class:
         print("obj created for dice")
 
     def show_dice_btn(self):
+
         self.roll_dice_d = tk.Entry(main_frame)
         self.roll_dice_d.grid(row=6, column=6)
-        self.okay = tk.Button(main_frame, command=lambda: self.virtual_dice(), text="Okay")
+
+        self.okay = tk.Button(main_frame, command=lambda: self.virtual_dice(), text=f"Okay")
         self.okay.grid(row=7, column=6)
+
+        self.timer_label = tk.Label(main_frame, text = f"Click Before 30 seconds", )
+        self.timer_label.grid(row=7, column=7)
+        timer_thread = threading.Thread(target=self.roll_dice_timer())
+        timer_thread.start()
+
+    def roll_dice_timer(self):
+        t = 30
+        while True:
+            t -= 1
+
+            self.timer_label["text"] = f"Click Before \n{t} seconds"
+            time.sleep(1)
+
+            if t == 0:
+                self.timer_label['text'] = "You missed you chance!"
+                self.roll_dice_d.grid_forget()
+                self.okay_grid_box.grid_forget()
+                container.after(60*3, lambda :self.timer_label.grid_forget())
+                break
 
     def virtual_dice(self):
         # self.roll_dice_d.grid_forget()

@@ -84,7 +84,7 @@ class threaded_Client(threading.Thread):
         rooms.update(
             {self.room: {"host": self.username, "status": "looking for players", "color responses": [0, [], {}],
                          "players list": [], "chance alloc num": 0, "player chances": {},"game info": {},"inverted chances":{},
-                         "chance": 0, "rounds completed": 0, "token dir": {}, "send flag": True}})
+                         "chance": 0, "rounds completed": 0, "token dir": {}, "send flag": True, "trade flag":True}})
 
         # now that the room is properly established we can send it to our clients
         send_room_info_list.update({self.room: [self.room, self.username, 1]})
@@ -345,25 +345,34 @@ class threaded_Client(threading.Thread):
 
                 while True:
                     try:
-                        self.data_tup = self.client.recv(1024)
-                    except socket.timeout:
-                        self.no_response += 1
-
-                        if self.no_response == 3:
-                            return "check if active"
-                        else:
-                            #self.end_turn()
-                            self.data_tup = pickle.dumps((self.username, "chance missed"))
-                            pass
-
-                    if self.data_tup:
-                        self.data_tup = pickle.loads(self.data_tup)
-                        print(self.data_tup)
-
-                        self.client.settimeout(None)
+                        self.data_tup = self.client.recv(2048)
                         break
-                    else:
-                        pass
+                    except socket.timeout:
+                        if self.responded == False:
+                            self.no_response += 1
+
+                            if self.no_response == 3:
+                                return "check if active"
+                            else:
+                                self.data_tup = pickle.dumps((self.username, "chance missed"))
+                                self.end_turn()
+
+
+
+                        else:
+                            if self.rent_given == False:
+                                rooms[self.room]["game info"][self.rent_proposal[0]]["money"] -= int(2*self.rent_proposal[3])
+                                rooms[self.room]["game info"][self.rent_proposal[1]]["money"] += int(2 * self.rent_proposal[3])
+                                self.send_updates((self.username,"money", rooms[self.room]["game info"][self.rent_proposal[0]]["money"]-2*self.rent_proposal[3] ))
+                                self.send_updates((self.username, "money",rooms[self.room]["game info"][self.rent_proposal[1]]["money"] + 2 *self.rent_proposal[3]))
+                                self.rent_given = True
+
+                if self.data_tup:
+                    self.data_tup = pickle.loads(self.data_tup)
+                    print(self.data_tup)
+                    self.client.settimeout(None)
+                else:
+                    self.data_tup = None
 
             except ConnectionResetError as e:
                 print(e, self.username, self.room)
@@ -372,14 +381,40 @@ class threaded_Client(threading.Thread):
                 return "check if active"
 
             # if it is to end our turn then do so; sent only when 30 sec timeout happens or end turn btn clicked on
-            # client's side
             if self.data_tup == ("end my turn"):
                 self.end_turn()
+
+            elif self.data_tup == None:
+                pass
 
             elif self.data_tup == (self.username, "chance missed"):
                 self.end_turn()
 
+            elif self.data_tup[2] == "rent":
+                self.client.settimeout(150)
+                self.rent_proposal = self.data_tup
+                self.rent_given = False
+
+            elif self.data_tup[1] == "paying rent":
+                self.rent_given = True
+                self.client.settimeout(None)
+
             elif self.data_tup[1] == "coudn't buy":
+                self.send_updates(self.data_tup)
+
+            elif self.data_tup[1] == "trade proposal":
+                if rooms[self.room]["trade flag"] == True:
+                    rooms[self.room]["trade flag"] = False
+                    self.send_updates(self.data_tup)
+                else:
+                    self.send_updates_to_specific_person(self.username, ("cant trade"))
+
+            elif self.data_tup[1] == "trade finalised":
+                rooms[self.room]["trade flag"] = True
+                self.send_updates(self.data_tup)
+
+            elif self.data_tup[1] == "trade declined":
+                rooms[self.room]["trade flag"] = True
                 self.send_updates(self.data_tup)
 
             # player leaves gracefully!
@@ -409,6 +444,7 @@ class threaded_Client(threading.Thread):
             else:
                 # LET'S MUNCH DOWN OUR DATA
                 self.munch_data()
+            # client's side
 
     def munch_data(self):
         print(self.data_tup, "= data tup")
@@ -425,9 +461,17 @@ class threaded_Client(threading.Thread):
         else:
             pass
         # send the same to others.
-
         self.send_updates(self.data_tup)
 
+    def send_updates_to_specific_person(self, player_name, update):
+        while True:
+            if rooms[self.room]["send flag"] is True:
+                rooms[self.room]["send flag"] = False
+                room_player_objs[self.room][player_name].send(pickle.dumps(update))
+                rooms[self.room]["send flag"] = True
+                break
+            else:
+                time.sleep(0.2)
     def send_updates(self, data_tup):
         # false means don't send and true means send
         while True:

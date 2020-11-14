@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-import time
+import time, pickle
 from prop_class_for_online_version import prop_info
 
 font = ("Courier", 12)
@@ -25,7 +25,9 @@ class Player:
         self.token.grid(row=10, column=10, sticky=self.sticky)
 
     def update_position(self, row_coord, col_coord, place_num, old_pos, new_pos, place_id, prop_obj_id, chance,
-                        player_name, client):
+                        player_name, client_para):
+        global client
+        client = client_para
         print("new pos old pos", new_pos, old_pos)
         destination = place_num[new_pos]
         dest_row = row_coord[destination]
@@ -135,7 +137,7 @@ class Player:
 
         self.inferior_status_frame.pack(side="left")
 
-        self.trade_tab()
+        #self.trade_tab()
 
     def trade_tab(self):
         self.trade_frame = tk.Frame(self.stat_notebook, width=int(self.sf_width / len(data_holder["players list"])),
@@ -146,15 +148,15 @@ class Player:
         self.trade_with.pack()
 
         self.type_of_trade = ttk.Combobox(self.trade_with, width=27)
-        self.type_of_trade["values"] = ["only money", "only property", "money and property"]
+        self.type_of_trade["values"] = ["only property", "money and property"]
         self.type_of_trade.bind("<<ComboboxSelected>>", self.trade_type_select)
         self.type_of_trade.pack()
 
-        self.okay = tk.Button(self.trade_frame, text="Okay", command=lambda: self.okay_btn())
+        self.okay = tk.Button(self.trade_frame, text="Okay", command=lambda: self.okay_btn_clk())
 
-    def okay_btn(self):
-        self.trade_with.grid_forget()
-        self.type_of_trade.grid_forget()
+    def okay_btn_clk(self):
+        self.trade_with.pack_forget()
+        self.type_of_trade.pack_forget()
         self.trading_with = tk.Label(self.trade_frame, text="You are trying to trade with " + self.trade_player,
                                      font=font)
         self.trading_with.pack()
@@ -165,15 +167,72 @@ class Player:
         self.revert_btn = tk.Button(self.trade_frame, text = "Change Options", commanda=lambda:self.trade_tab())
         self.revert_btn.pack()
 
+        self.okay_btn = tk.Button(self.trade_frame, text = "Let's Trade", command=lambda:self.go_trade())
+        self.okay_btn.pack()
 
-    def only_money_trade(self):
+    def go_trade(self):
+
+        if self.trade_type == "only property":
+            self.only_prop_trade()
+
+        else:
+            self.m_and_p_trade()
+
+    def only_prop_trade(self):
+        self.prop_box_owned = ttk.Combobox(self.trade_frame, values = data_holder["game info"][self.name]["properties"].keys())
+        self.prop_box_owned.bind("<<ComboboxSelected>>", self.prop_box_owned_clk())
+        self.prop_box_owned.pack()
+
+        self.prop_box_theirs = ttk.Combobox(self.trade_frame, values = data_holder["game info"][self.trade_with]["properties"].keys())
+        self.prop_box_theirs.bind("<<ComboboxSelected>>", self.prop_box_theirs_clk())
+        self.prop_box_owned.pack()
+
+        self.prop_trade_btn = tk.Button(self.trade_frame, text = "Propose Trade", command=lambda:self.prop_trade_okay_btn())
+
+
+
+    def m_and_p_trade(self):
         pass
+
+    def prop_box_theirs_clk(self):
+        self.want_prop = self.prop_box_theirs.get()
+
+    def prop_box_owned_clk(self):
+        self.give_prop = self.prop_box_owned.get()
+
+    def prop_trade_okay_btn(self):
+        self.prop_box_owned.pack_forget()
+        self.prop_box_theirs.pack_forget()
+        self.prop_trade_btn.pack_forget()
+
+        self.proposing_trade_l = tk.Label(self.trade_frame, text = f"Proposing Trade \n Waiting for confirmation of {self.trade_with} \n to accept a {self.trade_type}. \n {self.name} want to give {self.give_prop} in return of {self.want_prop}.")
+
+        # tell server we want to trade
+        # only one trade can take place at a time
+        # so server will block all other trade requests
+        client.send(pickle.dumps((self.name, "trade proposal", self.trade_type, self.trade_with, self.give_prop, self.want_prop)))
+
+        # else all will be taken care of by the client file code and the server
+
 
     def trade_type_select(self):
         self.trade_type = self.type_of_trade.get()
 
     def trade_with_select(self):
         self.trade_player = self.trade_with.get()
+
+    def watch_trade(self):
+        pass
+    def recv_trade_request(self):
+        pass
+    def trade_finalised(self):
+        pass
+
+    def trade_declined(self):
+        pass
+
+    def property_remove(self):
+        pass
 
     def property_update(self, update):
         self.proptree.insert(parent="", index="end", text="",

@@ -83,8 +83,9 @@ class my_property_class:
         place_num.update({pos: self.property_str})
         place_id_place_to_pos.update({self.property_str: pos})
 
-    def playerOnSite(self, player_name_para, username_para, client_para, data_holder_para):
-        global username, player_name, client, data_holder
+    def playerOnSite(self, player_name_para, username_para, client_para, data_holder_para, rd_obj_para):
+        global username, player_name, client, data_holder, rd_obj
+        rd_obj = rd_obj_para
         data_holder = data_holder_para
         client = client_para
         player_name = player_name_para
@@ -106,7 +107,11 @@ class my_property_class:
                     print(prop_info)
                     # dev here (take rent)
                     if player_name == username:
+                        client.send(pickle.dumps((username, prop_info[self.property_str]["owner"], "rent", self.current_rent)))
+                        rd_obj.end_turn_btn.grid_forget()
                         self.rent_btn.grid(row=6, column=8)
+                        self.rent_timer = tk.Label(main_frame, text = "Pay Rent in 150 sec", bg="yellow",font = font)
+                        self.rent_timer.grid(row=6, column=9)
                         self.rent_label = tk.Label(main_frame,text = "Rent: "+str(self.current_rent), bg =self.color, font = font)
 
                 if prop_info[self.property_str]["owner"] == player_name:
@@ -122,8 +127,10 @@ class my_property_class:
     def give_rent(self):
         self.rent_btn.grid_forget()
         self.rent_label.grid_forget()
+        client.send(pickle.dumps((username, "paying rent")))
         client.send(pickle.dumps((username, "money", data_holder["game info"][player_name]["money"]-self.current_rent)))
         client.send(pickle.dumps((prop_info[self.property_str]["owner"], "money", data_holder["game info"][player_name]["money"]+self.current_rent )))
+        rd_obj.end_turn_btn.grid(row=6, column=6)
 
     def buy_prop(self):
         print("buying property!")
@@ -141,7 +148,18 @@ class my_property_class:
         else:
             client.send(pickle.dumps((player_name , "coudn't buy", self.property_str, "because of lack of money.")))
 
-
+    def pay_rent_timer(self):
+        t = 150
+        while True:
+            t-=1
+            self.rent_timer["text"] = f"Pay Rent in {t} sec"
+            if t == 0:
+                self.rent_timer['text'] = f"Now you will be charged \ndouble rent-{2*self.current_rent},(enjoy)!"
+                self.rent_btn.grid_forget()
+                self.rent_label.grid_forget()
+                time.sleep(3)
+                self.rent_timer.grid_forget()
+                break
 
     def show_details(self):
         self.info_box1 = tk.Frame(main_frame, relief="raised", highlightbackground="black",highlightthickness=1)
@@ -214,7 +232,7 @@ class my_property_class:
 
 
 
-# created the objects below for testing, to see the objects refer to client file after recv_game_info !
+# created the objects below for testing, to see the objects - refer to client file after recv_game_info !
 """
 width = main_frame.winfo_screenwidth()  # width of screen
 height = main_frame.winfo_screenheight()  # height of screen
