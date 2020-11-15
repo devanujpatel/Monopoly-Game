@@ -359,11 +359,16 @@ class threaded_Client(threading.Thread):
 
                         else:
                             if self.rent_given == False:
-                                rooms[self.room]["game info"][self.rent_proposal[0]]["money"] -= int(2*self.rent_proposal[3])
-                                rooms[self.room]["game info"][self.rent_proposal[1]]["money"] += int(2 * self.rent_proposal[3])
-                                self.send_updates((self.username,"money", rooms[self.room]["game info"][self.rent_proposal[0]]["money"]-2*self.rent_proposal[3] ))
-                                self.send_updates((self.username, "money",rooms[self.room]["game info"][self.rent_proposal[1]]["money"] + 2 *self.rent_proposal[3]))
+                                print("RP",self.rent_proposal)
+                                self.money_to_be_sub = int(2*self.rent_proposal[3])
+                                rooms[self.room]["game info"][self.rent_proposal[0]]["money"] -= self.money_to_be_sub
+                                rooms[self.room]["game info"][self.rent_proposal[1]]["money"] += self.money_to_be_sub
+                                self.send_updates((self.username,"money", rooms[self.room]["game info"][self.rent_proposal[0]]["money"]- self.money_to_be_sub ))
+                                self.send_updates((self.username, "money",rooms[self.room]["game info"][self.rent_proposal[1]]["money"] + self.money_to_be_sub ))
                                 self.rent_given = True
+
+                                # todo:
+                                #   what if at any moment money to be paid less then money in hand
 
                 if self.data_tup:
                     self.data_tup = pickle.loads(self.data_tup)
@@ -477,7 +482,7 @@ class threaded_Client(threading.Thread):
                 data_tup = pickle.dumps(data_tup)
                 for player in rooms[self.room]["players list"]:
                     time.sleep(0.3)
-                    print("sending data tup", pickle.loads(data_tup),"to",player)
+                    print("sending data tup", pickle.loads(data_tup),"to",player,self.username)
                     room_player_objs[self.room][player].send(data_tup)
 
                 rooms[self.room]["send flag"] = True
@@ -537,10 +542,7 @@ class threaded_Client(threading.Thread):
         self.send_updates(("chance", rooms[self.room]["chance"]))
         self.send_updates(("rounds completed", rooms[self.room]["rounds completed"]))
         # send to end turn so client can check if he has to show dice btn
-        """if self.data_tup[1] != "chance missed":
-            print("End my turn self.data tup",self.data_tup)
-            self.send_updates(self.data_tup)"""
-
+        # do not do this before the above updates as then chance will not be updated and same chance will be carried on
         if self.data_tup[1] != "chance missed":
             self.send_updates(("end my turn"))
         else:

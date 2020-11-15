@@ -94,7 +94,6 @@ class my_property_class:
         self.property_manager()
 
     def property_manager(self):
-
         self.show_details()
         if self.property_str not in special_properties:
             if prop_info[self.property_str]["owner"] is None and player_name == username:
@@ -111,9 +110,10 @@ class my_property_class:
                         client.send(pickle.dumps((username, prop_info[self.property_str]["owner"], "rent", self.current_rent)))
                         rd_obj.end_turn_btn.grid_forget()
                         self.rent_btn.grid(row=6, column=8)
-                        self.rent_timer = tk.Label(main_frame, text = "Pay Rent in 150 sec", bg="yellow",font = font)
+                        self.rent_timer = tk.Label(main_frame, text = "Pay Rent \nin 150 sec", bg="yellow",font = font)
                         self.rent_timer.grid(row=6, column=9)
                         self.rent_label = tk.Label(main_frame,text = "Rent: "+str(self.current_rent), bg =self.color, font = font)
+                        self.rent_paid = False
                         timer_thread = threading.Thread(target=self.pay_rent_timer())
                         timer_thread.start()
 
@@ -128,19 +128,19 @@ class my_property_class:
             pass
 
     def give_rent(self):
+        self.rent_paid = True
         self.rent_btn.grid_forget()
         self.rent_label.grid_forget()
         client.send(pickle.dumps((username, "paying rent")))
         client.send(pickle.dumps((username, "money", data_holder["game info"][player_name]["money"]-self.current_rent)))
         client.send(pickle.dumps((prop_info[self.property_str]["owner"], "money", data_holder["game info"][player_name]["money"]+self.current_rent )))
-        rd_obj.end_turn_btn.grid(row=6, column=6)
 
     def buy_prop(self):
         print("buying property!")
         self.price_btn.grid_forget()
         self.buy_btn.grid_forget()
         prop_info[self.property_str]["owner"] = username
-
+        self.owner_label["text"] = "Owner: " + str(prop_info[self.property_str]["owner"])
         # check if player has enough money
         if data_holder["game info"][player_name]["money"] > self.price:
             prop_info[self.property_str]["owner"] = username
@@ -154,15 +154,23 @@ class my_property_class:
     def pay_rent_timer(self):
         t = 150
         while True:
-            t-=1
-            self.rent_timer["text"] = f"Pay Rent in {t} sec"
-            if t == 0:
-                self.rent_timer['text'] = f"Now you will be charged \ndouble rent-{2*self.current_rent},(enjoy)!"
-                self.rent_btn.grid_forget()
-                self.rent_label.grid_forget()
-                time.sleep(3)
+            if self.rent_paid == False:
+                t-=1
+                self.rent_timer["text"] = f"Pay Rent in \n{t} sec"
+                if t == 0:
+                    self.rent_timer['text'] = f"Now you will be charged \ndouble rent-{2*self.current_rent},(enjoy)!"
+                    self.rent_btn.grid_forget()
+                    self.rent_label.grid_forget()
+                    time.sleep(3)
+                    self.rent_timer.grid_forget()
+                    break
+                time.sleep(1)
+
+            else:
                 self.rent_timer.grid_forget()
+                rd_obj.show_end_turn_btns()
                 break
+
 
     def show_details(self):
         self.info_box1 = tk.Frame(main_frame, relief="raised", highlightbackground="black",highlightthickness=1)
@@ -226,6 +234,11 @@ class my_property_class:
                                                font=("Courier", 12), highlightbackground="black",
                                                highlightthickness=1)
             self.price_label.pack(padx=10)
+
+            self.owner_label = tk.Label(self.info_box2, text="Owner: " + str(prop_info[self.property_str]["owner"]),
+                                               font=("Courier", 12), highlightbackground="black",
+                                               highlightthickness=1)
+            self.owner_label.pack(padx=10)
 
         else:
             self.info_box1.grid(rowspan=6, columnspan=2, row=4, column=1)
