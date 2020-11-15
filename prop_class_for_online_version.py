@@ -59,11 +59,6 @@ class my_property_class:
         row_coordinates.update({property_str: row})
         column_coordinates.update({property_str: column})
 
-        self.buy_btn = tk.Button(main_frame, text="Buy", bg=self.color,
-                                 command=lambda: self.buy_prop())
-        self.rent_btn = tk.Button(main_frame, text="Give Rent", command=lambda: self.give_rent(), bg=self.color,
-                                  font=font)
-
         if self.property_str not in special_properties:
             prop_info.update(
                 {self.property_str: {"price": self.price, "houses": 0, "owner": None, "current rent": self.rent, "rent":self.rent }})
@@ -84,21 +79,24 @@ class my_property_class:
         place_num.update({pos: self.property_str})
         place_id_place_to_pos.update({self.property_str: pos})
 
-    def playerOnSite(self, player_name_para, username_para, client_para, data_holder_para, rd_obj_para):
-        global username, player_name, client, data_holder, rd_obj
+    def playerOnSite(self, player_name_para, username_para, client_para ,rd_obj_para, data_holder):
+        global username, player_name, client, rd_obj
         rd_obj = rd_obj_para
-        data_holder = data_holder_para
         client = client_para
         player_name = player_name_para
         username = username_para
-        self.property_manager()
+        self.property_manager(data_holder)
 
-    def property_manager(self):
+    def property_manager(self, data_holder):
         self.show_details()
+        self.buy_btn_shown = False
         if self.property_str not in special_properties:
             if prop_info[self.property_str]["owner"] is None and player_name == username:
                 self.price_btn = tk.Label(main_frame, text ="Price: "+str(self.price), font = font, bg = self.color)
                 self.price_btn.grid(row=5, column=8)
+                self.buy_btn_shown = True
+                self.buy_btn = tk.Button(main_frame, text="Buy", bg=self.color,
+                                         command=lambda: self.buy_prop(data_holder))
                 self.buy_btn.grid(row=6, column=8)
 
             if prop_info[self.property_str]["owner"] is not None:
@@ -107,8 +105,11 @@ class my_property_class:
                     print(prop_info)
                     # dev here (take rent)
                     if player_name == username:
-                        client.send(pickle.dumps((username, prop_info[self.property_str]["owner"], "rent", self.current_rent)))
+                        client.send(pickle.dumps((username, prop_info[self.property_str]["owner"], self.current_rent,"rent")))
                         rd_obj.end_turn_btn.grid_forget()
+                        self.rent_btn = tk.Button(main_frame, text="Give Rent",
+                                                  command=lambda: self.give_rent(data_holder), bg=self.color,
+                                                  font=font)
                         self.rent_btn.grid(row=6, column=8)
                         self.rent_timer = tk.Label(main_frame, text = "Pay Rent \nin 150 sec", bg="yellow",font = font)
                         self.rent_timer.grid(row=6, column=9)
@@ -127,15 +128,16 @@ class my_property_class:
             # dev here , take 200 or tell to go somewhere on board
             pass
 
-    def give_rent(self):
+    def give_rent(self, data_holder):
         self.rent_paid = True
         self.rent_btn.grid_forget()
         self.rent_label.grid_forget()
         client.send(pickle.dumps((username, "paying rent")))
         client.send(pickle.dumps((username, "money", data_holder["game info"][player_name]["money"]-self.current_rent)))
+        time.sleep(0.5)
         client.send(pickle.dumps((prop_info[self.property_str]["owner"], "money", data_holder["game info"][player_name]["money"]+self.current_rent )))
 
-    def buy_prop(self):
+    def buy_prop(self, data_holder):
         print("buying property!")
         self.price_btn.grid_forget()
         self.buy_btn.grid_forget()
@@ -145,7 +147,7 @@ class my_property_class:
         if data_holder["game info"][player_name]["money"] > self.price:
             prop_info[self.property_str]["owner"] = username
             client.send(pickle.dumps((player_name, "properties", "update", self.property_str)))
-            time.sleep(1)
+            time.sleep(0.5)
             client.send(pickle.dumps((player_name,"money", data_holder["game info"][player_name]["money"]-self.price)))
 
         else:

@@ -390,7 +390,7 @@ class threaded_Client(threading.Thread):
             elif self.data_tup == None:
                 pass
 
-            elif self.data_tup[2] == "rent":
+            elif self.data_tup[-1] == "rent":
                 self.client.settimeout(150)
                 self.rent_proposal = self.data_tup
                 self.rent_given = False
@@ -444,7 +444,7 @@ class threaded_Client(threading.Thread):
             else:
                 # LET'S MUNCH DOWN OUR DATA
                 self.munch_data()
-            # client's side
+
 
     def munch_data(self):
         print(self.data_tup, "= data tup")

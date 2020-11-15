@@ -1,8 +1,7 @@
 import random
 import socket, pickle, threading, time
 import tkinter as tk
-from prop_class_for_online_version import my_property_class, row_coordinates, column_coordinates, place_num, prop_id, \
-    prop_info, place_id_place_to_pos
+from prop_class_for_online_version import my_property_class, row_coordinates, column_coordinates, place_num, prop_id,prop_info, place_id_place_to_pos
 from player_class_online_version import Player
 
 # importing the choosecolor package
@@ -544,6 +543,7 @@ def display_game_screen():
 
 
 def final_stage_tweaks():
+    global data_holder, rd_obj
     global data_holder, rd_obj, chance_label
     del data_holder["color responses"]
     print(data_holder)
@@ -554,25 +554,36 @@ def final_stage_tweaks():
     recv_data_updates_thread = threading.Thread(target=recv_data_updates())
     recv_data_updates_thread.start()
 
+
 def forget_update_reader():
     global update_reader
     update_reader.grid_forget()
 
-def recv_data_updates():
 
-    global dice_roll, update_reader #chance_label_shown
+def recv_data_updates():
+    global dice_roll, update_reader
+    global dice_roll, update_reader  # chance_label_shown
     update_reader = tk.Label(main_frame, font=font,
                              bg="light blue")
 
-    #col = "Chances:"
-    #c = ","
-    #for player in data_holder["players list"]:
+    col = "Chances:"
+    c = ","
+    for player in data_holder["players list"]:
+        if player == data_holder["players list"][-1]:
+            c = ""
+        col += " " + player + ":" + str(data_holder["player chances"][player] + 1) + c
+    update_reader["text"] = col
+    update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
+    container.after(3600 * 2, forget_update_reader)
+    # col = "Chances:"
+    # c = ","
+    # for player in data_holder["players list"]:
     #    if player == data_holder["players list"][-1]:
     #        c = ""
     #    col += " " + player + ":" + str(data_holder["player chances"][player]+1) + c
-    #update_reader["text"] = col
-    #update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
-    #container.after(3600*2,forget_update_reader)
+    # update_reader["text"] = col
+    # update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
+    # container.after(3600*2,forget_update_reader)
 
     print("recving data updates")
     while True:
@@ -619,31 +630,32 @@ def recv_data_updates():
                 created_objs[data_update[0]].property_update(data_update)
                 created_objs[data_update[0]].prop_num_label["text"] = "Properties in hand: " + str(
                     len(data_holder["game info"][data_update[0]]["properties"]))
+
                 # to show in prop card
-                prop_id[data_update[3]].owner_label["text"] = self.owner_label["text"] = "Owner: " + str(prop_info[self.property_str]["owner"])
+                prop_id[place_id_place_to_pos[data_update[3]]].owner_label["text"] = "Owner: " + str(
+                    prop_info[data_update[3]]["owner"])
 
         else:
             if data_update == ("end my turn"):
+                # we are sure that info box 1 will be on grid
                 prop_id[new_pos].info_box1.grid_forget()
                 # we are not sure if info box 2 will be displayed so
                 prop_id[new_pos].info_box2.grid()
                 # then forget
                 prop_id[new_pos].info_box2.grid_forget()
-                prop_id[new_pos].rent_btn.grid()
-                prop_id[new_pos].buy_btn.grid()
-                prop_id[new_pos].rent_btn.grid_forget()
-                prop_id[new_pos].buy_btn.grid_forget()
+
+                if prop_id[new_pos].buy_btn_shown == True:
+                    prop_id[new_pos].buy_btn.grid()
+
                 update_reader.grid(row=6, column=8)
                 update_reader.grid_forget()
 
                 created_objs[call_to].rd_label.grid_forget()
 
-                # ignore as already the updates are sent before(from server) and whose chance it wasn't then seek
-                # chance would do the work
                 seek_chance()
 
             if data_update == ("chance missed"):
-                chance_label["text"] = data_holder["inverted chances"][data_holder["chance"]]+" missed chance"
+                chance_label["text"] = data_holder["inverted chances"][data_holder["chance"]] + " missed chance"
                 seek_chance()
 
             if data_update == ("RC"):
@@ -668,16 +680,18 @@ def seek_chance():
     global chance_label
     if data_holder["chance"] == data_holder["player chances"][username]:
         print("My Chance")
-        chance_label = tk.Label(main_frame , text = "It's your chance", font = font)
-        chance_label.grid(row=6, column=9,rowspan=2)
+        chance_label = tk.Label(main_frame, text="It's your chance", font=font)
+        chance_label.grid(row=6, column=9, rowspan=2)
         rd_obj.show_dice_btn()
         # other things will be handled by the server and our data update method
     else:
         print("not my chance")
-        chance_label = tk.Label(main_frame , text = str(data_holder["inverted chances"][data_holder["chance"]])+"'s chance", font = font)
-        chance_label.grid(row=6, column=9,rowspan=2)
+        chance_label = tk.Label(main_frame,
+                                text=str(data_holder["inverted chances"][data_holder["chance"]]) + "'s chance",
+                                font=font)
+        chance_label.grid(row=6, column=9, rowspan=2)
 
-        
+
 def update_caller(data_update):
     global created_objs, call_to
     # gives the name of player so that we can call that person from created objects dictionary
@@ -690,14 +704,16 @@ def update_caller(data_update):
 
     # for position change
     if data_update[1] == "position":
+        global new_pos
         global new_pos, chance_label
         chance_label.grid_forget()
         new_pos = data_update[2]
+        created_objs[call_to].update_data_holder(data_holder)
         created_objs[call_to].update_position(row_coordinates, column_coordinates, place_num, old_pos, data_update[2],
                                               place_id_place_to_pos, prop_id, data_update[0], username, client, rd_obj)
 
         # show end turn btns after token is moved and only if it is your chance
-        #if data_update[0] == username:
+        # if data_update[0] == username:
         #    rd_obj.show_end_turn_btns()
 
         # just this and our work is done
@@ -706,13 +722,17 @@ def update_caller(data_update):
         # created_objs[call_to].money_var.set(data_update[2])
         created_objs[call_to].money_label["text"] = "Money: " + str(data_update[2])
 
+
 # use when needed , gets dice roll
 def get_dice_roll(new_pos, old_pos):
     dice_roll = new_pos - old_pos
     if dice_roll > 12:
         dice_roll = 40 - dice_roll
 
+    # more on the way
+
     return dice_roll
+
 
 class roll_dice_class:
 
@@ -727,7 +747,7 @@ class roll_dice_class:
         self.okay = tk.Button(main_frame, command=lambda: self.virtual_dice(), text=f"Okay")
         self.okay.grid(row=7, column=6)
 
-        self.timer_label = tk.Label(main_frame, text = f"Click Before 30 seconds", )
+        self.timer_label = tk.Label(main_frame, text=f"Click Before 30 seconds", )
         self.timer_label.grid(row=6, column=7)
         self.responded = False
         timer_thread = threading.Thread(target=self.roll_dice_timer())
@@ -743,10 +763,11 @@ class roll_dice_class:
                 time.sleep(1)
 
                 if t == 0:
+                    self.timer_label['text'] = "You missed you chance!"
                     self.timer_label['text'] = "You missed your chance!"
                     self.roll_dice_d.grid_forget()
                     self.okay.grid_forget()
-                    container.after(3600*3, lambda :self.timer_label.grid_forget())
+                    container.after(3600 * 3, lambda: self.timer_label.grid_forget())
                     break
 
             else:
@@ -781,7 +802,6 @@ class roll_dice_class:
         # then the data muncher on our side will recv and update the screen
         self.show_end_turn_btns()
 
-
     def show_end_turn_btns(self):
         self.end_turn_btn = tk.Button(main_frame, text="End Turn!", font=font, command=lambda: self.end_turn_clicked())
         self.end_turn_btn.grid(row=6, column=6)
@@ -793,4 +813,5 @@ class roll_dice_class:
 
 
 container.mainloop()
+
 

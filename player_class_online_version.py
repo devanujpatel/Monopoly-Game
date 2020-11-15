@@ -5,7 +5,6 @@ from prop_class_for_online_version import prop_info
 
 font = ("Courier", 12)
 
-
 class Player:
     # this class is meant only for display updates
     def __init__(self, main_frame_para, stat_box_para, dicto_para, name):
@@ -24,6 +23,11 @@ class Player:
                               bg=data_holder["game info"][self.name]["color"], width=3, height=2)
         self.token.grid(row=10, column=10, sticky=self.sticky)
 
+    def update_data_holder(self, data_holder_para):
+        global data_holder
+        data_holder = data_holder_para
+        print("IN UPDATE DATA HOLDER",data_holder)
+        
     def update_position(self, row_coord, col_coord, place_num, old_pos, new_pos, place_id, prop_obj_id, chance,
                         player_name, client_para, rd_obj):
         global client
@@ -57,7 +61,8 @@ class Player:
             # time.sleep(0.4)
             if dest_col == col and dest_row == row:
                 show_dice.set("Dice Roll: " + str(showcase_num))
-                prop_obj_id[new_pos].playerOnSite(chance, player_name, client, data_holder, rd_obj)
+                print("passing data holder",data_holder)
+                prop_obj_id[new_pos].playerOnSite(chance, player_name, client, rd_obj, data_holder)
                 break
 
             old_pos = place_id[next_spot]
@@ -189,8 +194,6 @@ class Player:
 
         self.prop_trade_btn = tk.Button(self.trade_frame, text = "Propose Trade", command=lambda:self.prop_trade_okay_btn())
 
-
-
     def m_and_p_trade(self):
         pass
 
@@ -213,7 +216,6 @@ class Player:
         client.send(pickle.dumps((self.name, "trade proposal", self.trade_type, self.trade_with, self.give_prop, self.want_prop)))
 
         # else all will be taken care of by the client file code and the server
-
 
     def trade_type_select(self):
         self.trade_type = self.type_of_trade.get()
