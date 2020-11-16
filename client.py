@@ -8,7 +8,7 @@ from player_class_online_version import Player
 from tkinter import colorchooser, ttk
 
 client = socket.socket()
-client.connect(("192.168.29.201", 9999))
+client.connect(("192.168.29.202", 9999))
 
 container = tk.Tk()
 
@@ -152,22 +152,22 @@ class recv_rooms_list_thread(threading.Thread):
                             # this is not possible as we only send data when we have a change
                             pass
 
-
 def ok_but_room_num_clkd():
     try:
-        ok_but_room_num.grid_forget()
-        room_num_display_frame.grid_forget()
-        room_label.grid_forget()
-
         s = rooms_view.selection()[0]
         selected = rooms_view.focus()
         room = rooms_view.item(selected, "values")
         room = room[0]
+        # if there is none selected then below code will not run
+        ok_but_room_num.grid_forget()
+        room_num_display_frame.grid_forget()
+        room_label.grid_forget()
 
         client.send(pickle.dumps(room))
 
     except IndexError:
         print("None selected")
+
 
 
 def analyze_stat(status):
@@ -566,24 +566,15 @@ def recv_data_updates():
     update_reader = tk.Label(main_frame, font=font,
                              bg="light blue")
 
-    col = "Chances:"
-    c = ","
-    for player in data_holder["players list"]:
-        if player == data_holder["players list"][-1]:
-            c = ""
-        col += " " + player + ":" + str(data_holder["player chances"][player] + 1) + c
-    update_reader["text"] = col
-    update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
-    container.after(3600 * 2, forget_update_reader)
-    # col = "Chances:"
-    # c = ","
-    # for player in data_holder["players list"]:
+    #col = "Chances:"
+    #c = ","
+    #for player in data_holder["players list"]:
     #    if player == data_holder["players list"][-1]:
     #        c = ""
-    #    col += " " + player + ":" + str(data_holder["player chances"][player]+1) + c
-    # update_reader["text"] = col
-    # update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
-    # container.after(3600*2,forget_update_reader)
+    #    col += " " + player + ":" + str(data_holder["player chances"][player] + 1) + c
+    #update_reader["text"] = col
+    #update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
+    #container.after(3600 * 2, forget_update_reader)
 
     print("recving data updates")
     while True:
@@ -610,9 +601,10 @@ def recv_data_updates():
         elif len(data_update) == 4:
 
             if data_update[1] == "coudn't buy":
-                t = data_update[0] + " " + data_update[1] + "\n " + data_update[2] + " " + data_update[3]
-                update_reader["text"] = t
-                update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
+                print("couldnt buy")
+                #t = data_update[0] + " " + data_update[1] + "\n " + data_update[2] + " " + data_update[3]
+                #update_reader["text"] = t
+                #update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
 
             if data_update[2] == "update" and data_update[1] == "properties":
                 # means we have to add something of the dicto about properties
@@ -620,12 +612,12 @@ def recv_data_updates():
                     "houses": 0, }})
 
                 prop_info[data_update[3]]["owner"] = data_update[0]
-                update_reader = tk.Label(main_frame, text=data_update[0] + " \nsuccessfully bought-\n" + data_update[3],
-                                         font=font,
-                                         bg="light blue")
-                update_reader.grid(columnspan=3, row=6, column=7)
-                update_reader["text"] = data_update[0] + " \nsuccessfully bought-\n" + data_update[3]
-                update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
+                #update_reader = tk.Label(main_frame, text=data_update[0] + " \nsuccessfully bought-\n" + data_update[3],
+                #                         font=font,
+                #                         bg="light blue")
+                #update_reader.grid(columnspan=3, row=6, column=7)
+                #update_reader["text"] = data_update[0] + " \nsuccessfully bought-\n" + data_update[3]
+                #update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
 
                 created_objs[data_update[0]].property_update(data_update)
                 created_objs[data_update[0]].prop_num_label["text"] = "Properties in hand: " + str(
@@ -647,8 +639,8 @@ def recv_data_updates():
                 if prop_id[new_pos].buy_btn_shown == True:
                     prop_id[new_pos].buy_btn.grid()
 
-                update_reader.grid(row=6, column=8)
-                update_reader.grid_forget()
+                #update_reader.grid(row=6, column=8)
+                #update_reader.grid_forget()
 
                 created_objs[call_to].rd_label.grid_forget()
 
@@ -658,7 +650,7 @@ def recv_data_updates():
                 # so that a new cylce of while loop
                 # thus a timeout can the be set for the player whose chance is next
                 client.send(pickle.dumps(None))
-                chance_label["text"] = data_holder["inverted chances"][data_holder["chance"]] + " missed chance"
+                #chance_label["text"] = data_holder["inverted chances"][data_holder["chance"]] + " missed chance"
                 seek_chance()
 
             #if data_update == ("RC"):
@@ -683,16 +675,16 @@ def seek_chance():
     global chance_label
     if data_holder["chance"] == data_holder["player chances"][username]:
         print("My Chance")
-        chance_label = tk.Label(main_frame, text="It's your chance", font=font)
-        chance_label.grid(row=6, column=9, rowspan=2)
+        #chance_label = tk.Label(main_frame, text="It's your chance", font=font)
+        #chance_label.grid(row=6, column=9, rowspan=2)
         rd_obj.show_dice_btn()
         # other things will be handled by the server and our data update method
     else:
         print("not my chance")
-        chance_label = tk.Label(main_frame,
-                                text=str(data_holder["inverted chances"][data_holder["chance"]]) + "'s chance",
-                                font=font)
-        chance_label.grid(row=6, column=9, rowspan=2)
+        #chance_label = tk.Label(main_frame,
+        #                        text=str(data_holder["inverted chances"][data_holder["chance"]]) + "'s chance",
+        #                        font=font)
+        #chance_label.grid(row=6, column=9, rowspan=2)
 
 
 def update_caller(data_update):
@@ -709,7 +701,7 @@ def update_caller(data_update):
     if data_update[1] == "position":
         global new_pos
         global new_pos, chance_label
-        chance_label.grid_forget()
+        #chance_label.grid_forget()
         new_pos = data_update[2]
         created_objs[call_to].update_data_holder(data_holder)
         created_objs[call_to].update_position(row_coordinates, column_coordinates, place_num, old_pos, data_update[2],
@@ -804,7 +796,7 @@ class roll_dice_class:
         client.send(pickle.dumps((username, "position", position)))
         # then the data muncher on our side will recv and update the screen
 
-
+        self.show_end_turn_btns()
     def show_end_turn_btns(self):
         self.end_turn_btn = tk.Button(main_frame, text="End Turn!", font=font, command=lambda: self.end_turn_clicked())
         self.end_turn_btn.grid(row=6, column=6)

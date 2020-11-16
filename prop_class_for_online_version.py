@@ -172,6 +172,7 @@ class my_property_class:
                 self.rent_timer.grid_forget()
                 rd_obj.show_end_turn_btns()
                 break
+            time.sleep(1)
 
 
     def show_details(self):
