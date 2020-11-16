@@ -655,6 +655,9 @@ def recv_data_updates():
                 seek_chance()
 
             if data_update == ("chance missed"):
+                # so that a new cylce of while loop
+                # thus a timeout can the be set for the player whose chance is next
+                client.send(pickle.dumps(None))
                 chance_label["text"] = data_holder["inverted chances"][data_holder["chance"]] + " missed chance"
                 seek_chance()
 
@@ -674,7 +677,6 @@ def recv_data_updates():
 
             if data_update[1] == "trade finalised":
                 created_objs[username].trade_finalised()
-
 
 def seek_chance():
     global chance_label

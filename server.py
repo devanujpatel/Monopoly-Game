@@ -340,22 +340,32 @@ class threaded_Client(threading.Thread):
             # it is to be read as change xyz of abc name to pqr
             # or else it could be : (what to do , player desig) for cases like end turn, leave game, end game,etc...
             try:
+                print(rooms[self.room]["chance"],rooms[self.room]["player chances"][self.username],self.responded ,self.username )
                 if rooms[self.room]["chance"] == rooms[self.room]["player chances"][self.username] and self.responded == False:
                     self.client.settimeout(30)
+                    print("timeout set", self.username)
 
                 while True:
                     try:
-                        self.data_tup = self.client.recv(2048)
+
+                        self.data_tup = self.client.recv(1048)
                         break
                     except socket.timeout:
                         if self.responded == False:
                             self.no_response += 1
-
+                            print("I missed chance", self.username)
                             if self.no_response == 3:
                                 return "check if active"
                             else:
-                                self.data_tup = ((self.username, "chance missed"))
+                                self.data_tup = (self.username, "chance missed")
+                                print(self.username, "missed chance", self.no_response)
+                                self.client.settimeout(None)
+                                print("timeout removed", self.username)
                                 self.end_turn()
+                                self.data_tup = None
+                                # if data tup is none then the elif statements will catch it and pass so that new cycle
+                                # of while loop starts
+                                break
 
                         else:
                             if self.rent_given == False:
@@ -374,6 +384,7 @@ class threaded_Client(threading.Thread):
                     self.data_tup = pickle.loads(self.data_tup)
                     print(self.data_tup)
                     self.client.settimeout(None)
+                    print("timeout removed", self.username)
                 else:
                     self.data_tup = None
 
@@ -399,8 +410,9 @@ class threaded_Client(threading.Thread):
                 self.rent_given = True
                 self.client.settimeout(None)
 
-            elif self.data_tup[1] == "coudn't buy":
-                self.send_updates(self.data_tup)
+            elif self.data_tup[1] == "coudn't buy":  # todo:
+                self.send_updates(self.data_tup)     #    client side for coudnt buy
+
 
             elif self.data_tup[1] == "trade proposal":
                 if rooms[self.room]["trade flag"] == True:
@@ -431,8 +443,8 @@ class threaded_Client(threading.Thread):
                 # leave_confirmation_status = "ask to save"
                 return "ask to save"
 
-            elif self.data_tup[0] == "round" and self.data_tup[1] == "completed":
-                self.responded = False
+            #elif self.data_tup[0] == "round" and self.data_tup[1] == "completed":
+            #    self.responded = False
 
             elif self.data_tup == ("RC"):
                 self.responded = False
@@ -458,6 +470,8 @@ class threaded_Client(threading.Thread):
                 # means we have to add something o the dicto about properties
                 rooms[self.room]["game info"][self.data_tup[0]][self.data_tup[1]].update({self.data_tup[3]:{
                     "status":"normal", "houses":0, }})
+
+
         else:
             pass
         # send the same to others.
