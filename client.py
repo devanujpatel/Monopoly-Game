@@ -661,8 +661,9 @@ def recv_data_updates():
                 chance_label["text"] = data_holder["inverted chances"][data_holder["chance"]] + " missed chance"
                 seek_chance()
 
-            if data_update == ("RC"):
-                client.send(pickle.dumps(data_update))
+            #if data_update == ("RC"):
+            #    time.sleep(0.4)
+            #    client.send(pickle.dumps(("RC")))
 
             if data_update[1] == "trade proposal":
                 if data_update[0] == username:

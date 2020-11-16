@@ -105,6 +105,12 @@ class threaded_Client(threading.Thread):
 
         # recv a msg to know that host wants to start the game -- recall blocking sockets
         self.start_game = pickle.loads(self.client.recv(1024))
+
+        # useful for setting timeout during gameplay
+        rooms[self.room].update({"responded": {}})
+        for player in rooms[self.room]["players list"]:
+            rooms[self.room]["responded"].update({player: False})
+
         rooms[self.room]["status"] = "room locked temp"
         rooms[self.room].update({"start game count": 0})
 
@@ -307,10 +313,9 @@ class threaded_Client(threading.Thread):
                     self.sent.append(player)
                     self.not_reachable.remove(player)
 
-
         # after this we start the actual game!
         self.no_response = 0
-        self.responded = False
+        #self.responded = False
         self.rent_given = True
         self.main_game()
 
@@ -340,18 +345,17 @@ class threaded_Client(threading.Thread):
             # it is to be read as change xyz of abc name to pqr
             # or else it could be : (what to do , player desig) for cases like end turn, leave game, end game,etc...
             try:
-                print(rooms[self.room]["chance"],rooms[self.room]["player chances"][self.username],self.responded ,self.username )
-                if rooms[self.room]["chance"] == rooms[self.room]["player chances"][self.username] and self.responded == False:
+                print(rooms[self.room]["chance"],rooms[self.room]["player chances"][self.username],rooms[self.room]["responded"][self.username] ,self.username )
+                if rooms[self.room]["chance"] == rooms[self.room]["player chances"][self.username] and rooms[self.room]["responded"][self.username] == False:
                     self.client.settimeout(30)
                     print("timeout set", self.username)
 
                 while True:
                     try:
-
                         self.data_tup = self.client.recv(1048)
                         break
                     except socket.timeout:
-                        if self.responded == False:
+                        if rooms[self.room]["responded"][self.username] == False:
                             self.no_response += 1
                             print("I missed chance", self.username)
                             if self.no_response == 3:
@@ -413,7 +417,6 @@ class threaded_Client(threading.Thread):
             elif self.data_tup[1] == "coudn't buy":  # todo:
                 self.send_updates(self.data_tup)     #    client side for coudnt buy
 
-
             elif self.data_tup[1] == "trade proposal":
                 if rooms[self.room]["trade flag"] == True:
                     rooms[self.room]["trade flag"] = False
@@ -445,12 +448,14 @@ class threaded_Client(threading.Thread):
 
             #elif self.data_tup[0] == "round" and self.data_tup[1] == "completed":
             #    self.responded = False
+            #    print("in [1] and [2]")
 
-            elif self.data_tup == ("RC"):
-                self.responded = False
+            #elif self.data_tup[0] == "RC":
+            #    print("got rc", self.username)
+            #    self.responded = False
 
             elif self.data_tup[1] == "position":
-                self.responded = True
+                rooms[self.room]["responded"][self.username] = True
                 self.munch_data()
 
             else:
@@ -540,7 +545,7 @@ class threaded_Client(threading.Thread):
     # still left to do, associated with the main game and play game functions
 
     def end_turn(self):
-        self.responded = True
+        rooms[self.room]["responded"][self.username] = True
         # increase chance num by one
         rooms[self.room]["chance"] += 1
         # while increasing chance we also need to see if chance number is within limit
@@ -548,7 +553,10 @@ class threaded_Client(threading.Thread):
             # set everyone's responded to False
             # send client this update then client will send the server will recv it to set everyone's responded to False
             # RC for round completed
-            self.send_updates(("RC"))
+            #self.send_updates(("RC"))
+            for player in rooms[self.room]["players list"]:
+                rooms[self.room]["responded"][player] = False
+
             rooms[self.room]["rounds completed"] += 1
             rooms[self.room]["chance"] = 0
 
