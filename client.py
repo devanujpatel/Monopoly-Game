@@ -715,9 +715,9 @@ def update_caller(data_update):
         created_objs[call_to].update_position(row_coordinates, column_coordinates, place_num, old_pos, data_update[2],
                                               place_id_place_to_pos, prop_id, data_update[0], username, client, rd_obj)
 
-        # show end turn btns after token is moved and only if it is your chance
-        # if data_update[0] == username:
-        #    rd_obj.show_end_turn_btns()
+        # show end turn btns after token is moved and only if it is your chance ___ ofc
+        if data_update[0] == username:
+           rd_obj.show_end_turn_btns()
 
         # just this and our work is done
 
@@ -803,7 +803,7 @@ class roll_dice_class:
         # send our server so it munches down the data
         client.send(pickle.dumps((username, "position", position)))
         # then the data muncher on our side will recv and update the screen
-        self.show_end_turn_btns()
+
 
     def show_end_turn_btns(self):
         self.end_turn_btn = tk.Button(main_frame, text="End Turn!", font=font, command=lambda: self.end_turn_clicked())

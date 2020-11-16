@@ -104,11 +104,11 @@ class my_property_class:
                     print("owner not on site")
                     print(prop_info)
                     if player_name == username:
+                        # RENT PROPOSAL
                         client.send(pickle.dumps((username, prop_info[self.property_str]["owner"], self.current_rent,"rent")))
                         rd_obj.end_turn_btn.grid_forget()
                         self.rent_btn = tk.Button(main_frame, text="Give Rent",
-                                                  command=lambda: self.give_rent(data_holder), bg=self.color,
-                                                  font=font)
+                                                  command=lambda: self.give_rent(data_holder), bg=self.color, font=font)
                         self.rent_btn.grid(row=6, column=8)
                         self.rent_timer = tk.Label(main_frame, text = "Pay Rent \nin 150 sec", bg="yellow",font = font)
                         self.rent_timer.grid(row=6, column=9)
@@ -134,10 +134,9 @@ class my_property_class:
         client.send(pickle.dumps((username, "paying rent")))
         time.sleep(0.2)
         client.send(pickle.dumps((username, "money", data_holder["game info"][username]["money"]-self.current_rent)))
-        print((username, "money", data_holder["game info"][username]["money"]-self.current_rent))
         time.sleep(0.4)
         client.send(pickle.dumps((prop_info[self.property_str]["owner"], "money", data_holder["game info"][prop_info[self.property_str]["owner"]]["money"]+self.current_rent )))
-        print((prop_info[self.property_str]["owner"], "money", data_holder["game info"][prop_info[self.property_str]["owner"]]["money"]+self.current_rent ))
+
     def buy_prop(self, data_holder):
         print("buying property!")
         self.price_btn.grid_forget()

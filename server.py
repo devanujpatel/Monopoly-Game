@@ -344,6 +344,7 @@ class threaded_Client(threading.Thread):
             # FORMAT: (username,what needs to be changed, update value)
             # it is to be read as change xyz of abc name to pqr
             # or else it could be : (what to do , player desig) for cases like end turn, leave game, end game,etc...
+
             try:
                 print(rooms[self.room]["chance"],rooms[self.room]["player chances"][self.username],rooms[self.room]["responded"][self.username] ,self.username )
                 if rooms[self.room]["chance"] == rooms[self.room]["player chances"][self.username] and rooms[self.room]["responded"][self.username] == False:
@@ -374,11 +375,13 @@ class threaded_Client(threading.Thread):
                         else:
                             if self.rent_given == False:
                                 print("RP",self.rent_proposal)
-                                self.money_to_be_sub = int(2*self.rent_proposal[3])
-                                rooms[self.room]["game info"][self.rent_proposal[0]]["money"] -= self.money_to_be_sub
-                                rooms[self.room]["game info"][self.rent_proposal[1]]["money"] += self.money_to_be_sub
+                                self.money_to_be_sub = int(2*self.rent_proposal[2])
+                                # send the updates first
                                 self.send_updates((self.username,"money", rooms[self.room]["game info"][self.rent_proposal[0]]["money"]- self.money_to_be_sub ))
                                 self.send_updates((self.username, "money",rooms[self.room]["game info"][self.rent_proposal[1]]["money"] + self.money_to_be_sub ))
+                                # then update server side dicto also
+                                rooms[self.room]["game info"][self.rent_proposal[0]]["money"] -= self.money_to_be_sub
+                                rooms[self.room]["game info"][self.rent_proposal[1]]["money"] += self.money_to_be_sub
                                 self.rent_given = True
 
                                 # todo:

@@ -61,6 +61,7 @@ class Player:
             # time.sleep(0.4)
             if dest_col == col and dest_row == row:
                 show_dice.set("Dice Roll: " + str(showcase_num))
+                main_frame.after(3600*2, lambda : self.rd_label.grid_forget())
                 print("passing data holder",data_holder)
                 prop_obj_id[new_pos].playerOnSite(chance, player_name, client, rd_obj, data_holder)
                 break
