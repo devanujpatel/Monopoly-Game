@@ -172,7 +172,6 @@ class my_property_class:
                 self.rent_timer.grid_forget()
                 rd_obj.show_end_turn_btns()
                 break
-            time.sleep(1)
 
 
     def show_details(self):
@@ -247,8 +246,6 @@ class my_property_class:
             self.info_box1.grid(rowspan=6, columnspan=2, row=4, column=1)
             self.label_of_info_box = tk.Label(self.info_box1, text = "You will be thrown \nto a random position or \n given 200 Rupees", font=font)
             self.label_of_info_box.pack(side="top")
-
-
 
 
 # created the objects below for testing, to see the objects - refer to client file after recv_game_info !

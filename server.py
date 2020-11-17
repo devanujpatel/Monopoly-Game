@@ -356,6 +356,8 @@ class threaded_Client(threading.Thread):
                         self.data_tup = self.client.recv(1048)
                         break
                     except socket.timeout:
+
+
                         if rooms[self.room]["responded"][self.username] == False:
                             self.no_response += 1
                             print("I missed chance", self.username)
@@ -374,10 +376,10 @@ class threaded_Client(threading.Thread):
 
                         else:
                             if self.rent_given == False:
-                                print("RP",self.rent_proposal)
+                                print("RP",self.rent_proposal, self.username)
                                 self.money_to_be_sub = int(2*self.rent_proposal[2])
                                 # send the updates first
-                                self.send_updates((self.username,"money", rooms[self.room]["game info"][self.rent_proposal[0]]["money"]- self.money_to_be_sub ))
+                                self.send_updates((self.username,"money", rooms[self.room]["game info"][self.rent_proposal[0]]["money"] - self.money_to_be_sub ))
                                 self.send_updates((self.username, "money",rooms[self.room]["game info"][self.rent_proposal[1]]["money"] + self.money_to_be_sub ))
                                 # then update server side dicto also
                                 rooms[self.room]["game info"][self.rent_proposal[0]]["money"] -= self.money_to_be_sub
