@@ -317,7 +317,7 @@ class threaded_Client(threading.Thread):
         self.no_response = 0
         #self.responded = False
         self.rent_given = True
-        self.assess_situation()
+        self.main_game()
 
     def main_game(self):
 
@@ -600,7 +600,7 @@ class threaded_Client(threading.Thread):
         pass
 
     def player_left_protocol(self, player):
-
+        pass
 
     def save_room(self):
         pass
