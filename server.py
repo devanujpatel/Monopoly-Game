@@ -399,8 +399,8 @@ class threaded_Client(threading.Thread):
                 else:
                     self.data_tup = None
 
-            except ConnectionResetError as e:
-                print(e, self.username, self.room)
+            except ConnectionResetError or ConnectionError:
+                print("player left", self.username, self.room)
                 # give loop(2) chance to assess the situation then if client has to leave then break from main loop too
                 # if not then continue to run loop(1) which will then run loop(2)
                 return "check if active"
@@ -500,6 +500,9 @@ class threaded_Client(threading.Thread):
 
     def send_updates(self, data_tup, players_to_be_sent):
         # false means don't send and true means send
+        #players_left = players_to_be_sent
+        #sent_players = []
+        #error_players = []
         while True:
             #time.sleep(0.2)
             if rooms[self.room]["send flag"] is True:
@@ -508,7 +511,22 @@ class threaded_Client(threading.Thread):
                 for player in players_to_be_sent:
                     time.sleep(0.3)
                     print("sending data tup", pickle.loads(data_tup),"to",player,self.username)
-                    room_player_objs[self.room][player].send(data_tup)
+                    try:
+                        room_player_objs[self.room][player].send(data_tup)
+                        #players_left.remove(player)
+                        #sent_players.append(player)
+                    except ConnectionResetError or ConnectionError:
+                        #error_players.append(player)
+                        self.r = self.player_left_protocol(player)
+
+                        if self.r[0] == "end all":
+                            pass
+
+                        elif self.r[0] == "cont":
+                            room_player_objs[self.r[1][0]].send_updates(data_tup, self.r[1])
+
+                        else:
+                            pass
 
                 rooms[self.room]["send flag"] = True
                 break
@@ -534,7 +552,7 @@ class threaded_Client(threading.Thread):
             print(lcs)
             # lcs = leave_confirmation_status and wtd = what_to_do
             if lcs == "check if active":
-                wtd = self.check_if_active()
+                wtd = self.player_left_protocol(self.username)
             if lcs == "ask again host":
                 wtd = self.confirm_leave("host")
             if lcs == "ask again player":
@@ -581,14 +599,14 @@ class threaded_Client(threading.Thread):
         # if player not active then ask host his options
         pass
 
+    def player_left_protocol(self, player):
+
+
     def save_room(self):
         pass
 
     def end_game_confirm(self):
         # it is ; ask to save room or end game now
-        pass
-
-    def check_if_active(self):
         pass
 
     def close_conn(self, conn):
