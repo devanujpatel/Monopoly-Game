@@ -629,7 +629,6 @@ def recv_data_updates():
 
         else:
             if data_update == ("end my turn"):
-                rd_obj.end_turn_btn.grid_forget()
                 # we are sure that info box 1 will be on grid
                 prop_id[new_pos].info_box1.grid_forget()
                 # we are not sure if info box 2 will be displayed so
@@ -709,15 +708,14 @@ def update_caller(data_update):
                                               place_id_place_to_pos, prop_id, data_update[0], username, client, rd_obj)
 
         # show end turn btns after token is moved and only if it is your chance ___ ofc
-        if data_update[0] == username:
-           rd_obj.show_end_turn_btns()
+        #if data_update[0] == username:
+        #   rd_obj.show_end_turn_btns()
 
         # just this and our work is done
 
     if data_update[1] == "money":
-        # created_objs[call_to].money_var.set(data_update[2])
+        time.sleep(0.4)
         created_objs[call_to].money_label["text"] = "Money: " + str(data_update[2])
-
 
 # use when needed , gets dice roll
 def get_dice_roll(new_pos, old_pos):
@@ -733,7 +731,7 @@ def get_dice_roll(new_pos, old_pos):
 class roll_dice_class:
 
     def __init__(self):
-        print("obj created for dice")
+        pass
 
     def show_dice_btn(self):
 
@@ -798,6 +796,7 @@ class roll_dice_class:
         # then the data muncher on our side will recv and update the screen
 
         self.show_end_turn_btns()
+
     def show_end_turn_btns(self):
         self.end_turn_btn = tk.Button(main_frame, text="End Turn!", font=font, command=lambda: self.end_turn_clicked())
         self.end_turn_btn.grid(row=6, column=6)
@@ -806,7 +805,6 @@ class roll_dice_class:
         # display btns when necessary only
         self.end_turn_btn.grid_forget()
         client.send(pickle.dumps(("end my turn")))
-
 
 container.mainloop()
 

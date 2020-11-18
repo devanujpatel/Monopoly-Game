@@ -163,6 +163,7 @@ class my_property_class:
                     self.rent_timer['text'] = f"Now you will be charged \ndouble rent-{2*self.current_rent},(enjoy)!"
                     self.rent_btn.grid_forget()
                     self.rent_label.grid_forget()
+                    rd_obj.show_end_turn_btns()
                     time.sleep(3)
                     self.rent_timer.grid_forget()
                     break

@@ -317,7 +317,7 @@ class threaded_Client(threading.Thread):
         self.no_response = 0
         #self.responded = False
         self.rent_given = True
-        self.main_game()
+        self.assess_situation()
 
     def main_game(self):
 
@@ -363,6 +363,7 @@ class threaded_Client(threading.Thread):
                             print("I missed chance", self.username)
                             if self.no_response == 3:
                                 return "check if active"
+
                             else:
                                 self.data_tup = (self.username, "chance missed")
                                 print(self.username, "missed chance", self.no_response)
@@ -379,8 +380,9 @@ class threaded_Client(threading.Thread):
                                 print("RP",self.rent_proposal, self.username)
                                 self.money_to_be_sub = int(2*self.rent_proposal[2])
                                 # send the updates first
-                                self.send_updates((self.username,"money", rooms[self.room]["game info"][self.rent_proposal[0]]["money"] - self.money_to_be_sub ))
-                                self.send_updates((self.username, "money",rooms[self.room]["game info"][self.rent_proposal[1]]["money"] + self.money_to_be_sub ))
+                                self.send_updates((self.rent_proposal[0],"money", rooms[self.room]["game info"][self.rent_proposal[0]]["money"] - self.money_to_be_sub ),rooms[self.room]["players list"])
+                                time.sleep(2)
+                                self.send_updates((self.rent_proposal[1], "money",rooms[self.room]["game info"][self.rent_proposal[1]]["money"] + self.money_to_be_sub ),rooms[self.room]["players list"])
                                 # then update server side dicto also
                                 rooms[self.room]["game info"][self.rent_proposal[0]]["money"] -= self.money_to_be_sub
                                 rooms[self.room]["game info"][self.rent_proposal[1]]["money"] += self.money_to_be_sub
@@ -420,22 +422,22 @@ class threaded_Client(threading.Thread):
                 self.client.settimeout(None)
 
             elif self.data_tup[1] == "coudn't buy":  # todo:
-                self.send_updates(self.data_tup)     #    client side for coudnt buy
+                self.send_updates(self.data_tup,rooms[self.room]["players list"])     #    client side for coudnt buy
 
             elif self.data_tup[1] == "trade proposal":
                 if rooms[self.room]["trade flag"] == True:
                     rooms[self.room]["trade flag"] = False
-                    self.send_updates(self.data_tup)
+                    self.send_updates(self.data_tup,rooms[self.room]["players list"])
                 else:
                     self.send_updates_to_specific_person(self.username, ("cant trade"))
 
             elif self.data_tup[1] == "trade finalised":
                 rooms[self.room]["trade flag"] = True
-                self.send_updates(self.data_tup)
+                self.send_updates(self.data_tup,rooms[self.room]["players list"])
 
             elif self.data_tup[1] == "trade declined":
                 rooms[self.room]["trade flag"] = True
-                self.send_updates(self.data_tup)
+                self.send_updates(self.data_tup,rooms[self.room]["players list"])
 
             # player leaves gracefully!
             elif self.data_tup[0] == "leave" and self.data_tup[1] == "player":
@@ -467,7 +469,6 @@ class threaded_Client(threading.Thread):
                 # LET'S MUNCH DOWN OUR DATA
                 self.munch_data()
 
-
     def munch_data(self):
         print(self.data_tup, "= data tup")
 
@@ -485,7 +486,7 @@ class threaded_Client(threading.Thread):
         else:
             pass
         # send the same to others.
-        self.send_updates(self.data_tup)
+        self.send_updates(self.data_tup, rooms[self.room]["players list"])
 
     def send_updates_to_specific_person(self, player_name, update):
         while True:
@@ -497,14 +498,14 @@ class threaded_Client(threading.Thread):
             else:
                 time.sleep(0.2)
 
-    def send_updates(self, data_tup):
+    def send_updates(self, data_tup, players_to_be_sent):
         # false means don't send and true means send
         while True:
             #time.sleep(0.2)
             if rooms[self.room]["send flag"] is True:
                 rooms[self.room]["send flag"] = False
                 data_tup = pickle.dumps(data_tup)
-                for player in rooms[self.room]["players list"]:
+                for player in players_to_be_sent:
                     time.sleep(0.3)
                     print("sending data tup", pickle.loads(data_tup),"to",player,self.username)
                     room_player_objs[self.room][player].send(data_tup)
@@ -566,14 +567,14 @@ class threaded_Client(threading.Thread):
             rooms[self.room]["chance"] = 0
 
         # send all our clients the update
-        self.send_updates(("chance", rooms[self.room]["chance"]))
-        self.send_updates(("rounds completed", rooms[self.room]["rounds completed"]))
+        self.send_updates(("chance", rooms[self.room]["chance"]),rooms[self.room]["players list"])
+        self.send_updates(("rounds completed", rooms[self.room]["rounds completed"]),rooms[self.room]["players list"])
         # send to end turn so client can check if he has to show dice btn
         # do not do this before the above updates as then chance will not be updated and same chance will be carried on
         if self.data_tup[1] != "chance missed":
-            self.send_updates(("end my turn"))
+            self.send_updates(("end my turn"),rooms[self.room]["players list"])
         else:
-            self.send_updates(("chance missed"))
+            self.send_updates(("chance missed"),rooms[self.room]["players list"])
 
     def confirm_leave(self, player_desig):
         # return a value ; active or not , if host not active then ask player1
@@ -598,6 +599,7 @@ class threaded_Client(threading.Thread):
 
     def waiting_mode(self):
         pass
+
 
 
 while True:
