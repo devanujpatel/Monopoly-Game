@@ -160,7 +160,6 @@ class my_property_class:
              prop_info[prop]["current"] = self.rent
              prop_info[prop]["houses"] = 0
 
-
     def pay_rent_timer(self):
         t = 150
         while True:

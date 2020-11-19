@@ -328,7 +328,8 @@ class threaded_Client(threading.Thread):
         self.no_response = 0
         #self.responded = False
         self.rent_given = True
-        self.main_game()
+        # running this will then run main_game
+        self.assess_situation()
 
     def main_game(self):
 

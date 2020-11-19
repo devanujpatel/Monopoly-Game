@@ -559,20 +559,9 @@ def forget_update_reader():
 
 
 def recv_data_updates():
-    global dice_roll, update_reader
-    global dice_roll, update_reader  # chance_label_shown
+    global dice_roll, update_reader, data_holder
     update_reader = tk.Label(main_frame, font=font,
                              bg="light blue")
-
-    #col = "Chances:"
-    #c = ","
-    #for player in data_holder["players list"]:
-    #    if player == data_holder["players list"][-1]:
-    #        c = ""
-    #    col += " " + player + ":" + str(data_holder["player chances"][player] + 1) + c
-    #update_reader["text"] = col
-    #update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
-    #container.after(3600 * 2, forget_update_reader)
 
     print("recving data updates")
     while True:
@@ -582,10 +571,9 @@ def recv_data_updates():
 
         if data_update[0] == "conn error":
             data_holder = data_update[2]
-            created_objs[data_update[1]].player_left()
+            created_objs[data_update[1]].player_left(data_holder, created_objs)
+            prop_id["white chapal road"].player_left(data_holder, data_update[1])
             del created_objs[data_update[1]]
-
-
 
         elif len(data_update) == 3:
             # save old position
