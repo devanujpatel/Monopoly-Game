@@ -242,6 +242,14 @@ class Player:
                              values=(update[3], str(prop_info[update[3]]["price"]), str(prop_info[update[3]]["houses"]),
                                      str(prop_info[update[3]]["current rent"])))
 
+    def player_left(self, data_holder, created_objs):
+        self.token.grid_forget()
+        self.inferior_status_frame.grid_forget()
+
+        for player in created_objs:
+            player.inferior_status_frame["width"] = int(self.sf_width/len(data_holder["players list"]))
+
+
 
 # ignore
 '''    def dis_token(self):

@@ -28,7 +28,6 @@ send_room_num_clients = []
 # a list to contain all info to be sent to client in send_room_num_clients
 send_room_info_list = {}
 
-
 def send_room_nums():
     if len(send_room_num_clients) != 0:
         send_item = []
@@ -159,6 +158,7 @@ class threaded_Client(threading.Thread):
                 else:
                     self.client.send(pickle.dumps("go ahead"))
                     break
+                    
             else:
                 self.client.send(pickle.dumps("go ahead"))
                 break
@@ -274,6 +274,17 @@ class threaded_Client(threading.Thread):
             else:
                 self.client.send(pickle.dumps("error"))
                 self.client.close()
+    
+    def re_allocate_chance(self):
+        rooms[self.room]["player chances"] = {}
+        rooms[self.room]["inverted chances"] = {}
+        rooms[self.room]["chance alloc num"] = 0
+        for player in rooms[self.room]["players list"]:
+            rooms[self.room]["player chances"].update({player: rooms[self.room]["chance alloc num"]})
+            rooms[self.room]["chance alloc num"] += 1
+        
+        for k, v in rooms[self.room]["player chances"]:
+            rooms[self.room]["inverted chances"].update({v: k})
 
     def color_updates(self):
 
@@ -482,7 +493,6 @@ class threaded_Client(threading.Thread):
                 rooms[self.room]["game info"][self.data_tup[0]][self.data_tup[1]].update({self.data_tup[3]:{
                     "status":"normal", "houses":0, }})
 
-
         else:
             pass
         # send the same to others.
@@ -600,7 +610,31 @@ class threaded_Client(threading.Thread):
         pass
 
     def player_left_protocol(self, player):
-        pass
+        del rooms[self.room]["token dir"][player]
+        rooms[self.room]["players list"].remove(player)
+        del room_player_objs[self.room][[player]]
+        
+        if player == rooms[self.room]["host"]:
+            for conn in room_player_objs:
+                conn.send(pickle.dumps("kill it all"))
+                conn.close()
+            del rooms[self.room]
+            return "end all"
+        
+        if len(rooms[self.room]["players list"]) == 1:
+            for conn in room_player_objs:
+                conn.send(pickle.dumps("kill it all"))
+                conn.close()
+            del rooms[self.room]
+            return "end all"
+        
+        else:
+            del rooms[self.room]["game info"][player]
+            rooms[self.room]["players list"].remove(player)
+            self.re_allocate_chance()
+            # le the client know that remove a player
+            room_player_objs[self.room][rooms[self.room]["host"]].send(pickle.dumps(("conn error", player, rooms[self.room])))
+            return "cont"
 
     def save_room(self):
         pass
@@ -610,15 +644,13 @@ class threaded_Client(threading.Thread):
         pass
 
     def close_conn(self, conn):
-        pass
+        conn.close()
 
     def read_saved_game(self):
         pass
 
     def waiting_mode(self):
         pass
-
-
 
 while True:
     client, addr = server.accept()

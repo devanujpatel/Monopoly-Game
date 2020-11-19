@@ -153,6 +153,14 @@ class my_property_class:
         else:
             client.send(pickle.dumps((player_name , "coudn't buy", self.property_str, "because of lack of money.")))
 
+    def player_left(self, data_holder_p, player):
+        # one of the objects/instances will call this method and make the owner of the props of the left platey to none
+         for prop in data_holder_p["game info"][player]["properties"].keys():
+             prop_info[prop]["owner"] = None
+             prop_info[prop]["current"] = self.rent
+             prop_info[prop]["houses"] = 0
+
+
     def pay_rent_timer(self):
         t = 150
         while True:
@@ -173,7 +181,6 @@ class my_property_class:
                 self.rent_timer.grid_forget()
                 rd_obj.show_end_turn_btns()
                 break
-
 
     def show_details(self):
         self.info_box1 = tk.Frame(main_frame, relief="raised", highlightbackground="black",highlightthickness=1)

@@ -317,7 +317,6 @@ def start_game_host():
     start_game_btn.grid_forget()
     client.send(pickle.dumps("start the game"))
 
-
 def recv_game_details():
     global data_holder
     print(threading.enumerate())
@@ -541,7 +540,6 @@ def display_game_screen():
                                  highlightbackground="black", highlightthickness=1, width=sf_width, height=sf_height)
     status_frame.grid(rowspan=4, columnspan=9, row=1, column=1)
 
-
 def final_stage_tweaks():
     global data_holder, rd_obj
     global data_holder, rd_obj, chance_label
@@ -582,7 +580,14 @@ def recv_data_updates():
         data_update = pickle.loads(client.recv(1024))
         print(data_update)
 
-        if len(data_update) == 3:
+        if data_update[0] == "conn error":
+            data_holder = data_update[2]
+            created_objs[data_update[1]].player_left()
+            del created_objs[data_update[1]]
+
+
+
+        elif len(data_update) == 3:
             # save old position
             global old_pos, data_reader
             chance_num = data_holder["chance"]
