@@ -8,7 +8,7 @@ from player_class_online_version import Player
 from tkinter import colorchooser, ttk
 
 client = socket.socket()
-client.connect(("192.168.29.201", 9999))
+client.connect(("192.168.29.202", 9999))
 
 container = tk.Tk()
 
@@ -193,7 +193,6 @@ def analyze_stat(status):
         # ask client to enter another room num
         print("room is either full or locked by the host!")
         ask_room_num()
-
 
 def ask_username():
     # ask for username
@@ -622,6 +621,7 @@ def recv_data_updates():
 
         else:
             if data_update == ("end my turn"):
+                rd_obj.end_turn_btn.grid_forget()
                 # we are sure that info box 1 will be on grid
                 prop_id[new_pos].info_box1.grid_forget()
                 # we are not sure if info box 2 will be displayed so
@@ -672,6 +672,7 @@ def seek_chance():
         #chance_label.grid(row=6, column=9, rowspan=2)
         rd_obj.show_dice_btn()
         # other things will be handled by the server and our data update method
+
     else:
         print("not my chance")
         #chance_label = tk.Label(main_frame,
