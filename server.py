@@ -110,7 +110,8 @@ class threaded_Client(threading.Thread):
                 {self.room: {"host": self.username, "status": "looking for players", "color responses": [0, [], {}],
                              "players list": [], "chance alloc num": 0, "player chances": {}, "game info": {},
                              "inverted chances": {},
-                             "chance": 0, "rounds completed": 0, "token dir": {}, "send flag": True, "trade flag": True}})
+                             "chance": 0, "rounds completed": 0, "token dir": {}, "send flag": True,
+                             "trade flag": True}})
 
             # for storing and then allocating different poistions to players to avoid overlapping of tokens (these are
             # sticky options of tkinter)
@@ -450,78 +451,83 @@ class threaded_Client(threading.Thread):
             # it is to be read as change xyz of abc name to pqr
             # or else it could be : (what to do , player desig) for cases like end turn, leave game, end game,etc...
 
-            try:
-                print(rooms[self.room]["chance"], rooms[self.room]["player chances"][self.username],
-                      rooms[self.room]["responded"][self.username], self.username)
+            #try:
+            print(rooms[self.room]["chance"], rooms[self.room]["player chances"][self.username],
+                  rooms[self.room]["responded"][self.username], self.username)
 
-                if rooms[self.room]["chance"] == rooms[self.room]["player chances"][self.username] and \
-                        rooms[self.room]["responded"][self.username] == False:
+            if rooms[self.room]["chance"] == rooms[self.room]["player chances"][self.username] and \
+                    rooms[self.room]["responded"][self.username] == False:
 
-                    self.client.settimeout(30)
-                    print("timeout set", self.username)
+                self.client.settimeout(30)
+                print("timeout set", self.username)
 
-                while True:
-                    try:
-                        self.data_tup = self.client.recv(1048)
-                        break
-                    except socket.timeout:
-                        print("timed out",self.username)
-                        if rooms[self.room]["responded"][self.username] == False:
-                            self.no_response += 1
-                            print("I missed chance", self.username, "responses- ", self.no_response)
+            while True:
+                try:
+                    self.data_tup = self.client.recv(1048)
+                    print("DATA TUP: ",self.data_tup)
 
-                            if self.no_response == 3:
-                                print("checking if active...")
-                                return "check if active"
+                except socket.timeout:
+                    print("timed out",self.username)
+                    if not rooms[self.room]["responded"][self.username]:
+                        self.no_response += 1
+                        print("I missed chance", self.username, "responses- ", self.no_response)
 
-                            else:
-                                self.data_tup = (self.username, "chance missed")
-                                print(self.username, "missed chance", self.no_response)
-                                self.client.settimeout(None)
-                                print("timeout removed", self.username)
-                                self.end_turn()
-                                self.data_tup = None
-                                # if data tup is none then the elif statements will catch it and pass so that new cycle
-                                # of while loop starts
-                                break
+                        if self.no_response == 3:
+                            print("checking if active...")
+                            return "check if active"
 
                         else:
-                            if self.rent_given == False:
-                                print("RP", self.rent_proposal, self.username)
-                                self.money_to_be_sub = int(2 * self.rent_proposal[2])
-                                # send the updates first
-                                self.send_updates((self.rent_proposal[0], "money",
-                                                   rooms[self.room]["game info"][self.rent_proposal[0]][
-                                                       "money"] - self.money_to_be_sub),
-                                                  rooms[self.room]["players list"])
-                                time.sleep(2)
-                                self.send_updates((self.rent_proposal[1], "money",
-                                                   rooms[self.room]["game info"][self.rent_proposal[1]][
-                                                       "money"] + self.money_to_be_sub),
-                                                  rooms[self.room]["players list"])
-                                # then update server side dicto also
-                                rooms[self.room]["game info"][self.rent_proposal[0]]["money"] -= self.money_to_be_sub
-                                rooms[self.room]["game info"][self.rent_proposal[1]]["money"] += self.money_to_be_sub
-                                self.rent_given = True
+                            self.data_tup = (self.username, "chance missed")
+                            print(self.username, "missed chance", self.no_response)
+                            self.client.settimeout(None)
+                            print("timeout removed", self.username)
+                            self.end_turn()
+                            self.data_tup = None
+                            # if data tup is none then the elif statements will catch it and pass so that new cycle
+                            # of while loop starts
+                            break
 
-                                # todo:
-                                #   what if at any moment money to be paid less then money in hand
+                    else:
+                        if self.rent_given == False:
+                            print("RP", self.rent_proposal, self.username)
+                            self.money_to_be_sub = int(2 * self.rent_proposal[2])
+                            # send the updates first
+                            self.send_updates((self.rent_proposal[0], "money",
+                                               rooms[self.room]["game info"][self.rent_proposal[0]][
+                                                   "money"] - self.money_to_be_sub),
+                                              rooms[self.room]["players list"])
+                            time.sleep(2)
+                            self.send_updates((self.rent_proposal[1], "money",
+                                               rooms[self.room]["game info"][self.rent_proposal[1]][
+                                                   "money"] + self.money_to_be_sub),
+                                              rooms[self.room]["players list"])
+                            # then update server side dicto also
+                            rooms[self.room]["game info"][self.rent_proposal[0]]["money"] -= self.money_to_be_sub
+                            rooms[self.room]["game info"][self.rent_proposal[1]]["money"] += self.money_to_be_sub
+                            self.rent_given = True
 
-                    except ConnectionError:
-                        print("conn error")
-                        print("player left", self.username, self.room)
-                        # give loop(2) chance to assess the situation then if client has to leave then break from main loop too
-                        # if not then continue to run loop(1) which will then run loop(2)
-                        return "check if active"
+                            # todo:
+                            #   what if at any moment money to be paid less then money in hand
 
-                if self.data_tup:
-                    self.data_tup = pickle.loads(self.data_tup)
-                    print(self.data_tup)
-                    self.client.settimeout(None)
-                    print("timeout removed", self.username)
-                else:
-                    self.data_tup = None
+                except ConnectionError or ConnectionResetError:
+                    print("conn error")
+                    print("player left", self.username, self.room)
+                    # give loop(2) chance to assess the situation then if client has to leave then break from main loop too
+                    # if not then continue to run loop(1) which will then run loop(2)
+                    return "check if active"
 
+                finally:
+                    break
+
+            if self.data_tup:
+                self.data_tup = pickle.loads(self.data_tup)
+                print(self.data_tup)
+                self.client.settimeout(None)
+                print("timeout removed", self.username)
+            else:
+                self.data_tup = None
+
+            '''
             # meant for checking connection error but not specifically coded
             # check if some error is coming through the print statement
             except Exception as e:
@@ -529,9 +535,10 @@ class threaded_Client(threading.Thread):
                 print("player left", self.username, self.room)
                 # give loop(2) chance to assess the situation then if client has to leave then break from main loop too
                 # if not then continue to run loop(1) which will then run loop(2)
-                return "check if active"
+                return "check if active" '''
 
             # if it is to end our turn then do so; sent only when 30 sec timeout happens or end turn btn clicked on
+            # keep the redundant parenthesis
             if self.data_tup == ("end my turn"):
                 self.end_turn()
 
