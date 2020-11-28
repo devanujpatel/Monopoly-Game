@@ -74,6 +74,7 @@ class threaded_Client(threading.Thread):
 
         except ConnectionError as ce:
             print(ce, self.addr, "left")
+            self.client.close()
 
     def disband_room(self):
         pass
@@ -94,9 +95,10 @@ class threaded_Client(threading.Thread):
         self.ask_and_verify_username()
 
         if self.username == "":
-            # nothing to do host left do room disbanded then also do nothing as no dictionary has been
+            # nothing to do host left , room disbanded then also do nothing as no dictionary has been
             # updated for the room
-            pass
+            self.client.close()
+            existing_rooms.remove(self.room)
 
         else:
             # do not disband room
@@ -127,14 +129,44 @@ class threaded_Client(threading.Thread):
                 # now that the room is properly established we can send it to our clients
                 send_room_info_list.update({self.room: [self.room, self.username, 1]})
                 send_room_nums()
-                self.go_ahead = True
+                self.start_game = pickle.loads(self.client.recv(1024))
+
+                # useful for setting timeout during gameplay
+                rooms[self.room].update({"responded": {}})
+                for player in rooms[self.room]["players list"]:
+                    rooms[self.room]["responded"].update({player: False})
+
+                rooms[self.room]["status"] = "room locked temp"
+                rooms[self.room].update({"start game count": 0})
+
+                # when recved by client he/she starts to recv things sent further after, this is a type of signal
+                self.client.send(pickle.dumps("start game"))
+                # send data holder
+                room_player_objs[self.room][self.username].send(pickle.dumps(rooms[self.room]))
+                print("sent")
+                # just keeping a track of players
+                rooms[self.room]["start game count"] += 1
+
+                if rooms[self.room]["start game count"] == len(rooms[self.room]["players list"]):
+                    rooms[self.room]["status"] = "game started"
+                else:
+                    pass
+
+                # play game...
+                self.color_updates()
 
             except ConnectionError:
                 # host left so disband the room
                 del rooms[self.room]
-                self.go_ahead = False
+                existing_rooms.remove(self.room)
 
-            if self.go_ahead == True:
+                # disband room, send other players the same
+                # ---------------------------------------
+                self.client.close()
+
+
+
+            """if self.go_ahead == True:
 
                 # recv a msg to know that host wants to start the game -- recall blocking sockets
                 try:
@@ -163,7 +195,7 @@ class threaded_Client(threading.Thread):
 
                     # play game...
                     self.color_updates()
-
+                    
 
                 except ConnectionError:
                     print("room disbanded")
@@ -171,7 +203,7 @@ class threaded_Client(threading.Thread):
 
             else:
                 # the room would be disbanded
-                pass
+                pass"""
 
     def join_room(self):
         send_room_num_clients.append(self.client)
@@ -192,7 +224,10 @@ class threaded_Client(threading.Thread):
     def ask_and_verify_username(self):
         while True:
             try:
-                self.username = pickle.loads(self.client.recv(1024))
+                self.username = self.client.recv(1024)
+
+                if self.username:
+                    self.username = pickle.loads(self.username)
 
                 if self.what_to_do == "join room":
 
@@ -216,6 +251,7 @@ class threaded_Client(threading.Thread):
                     # means disband room or leave room handled by the method which calls it
                     self.username = ""
                     break
+
                 else:
                     self.username = ""
                     break
@@ -417,8 +453,10 @@ class threaded_Client(threading.Thread):
             try:
                 print(rooms[self.room]["chance"], rooms[self.room]["player chances"][self.username],
                       rooms[self.room]["responded"][self.username], self.username)
+
                 if rooms[self.room]["chance"] == rooms[self.room]["player chances"][self.username] and \
                         rooms[self.room]["responded"][self.username] == False:
+
                     self.client.settimeout(30)
                     print("timeout set", self.username)
 
@@ -427,7 +465,7 @@ class threaded_Client(threading.Thread):
                         self.data_tup = self.client.recv(1048)
                         break
                     except socket.timeout:
-
+                        print("timed out",self.username)
                         if rooms[self.room]["responded"][self.username] == False:
                             self.no_response += 1
                             print("I missed chance", self.username, "responses- ", self.no_response)
@@ -469,6 +507,13 @@ class threaded_Client(threading.Thread):
                                 # todo:
                                 #   what if at any moment money to be paid less then money in hand
 
+                    except ConnectionError:
+                        print("conn error")
+                        print("player left", self.username, self.room)
+                        # give loop(2) chance to assess the situation then if client has to leave then break from main loop too
+                        # if not then continue to run loop(1) which will then run loop(2)
+                        return "check if active"
+
                 if self.data_tup:
                     self.data_tup = pickle.loads(self.data_tup)
                     print(self.data_tup)
@@ -477,11 +522,13 @@ class threaded_Client(threading.Thread):
                 else:
                     self.data_tup = None
 
-            except ConnectionResetError or ConnectionError:
+            # meant for checking connection error but not specifically coded
+            # check if some error is coming through the print statement
+            except Exception as e:
+                print(e)
                 print("player left", self.username, self.room)
                 # give loop(2) chance to assess the situation then if client has to leave then break from main loop too
                 # if not then continue to run loop(1) which will then run loop(2)
-                print("checking if active...")
                 return "check if active"
 
             # if it is to end our turn then do so; sent only when 30 sec timeout happens or end turn btn clicked on
@@ -683,9 +730,10 @@ class threaded_Client(threading.Thread):
         del room_player_objs[self.room][player]
 
         if player == rooms[self.room]["host"]:
-            for conn in room_player_objs:
-                conn.send(pickle.dumps("kill it all"))
-                conn.close()
+            for player in rooms[self.room]["players list"]:
+                room_player_objs[self.room][player].send(pickle.dumps("kill it all"))
+                room_player_objs[self.room][player].close()
+
             del rooms[self.room]
             return "end all"
 
