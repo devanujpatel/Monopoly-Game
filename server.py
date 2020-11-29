@@ -77,7 +77,27 @@ class threaded_Client(threading.Thread):
             self.client.close()
 
     def disband_room(self):
-        pass
+        # this would be valid at any point of conn error
+        existing_rooms.remove(self.room)
+
+        try:
+            # this may not be true at every point of conn error
+            del rooms[self.room]
+        except Exception:
+            # means the room dicto has not yet been updated
+            pass
+
+        try:
+            del token_dir[self.room]
+        except Exception:
+            pass
+
+        # here comes the ain deal: send to other players that the room has been disbanded
+        for conn in room_player_objs[self.room]:
+            conn.send(pickle.dumps(("room disbanded", self.username, "end all")))
+
+        # leave no trace that the room existed
+        del room_player_objs[self.room]
 
     def create_room(self):
         global rooms, room
@@ -93,19 +113,23 @@ class threaded_Client(threading.Thread):
         # later a save game feature will be available and
         # the player might have to choose who he/she is from the saved room
         self.ask_and_verify_username()
-
+        # we have got our self.username now
+        # if username is empty that means that conn error has taken place
         if self.username == "":
-            # nothing to do host left , room disbanded then also do nothing as no dictionary has been
-            # updated for the room
+            # del client conn obj from dicto
+            # as we need not send him when disband starts to send others
+            del room_player_objs[self.room][self.username]
             self.client.close()
-            existing_rooms.remove(self.room)
+            #existing_rooms.remove(self.room)
+            self.disband_room()
 
         else:
-            # do not disband room
+            # do not disband room as player has successfully been able to send his or her username
 
-            # the rooms dicto will be updated with a room no. and other necessary information the game info key is the
-            # main key in which the game data will be stored and sent to all the clients at the start of the game after
-            # which the server and all the clients will maintain it according to the instructions sent
+            # the rooms dicto will be updated with a room no. and other necessary information
+            # the game info key is the main key in which the game data will be stored and sent to all the clients
+            # at the start of the game after which the server and all the clients will maintain it according to the
+            # instructions sent
             rooms.update(
                 {self.room: {"host": self.username, "status": "looking for players", "color responses": [0, [], {}],
                              "players list": [], "chance alloc num": 0, "player chances": {}, "game info": {},
@@ -113,10 +137,10 @@ class threaded_Client(threading.Thread):
                              "chance": 0, "rounds completed": 0, "token dir": {}, "send flag": True,
                              "trade flag": True}})
 
-            # for storing and then allocating different poistions to players to avoid overlapping of tokens (these are
+            # for storing and then allocating different positions to players to avoid overlapping of tokens (these are
             # sticky options of tkinter)
             token_dir.update({self.room: ["N", "S", "E", "W", "NE", "SE", "NW", "SW"]})
-            # contains the client objects of particular room
+            # contains the client connection objects of particular room
             room_player_objs.update({self.room: {}})
 
             # the names are self explanatory
@@ -137,14 +161,14 @@ class threaded_Client(threading.Thread):
                 for player in rooms[self.room]["players list"]:
                     rooms[self.room]["responded"].update({player: False})
 
+                # when recved by client he/she starts to recv things sent further after, this is a type of signal
+                self.client.send(pickle.dumps("start game"))
+
                 rooms[self.room]["status"] = "room locked temp"
                 rooms[self.room].update({"start game count": 0})
 
-                # when recved by client he/she starts to recv things sent further after, this is a type of signal
-                self.client.send(pickle.dumps("start game"))
                 # send data holder
-                room_player_objs[self.room][self.username].send(pickle.dumps(rooms[self.room]))
-                print("sent")
+                self.client.send(pickle.dumps(rooms[self.room]))
                 # just keeping a track of players
                 rooms[self.room]["start game count"] += 1
 
@@ -158,53 +182,15 @@ class threaded_Client(threading.Thread):
 
             except ConnectionError:
                 # host left so disband the room
-                del rooms[self.room]
-                existing_rooms.remove(self.room)
+                """del rooms[self.room]
+                existing_rooms.remove(self.room)"""
 
-                # disband room, send other players the same
-                # ---------------------------------------
+                # del our host from the player objs so that the update is not sent to the host
+                # when disband room notifies others
+                del room_player_objs[self.room][self.username]
                 self.client.close()
-
-
-
-            """if self.go_ahead == True:
-
-                # recv a msg to know that host wants to start the game -- recall blocking sockets
-                try:
-                    self.start_game = pickle.loads(self.client.recv(1024))
-
-                    # useful for setting timeout during gameplay
-                    rooms[self.room].update({"responded": {}})
-                    for player in rooms[self.room]["players list"]:
-                        rooms[self.room]["responded"].update({player: False})
-
-                    rooms[self.room]["status"] = "room locked temp"
-                    rooms[self.room].update({"start game count": 0})
-
-                    # when recved by client he/she starts to recv things sent further after, this is a type of signal
-                    self.client.send(pickle.dumps("start game"))
-                    # send data holder
-                    room_player_objs[self.room][self.username].send(pickle.dumps(rooms[self.room]))
-                    print("sent")
-                    # just keeping a track of players
-                    rooms[self.room]["start game count"] += 1
-
-                    if rooms[self.room]["start game count"] == len(rooms[self.room]["players list"]):
-                        rooms[self.room]["status"] = "game started"
-                    else:
-                        pass
-
-                    # play game...
-                    self.color_updates()
-                    
-
-                except ConnectionError:
-                    print("room disbanded")
-                    del rooms[self.room]
-
-            else:
-                # the room would be disbanded
-                pass"""
+                # disband room, send other players the same
+                self.disband_room()
 
     def join_room(self):
         send_room_num_clients.append(self.client)
@@ -527,16 +513,6 @@ class threaded_Client(threading.Thread):
             else:
                 self.data_tup = None
 
-            '''
-            # meant for checking connection error but not specifically coded
-            # check if some error is coming through the print statement
-            except Exception as e:
-                print(e)
-                print("player left", self.username, self.room)
-                # give loop(2) chance to assess the situation then if client has to leave then break from main loop too
-                # if not then continue to run loop(1) which will then run loop(2)
-                return "check if active" '''
-
             # if it is to end our turn then do so; sent only when 30 sec timeout happens or end turn btn clicked on
             # keep the redundant parenthesis
             if self.data_tup == ("end my turn"):
@@ -804,3 +780,52 @@ while True:
 # ask layer to chooose color agian if he she doesnt choose one
 #
 # '#fd7e00'
+
+"""if self.go_ahead == True:
+
+                # recv a msg to know that host wants to start the game -- recall blocking sockets
+                try:
+                    self.start_game = pickle.loads(self.client.recv(1024))
+
+                    # useful for setting timeout during gameplay
+                    rooms[self.room].update({"responded": {}})
+                    for player in rooms[self.room]["players list"]:
+                        rooms[self.room]["responded"].update({player: False})
+
+                    rooms[self.room]["status"] = "room locked temp"
+                    rooms[self.room].update({"start game count": 0})
+
+                    # when recved by client he/she starts to recv things sent further after, this is a type of signal
+                    self.client.send(pickle.dumps("start game"))
+                    # send data holder
+                    room_player_objs[self.room][self.username].send(pickle.dumps(rooms[self.room]))
+                    print("sent")
+                    # just keeping a track of players
+                    rooms[self.room]["start game count"] += 1
+
+                    if rooms[self.room]["start game count"] == len(rooms[self.room]["players list"]):
+                        rooms[self.room]["status"] = "game started"
+                    else:
+                        pass
+
+                    # play game...
+                    self.color_updates()
+
+
+                except ConnectionError:
+                    print("room disbanded")
+                    del rooms[self.room]
+
+            else:
+                # the room would be disbanded
+                pass"""
+
+'''
+# meant for checking connection error but not specifically coded
+# check if some error is coming through the print statement
+except Exception as e:
+    print(e)
+    print("player left", self.username, self.room)
+    # give loop(2) chance to assess the situation then if client has to leave then break from main loop too
+    # if not then continue to run loop(1) which will then run loop(2)
+    return "check if active" '''
