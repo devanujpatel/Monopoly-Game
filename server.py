@@ -298,7 +298,6 @@ class threaded_Client(threading.Thread):
             self.recv_room_num()
 
         elif self.room in existing_rooms:
-
             if rooms[self.room]["status"] == "looking for players":
                 print("joined")
                 time.sleep(0.5)
@@ -321,9 +320,7 @@ class threaded_Client(threading.Thread):
                 while True:
                     time.sleep(0.6)
                     if rooms[self.room]["status"] == "room locked temp":
-
                         break
-
                     else:
                         time.sleep(0.6)
                 # runs only after stat is rlt
