@@ -83,18 +83,20 @@ class threaded_Client(threading.Thread):
         try:
             # this may not be true at every point of conn error
             del rooms[self.room]
+
         except Exception:
             # means the room dicto has not yet been updated
             pass
 
         try:
             del token_dir[self.room]
+
         except Exception:
             pass
 
-        # here comes the ain deal: send to other players that the room has been disbanded
+        # here comes the main deal: send to other players that the room has been disbanded
         for conn in room_player_objs[self.room]:
-            conn.send(pickle.dumps(("room disbanded", self.username, "end all")))
+            conn.send(pickle.dumps(("room disbanded", self.username, "end everything")))
 
         # leave no trace that the room existed
         del room_player_objs[self.room]
@@ -181,16 +183,15 @@ class threaded_Client(threading.Thread):
                 self.color_updates()
 
             except ConnectionError:
-                # host left so disband the room
-                """del rooms[self.room]
-                existing_rooms.remove(self.room)"""
-
                 # del our host from the player objs so that the update is not sent to the host
                 # when disband room notifies others
                 del room_player_objs[self.room][self.username]
                 self.client.close()
-                # disband room, send other players the same
+                # host left so disband room, send other players the same
                 self.disband_room()
+
+    def player_client_disconnection(self):
+        pass
 
     def join_room(self):
         send_room_num_clients.append(self.client)
@@ -198,10 +199,15 @@ class threaded_Client(threading.Thread):
         self.recv_room_num()
 
     def recv_room_num(self):
-        self.room = pickle.loads(self.client.recv(1024))
-        self.room = int(self.room)
-        send_room_num_clients.remove(self.client)
-        self.check_recved_room_num()
+        try:
+            self.room = self.client.recv(1024)
+            self.room = pickle.loads(self.room)
+            self.room = int(self.room)
+            send_room_num_clients.remove(self.client)
+            self.check_recved_room_num()
+
+        except ConnectionError:
+            self.player_client_disconnection()
 
         # there are three states of status - room locked, looking for players and game started for a room to be
         # locked status should be room locked ,either the game has starteed or not in this state no more players will
