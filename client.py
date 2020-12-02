@@ -621,7 +621,6 @@ def recv_data_updates():
 
         else:
             if data_update == ("end my turn"):
-
                 if rd_obj.end_btn_shown == True:
                     rd_obj.end_turn_btn.grid_forget()
                 # we are sure that info box 1 will be on grid
