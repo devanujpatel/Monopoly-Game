@@ -245,7 +245,6 @@ class Player:
     def player_left(self, data_holder, created_objs):
         self.token.grid_forget()
         self.inferior_status_frame.grid_forget()
-
         for player in created_objs:
             player.inferior_status_frame["width"] = int(self.sf_width/len(data_holder["players list"]))
 

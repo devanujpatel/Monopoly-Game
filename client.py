@@ -8,7 +8,7 @@ from player_class_online_version import Player
 from tkinter import colorchooser, ttk
 
 client = socket.socket()
-client.connect(("192.168.29.202", 9999))
+client.connect(("192.168.29.201", 9999))
 
 container = tk.Tk()
 
@@ -621,7 +621,9 @@ def recv_data_updates():
 
         else:
             if data_update == ("end my turn"):
-                rd_obj.end_turn_btn.grid_forget()
+
+                if rd_obj.end_btn_shown == True:
+                    rd_obj.end_turn_btn.grid_forget()
                 # we are sure that info box 1 will be on grid
                 prop_id[new_pos].info_box1.grid_forget()
                 # we are not sure if info box 2 will be displayed so
@@ -792,10 +794,12 @@ class roll_dice_class:
         self.show_end_turn_btns()
 
     def show_end_turn_btns(self):
+        self.end_btn_shown = True
         self.end_turn_btn = tk.Button(main_frame, text="End Turn!", font=font, command=lambda: self.end_turn_clicked())
         self.end_turn_btn.grid(row=6, column=6)
 
     def end_turn_clicked(self):
+        self.end_btn_shown = False
         # display btns when necessary only
         self.end_turn_btn.grid_forget()
         client.send(pickle.dumps(("end my turn")))
