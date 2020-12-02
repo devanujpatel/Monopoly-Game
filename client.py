@@ -223,7 +223,6 @@ def ok_but_for_username_clicked():
         check_on_new_thread_npl = recv_new_players_list_thread()
         check_on_new_thread_npl.start()
 
-
 class recv_new_players_list_thread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
@@ -269,9 +268,15 @@ class recv_new_players_list_thread(threading.Thread):
             if new_players_list:
                 new_players_list = pickle.loads(new_players_list)
                 print(new_players_list)
+
                 if new_players_list == "start game":
                     people_view.grid_forget()
                     break
+
+                elif new_players_list[0] == "player disconnected":
+                    # todo:
+                    #   remove the player
+                    pass
 
                 else:
 

@@ -200,11 +200,16 @@ class threaded_Client(threading.Thread):
                 self.disband_room()
 
     def player_client_disconnection(self):
-        pass
+
         self.client.close()
         try:
+            send_room_num_clients.remove(self.client)
+        except Exception:
+            pass
+
+        try:
             # delete/remove all the stuff from our dictionaries
-            rooms[self.room]['"players list'].remove(self.username)
+            rooms[self.room]['players list'].remove(self.username)
             del rooms[self.room]["game info"][self.username]
             del rooms[self.room]["player chances"][self.username]
             del rooms[self.room]["inverted chances"][self.username]
@@ -220,9 +225,11 @@ class threaded_Client(threading.Thread):
             else:
                 for player in rooms[self.room]["players list"]:
                     room_player_objs[self.room][player].send(pickle.dumps(("player disconnected", self.username)))
+
             # todo:
             #   conn error handling here
             #   see how to revise display on client side
+            #   disband room synchro with client side code
 
         except Exception:
             pass
@@ -235,18 +242,13 @@ class threaded_Client(threading.Thread):
     def recv_room_num(self):
         try:
             self.room = self.client.recv(1024)
-            self.room = pickle.loads(self.room)
-            self.room = int(self.room)
-            send_room_num_clients.remove(self.client)
-            self.check_recved_room_num()
-
             if self.room:
-                self.room = pickle.loads(self.room)
-                self.room = int(self.room)
+                self.room = int(pickle.loads(self.room))
                 send_room_num_clients.remove(self.client)
                 self.check_recved_room_num()
             else:
                 self.recv_room_num()
+
         except ConnectionError:
             self.player_client_disconnection()
 
@@ -275,7 +277,7 @@ class threaded_Client(threading.Thread):
                         break
 
                 else:
-                    # means nothing to server except it goes in the else and it moves on
+                    # means nothing to server, except it goes in the else and it moves on in the client
                     self.client.send(pickle.dumps("go ahead"))
                     break
 
@@ -329,7 +331,6 @@ class threaded_Client(threading.Thread):
 
         if self.room not in existing_rooms:
             # if room doesnt exist then notify the client about the same
-            self.client.send(pickle.dumps("room doesn't exist"))
             try:
                 self.client.send(pickle.dumps("room doesn't exist"))
             except ConnectionError:
@@ -341,9 +342,7 @@ class threaded_Client(threading.Thread):
         elif self.room in existing_rooms:
 
             if rooms[self.room]["status"] == "looking for players":
-                print("joined")
                 time.sleep(0.5)
-                self.client.send(pickle.dumps("joined successfully"))
                 try:
                     self.client.send(pickle.dumps("joined successfully"))
                 except ConnectionError:
@@ -351,8 +350,6 @@ class threaded_Client(threading.Thread):
 
                 self.ask_and_verify_username()
 
-                self.allocate_chance_num()
-                self.new_player_dicto_update()
                 if self.username == "":
                     self.player_client_disconnection()
 
@@ -362,7 +359,9 @@ class threaded_Client(threading.Thread):
 
                 # send all the players the new players list
                 for player in rooms[self.room]["players list"]:
+
                     room_player_objs[self.room][player].send(pickle.dumps(rooms[self.room]["players list"]))
+
                     # send all the players the new players list
                     for player in rooms[self.room]["players list"]:
                         try:
@@ -370,25 +369,10 @@ class threaded_Client(threading.Thread):
                         except ConnectionError:
                             room_player_objs[self.room][player].player_client_disconnection()
 
-                send_room_info_list[self.room][2] = len(rooms[self.room]["players list"])
-                send_room_nums()
                 # for other player clients
                 send_room_info_list[self.room][2] = len(rooms[self.room]["players list"])
                 send_room_nums()
 
-                # then check in a while true loop  for status - room locked temp(rlt) cuz when host starts the game
-                # the stat is changed to rlt
-                while True:
-                    time.sleep(0.6)
-                    if rooms[self.room]["status"] == "room locked temp":
-
-                        break
-
-                    else:
-                        time.sleep(0.6)
-                # runs only after stat is rlt
-                room_player_objs[self.room][self.username].send(pickle.dumps("start game"))
-                room_player_objs[self.room][self.username].send(pickle.dumps(rooms[self.room]))
                 # then check in a while true loop  for status - room locked temp(rlt) cuz when host starts the game
                 # the stat is changed to rlt
                 while True:
@@ -403,16 +387,14 @@ class threaded_Client(threading.Thread):
                     self.client.send(pickle.dumps("start game"))
                     # send the data holder
                     self.client.send(pickle.dumps(rooms[self.room]))
+
                 except ConnectionError:
                     self.player_client_disconnection()
 
                 rooms[self.room]["start game count"] += 1
-                rooms[self.room]["start game count"] += 1
 
                 if rooms[self.room]["start game count"] == len(rooms[self.room]["players list"]):
                     rooms[self.room]["status"] = "game started"
-                    if rooms[self.room]["start game count"] == len(rooms[self.room]["players list"]):
-                        rooms[self.room]["status"] = "game started"
 
                 self.color_updates()
 
