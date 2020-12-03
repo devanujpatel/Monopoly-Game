@@ -33,13 +33,14 @@ tk.Frame(start_frame, width=width / 7, height=height / 7).grid(row=0, column=7)
 
 font = ("Courier", 13)
 
-two_btns_label = tk.Label(start_frame, text="What do you want to do?", font=font)
-two_btns_label.grid(row=2, column=2, columnspan=3)
-# give our client a choice of creating or joining a room
-create_room_btn = tk.Button(start_frame, text="Create Room", command=lambda: create_room())
-create_room_btn.grid(row=3, column=2)
-join_room_btn = tk.Button(start_frame, text="Join Room", command=lambda: join_room())
-join_room_btn.grid(row=3, column=4)
+def intro_ask_what_to_do():
+    two_btns_label = tk.Label(start_frame, text="What do you want to do?", font=font)
+    two_btns_label.grid(row=2, column=2, columnspan=3)
+    # give our client a choice of creating or joining a room
+    create_room_btn = tk.Button(start_frame, text="Create Room", command=lambda: create_room())
+    create_room_btn.grid(row=3, column=2)
+    join_room_btn = tk.Button(start_frame, text="Join Room", command=lambda: join_room())
+    join_room_btn.grid(row=3, column=4)
 
 
 def create_room():
@@ -63,16 +64,15 @@ def join_room():
 
 
 def ask_room_num():
-    global room_num_entry, ok_but_room_num, room_label, room_num_display_frame
-    room_num_display_frame = tk.Frame(container)
-    room_num_display_frame.grid()
+    global room_num_entry, ok_but_room_num, room_label#, room_num_display_frame
+    #room_num_display_frame = tk.Frame(container)
+    #room_num_display_frame.grid()
     recv_rooms_list_thread_OBJECT = recv_rooms_list_thread()
     recv_rooms_list_thread_OBJECT.start()
     room_label = tk.Label(start_frame, text="Enter the number of the room which you want to join!", font=font)
     room_label.grid(row=2, column=2, columnspan=3)
     ok_but_room_num = tk.Button(start_frame, text="Okay", font=font, command=lambda: ok_but_room_num_clkd())
     ok_but_room_num.grid(row=4, column=3)
-
 
 class recv_rooms_list_thread(threading.Thread):
     def __init__(self):
@@ -86,7 +86,7 @@ class recv_rooms_list_thread(threading.Thread):
         # define our treeview
 
         global rooms_view
-        rooms_view = ttk.Treeview(room_num_display_frame, selectmode="browse")
+        rooms_view = ttk.Treeview(start_frame, selectmode="browse")
 
         # format our columns
         rooms_view["columns"] = ("Room Number", "Host Name", "No. of Players")
@@ -102,7 +102,7 @@ class recv_rooms_list_thread(threading.Thread):
         rooms_view.heading("No. of Players", text="No. of Players", anchor="w")
 
         # pack to the screen
-        rooms_view.pack()
+        rooms_view.grid(row = 5, column = 3 )
 
         # we will add data as and when we recv stuff
 
@@ -119,9 +119,19 @@ class recv_rooms_list_thread(threading.Thread):
             time.sleep(0.3)
             rooms_list = pickle.loads(client.recv(1024))
             print(rooms_list)
+
             if rooms_list in stat_list:
                 analyze_stat(rooms_list)
                 break
+
+            elif rooms_list[0] == "room disbanded":
+                all_items = rooms_view.get_children()
+
+                for child in all_items:
+                    if child.values[1] == rooms_list[1]:
+                        rooms_view.delete(child)
+                        break
+
             else:
                 for room in rooms_list:
 
@@ -142,6 +152,7 @@ class recv_rooms_list_thread(threading.Thread):
                     else:
                         # this means we have noted the room already, so just check if we need to update all no. of
                         #  players in the display
+                        # will also update room num if num has decreased
                         if noted_n_players[room[0]] != room[2]:
                             # so this code will run when we recved a new num for no. of players
                             # update display
@@ -167,8 +178,6 @@ def ok_but_room_num_clkd():
 
     except IndexError:
         print("None selected")
-
-
 
 def analyze_stat(status):
     if str(status) == "error":
@@ -234,7 +243,7 @@ class recv_new_players_list_thread(threading.Thread):
         # define our treeview
         time.sleep(1)
         global people_view
-        people_view = ttk.Treeview(container, selectmode="none")
+        people_view = ttk.Treeview(start_frame, selectmode="none")
 
         # format our columns
         people_view["columns"] = ("Name", "Designation", "Chance")
@@ -250,7 +259,7 @@ class recv_new_players_list_thread(threading.Thread):
         people_view.heading("Chance", text="Chance", anchor="w")
 
         # pack to the screen
-        people_view.grid()
+        people_view.grid(row = 5, column = 3)
 
         # we will add data as and when we recv stuff
 
@@ -274,12 +283,23 @@ class recv_new_players_list_thread(threading.Thread):
                     break
 
                 elif new_players_list[0] == "player disconnected":
-                    # todo:
-                    #   remove the player
-                    pass
+                    items = people_view.get_children()
+
+                    for child in items:
+                        if child.values[0] == new_players_list[0]:
+                            if child.values[1] == "host":
+                                people_view.grid_forget()
+                                room_disbanded_label = tk.Label(start_frame, text = f"Your host{child.values[0]} left.\n So the room is disbanded\n Please join another room or host one.")
+                                room_disbanded_label.grid(row=1, column=3)
+                                container.after(3600*8, room_disbanded_label.grid_forget())
+                                intro_ask_what_to_do()
+
+                            else:
+                                noted_players.remove(child[0])
+                                people_view.delete(child)
+                                break
 
                 else:
-
                     # only display start btn when more than one player is there in the room and also dont show again
                     # if already on grid!
                     if len(new_players_list) > 1 and start_btn_shown == False and player_desig == "host":
@@ -330,7 +350,6 @@ def recv_game_details():
     display_thread.start()
     cc_thread = threading.Thread(target=choose_color())
     cc_thread.start()
-
 
 def choose_color():
     # this blocks the execution of all the threads so a work around is made , u will see later

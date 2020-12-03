@@ -34,6 +34,8 @@ def send_room_nums():
         send_item = []
 
         if len(send_room_info_list) != 0:
+            # send a list of all the rooms
+            # eg - [{"room1":"abc},{"room2":"xyz"}]
             for r in send_room_info_list.values():
                 send_item.append(r)
 
@@ -41,7 +43,6 @@ def send_room_nums():
                 try:
                     client.send(pickle.dumps(send_item))
                 except ConnectionError:
-
                     try:
                         client.player_client_disconnection()
                     except:
@@ -101,12 +102,18 @@ class threaded_Client(threading.Thread):
         except Exception:
             pass
 
+        # remove from the list of rooms info for player clients
+        del send_room_info_list[self.room]
+        # distribute the same
+        send_room_nums()
+
         # here comes the main deal: send to other players that the room has been disbanded
         for conn in room_player_objs[self.room]:
-            conn.send(pickle.dumps(("room disbanded", self.username, "end everything")))
+            conn.send(pickle.dumps(("player disconnected", self.username)))
 
         # todo:
         #   conn error handling here
+
         # leave no trace that the room existed
         del room_player_objs[self.room]
 
@@ -131,7 +138,7 @@ class threaded_Client(threading.Thread):
             # as we need not send him when disband starts to send others
             del room_player_objs[self.room][self.username]
             self.client.close()
-            #existing_rooms.remove(self.room)
+            # existing_rooms.remove(self.room)
             self.disband_room()
 
         else:
@@ -517,7 +524,6 @@ class threaded_Client(threading.Thread):
 
                 if rooms[self.room]["chance"] == rooms[self.room]["player chances"][self.username] and \
                         rooms[self.room]["responded"][self.username] == False:
-
                     self.client.settimeout(30)
                     print("timeout set", self.username)
 
@@ -526,7 +532,7 @@ class threaded_Client(threading.Thread):
                         self.data_tup = self.client.recv(1048)
                         break
                     except socket.timeout:
-                        print("timed out",self.username)
+                        print("timed out", self.username)
                         if rooms[self.room]["responded"][self.username] == False:
                             self.no_response += 1
                             print("I missed chance", self.username, "responses- ", self.no_response)
