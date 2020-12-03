@@ -34,6 +34,7 @@ tk.Frame(start_frame, width=width / 7, height=height / 7).grid(row=0, column=7)
 font = ("Courier", 13)
 
 def intro_ask_what_to_do():
+    global two_btns_label, create_room_btn, join_room_btn
     two_btns_label = tk.Label(start_frame, text="What do you want to do?", font=font)
     two_btns_label.grid(row=2, column=2, columnspan=3)
     # give our client a choice of creating or joining a room
@@ -42,6 +43,7 @@ def intro_ask_what_to_do():
     join_room_btn = tk.Button(start_frame, text="Join Room", command=lambda: join_room())
     join_room_btn.grid(row=3, column=4)
 
+intro_ask_what_to_do()
 
 def create_room():
     global player_desig
@@ -69,10 +71,11 @@ def ask_room_num():
     #room_num_display_frame.grid()
     recv_rooms_list_thread_OBJECT = recv_rooms_list_thread()
     recv_rooms_list_thread_OBJECT.start()
-    room_label = tk.Label(start_frame, text="Enter the number of the room which you want to join!", font=font)
+    room_label = tk.Label(start_frame, text="Choose the room which you want to join!", font=font)
     room_label.grid(row=2, column=2, columnspan=3)
     ok_but_room_num = tk.Button(start_frame, text="Okay", font=font, command=lambda: ok_but_room_num_clkd())
     ok_but_room_num.grid(row=4, column=3)
+
 
 class recv_rooms_list_thread(threading.Thread):
     def __init__(self):
@@ -120,13 +123,16 @@ class recv_rooms_list_thread(threading.Thread):
             rooms_list = pickle.loads(client.recv(1024))
             print(rooms_list)
 
+            all_items = rooms_view.get_children()
+            print("ITEMS", all_items)
+
             if rooms_list in stat_list:
                 analyze_stat(rooms_list)
                 break
 
             elif rooms_list[0] == "room disbanded":
                 all_items = rooms_view.get_children()
-
+                print("ITEMS", items)
                 for child in all_items:
                     if child.values[1] == rooms_list[1]:
                         rooms_view.delete(child)
@@ -171,7 +177,7 @@ def ok_but_room_num_clkd():
         room = room[0]
         # if there is none selected then below code will not run
         ok_but_room_num.grid_forget()
-        room_num_display_frame.grid_forget()
+        rooms_view.grid_forget()
         room_label.grid_forget()
 
         client.send(pickle.dumps(room))
@@ -195,13 +201,16 @@ def analyze_stat(status):
 
     if str(status) == "unable to join temp":
         # ask client to wait for some time and then try to join again (this is the most rare to happen)
-
         ask_room_num()
 
     if str(status) == "room locked":
         # ask client to enter another room num
         print("room is either full or locked by the host!")
         ask_room_num()
+
+    if str(status) == "room disbanded":
+        show_room_disbanded_label()
+        intro_ask_what_to_do()
 
 def ask_username():
     # ask for username
@@ -231,6 +240,13 @@ def ok_but_for_username_clicked():
         container.title(username)
         check_on_new_thread_npl = recv_new_players_list_thread()
         check_on_new_thread_npl.start()
+
+def show_room_disbanded_label():
+    room_disbanded_label = tk.Label(start_frame,
+                                    text=f"Your host{child.values[0]} left.\n So the room is disbanded\n Please join another room or host one.")
+    room_disbanded_label.grid(row=1, column=3)
+    container.after(3600 * 8, room_disbanded_label.grid_forget())
+
 
 class recv_new_players_list_thread(threading.Thread):
     def __init__(self):
@@ -277,6 +293,8 @@ class recv_new_players_list_thread(threading.Thread):
             if new_players_list:
                 new_players_list = pickle.loads(new_players_list)
                 print(new_players_list)
+                items = people_view.get_children()
+                print("ITEMS", items)
 
                 if new_players_list == "start game":
                     people_view.grid_forget()
@@ -284,18 +302,18 @@ class recv_new_players_list_thread(threading.Thread):
 
                 elif new_players_list[0] == "player disconnected":
                     items = people_view.get_children()
-
+                    print("ITEMS",items)
                     for child in items:
-                        if child.values[0] == new_players_list[0]:
-                            if child.values[1] == "host":
+                        my_item = people_view.focus(child)
+
+                        if my_item.values[0] == new_players_list[0]:
+                            if my_item.values[1] == "host":
                                 people_view.grid_forget()
-                                room_disbanded_label = tk.Label(start_frame, text = f"Your host{child.values[0]} left.\n So the room is disbanded\n Please join another room or host one.")
-                                room_disbanded_label.grid(row=1, column=3)
-                                container.after(3600*8, room_disbanded_label.grid_forget())
+                                show_room_disbanded_label()
                                 intro_ask_what_to_do()
 
                             else:
-                                noted_players.remove(child[0])
+                                noted_players.remove(my_item.values[0])
                                 people_view.delete(child)
                                 break
 
