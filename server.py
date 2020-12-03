@@ -5,7 +5,7 @@ import time
 
 # create a af_inet streaming server
 server = socket.socket()
-server.bind(("", 9999))
+server.bind(("127.0.0.1", 9999))
 server.listen()
 
 # a dictionary which contains the threaded client obj of a player through the socket obj
@@ -101,7 +101,6 @@ class threaded_Client(threading.Thread):
 
         try:
             del token_dir[self.room]
-
         except Exception:
             pass
 
@@ -113,7 +112,6 @@ class threaded_Client(threading.Thread):
         except:
             pass
 
-
         # here comes the main deal: send to other players that the room has been disbanded
         for conn in room_player_objs[self.room].values():
             conn.send(pickle.dumps(("player disconnected", self.username)))
@@ -122,7 +120,10 @@ class threaded_Client(threading.Thread):
         #   conn error handling here
 
         # leave no trace that the room existed
-        del room_player_objs[self.room]
+        try:
+            del room_player_objs[self.room]
+        except:
+            pass
 
     def create_room(self):
         global rooms, room
@@ -246,8 +247,6 @@ class threaded_Client(threading.Thread):
 
             # todo:
             #   conn error handling here
-            #   see how to revise display on client side
-            #   disband room synchro with client side code
 
         except Exception:
             pass

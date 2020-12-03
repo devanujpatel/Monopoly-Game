@@ -8,7 +8,7 @@ from player_class_online_version import Player
 from tkinter import colorchooser, ttk
 
 client = socket.socket()
-client.connect(("192.168.29.201", 9999))
+client.connect(("127.0.0.1", 9999))
 
 container = tk.Tk()
 
@@ -134,8 +134,9 @@ class recv_rooms_list_thread(threading.Thread):
                 all_items = rooms_view.get_children()
                 print("ITEMS", items)
                 for child in all_items:
-                    if child.values[1] == rooms_list[1]:
-                        rooms_view.delete(child)
+                    item = peoples_view.focus(child)
+                    if item.values[1] == rooms_list[1]:
+                        rooms_view.delete(item)
                         break
 
             else:
@@ -305,7 +306,6 @@ class recv_new_players_list_thread(threading.Thread):
                     print("ITEMS",items)
                     for child in items:
                         my_item = people_view.focus(child)
-
                         if my_item.values[0] == new_players_list[0]:
                             if my_item.values[1] == "host":
                                 people_view.grid_forget()
