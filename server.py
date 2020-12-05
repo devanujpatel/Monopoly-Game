@@ -32,31 +32,41 @@ send_room_num_clients = []
 send_room_info_list = {}
 
 
-def send_room_nums():
+def send_room_nums(stat=None, room=None):
+    # none stat means everything is normal
+    # but room disbanded stat means we need to send for room deletion
     if len(send_room_num_clients) != 0:
         send_item = []
 
-        if len(send_room_info_list) != 0:
-            # send a list of all the rooms
-            # eg - [{"room1":"abc},{"room2":"xyz"}]
-            for r in send_room_info_list.values():
-                send_item.append(r)
+        if stat is None:
+            if len(send_room_info_list) != 0:
+                # send a list of all the rooms
+                # eg - [{"room1":"abc},{"room2":"xyz"}]
+                for r in send_room_info_list.values():
+                    send_item.append(r)
 
-            for client in send_room_num_clients:
-                try:
-                    client.send(pickle.dumps(send_item))
-                except ConnectionError:
-                    try:
-                        client.player_client_disconnection()
-                    except:
-                        print("client.player_client_disconnection() IS A PROBLEM")
+                send_helper(send_item)
 
-                    send_room_num_clients.remove(client)
+        elif stat == "room disbanded":
+            send_helper((stat, room))
+
     else:
         # do nothing if we have no one to send
         # this type of call is made when the dictionaries update
         # note that this type of call cannot be called when a new client joins
         pass
+
+
+def send_helper(tup):
+    for player_client in send_room_num_clients:
+        try:
+            player_client.send(pickle.dumps(tup))
+        except ConnectionError:
+            try:
+                player_client.player_client_disconnection()
+            except:
+                print("client.player_client_disconnection() IS A PROBLEM")
+                send_room_num_clients.remove(player_client)
 
 
 class threaded_Client(threading.Thread):
@@ -108,7 +118,7 @@ class threaded_Client(threading.Thread):
         try:
             del send_room_info_list[self.room]
             # distribute the same
-            send_room_nums()
+            send_room_nums("room disbanded", self.room)
         except:
             pass
 

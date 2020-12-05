@@ -56,7 +56,8 @@ def create_room():
 
 
 def join_room():
-    global player_desig
+    global player_desig, recv_rooms_list_threaqd_running
+    recv_rooms_list_threaqd_running = False
     player_desig = "player"
     two_btns_label.grid_forget()
     join_room_btn.grid_forget()
@@ -69,8 +70,10 @@ def ask_room_num():
     global room_num_entry, ok_but_room_num, room_label#, room_num_display_frame
     #room_num_display_frame = tk.Frame(container)
     #room_num_display_frame.grid()
-    recv_rooms_list_thread_OBJECT = recv_rooms_list_thread()
-    recv_rooms_list_thread_OBJECT.start()
+    if recv_rooms_list_threaqd_running == False:
+        recv_rooms_list_thread_OBJECT = recv_rooms_list_thread()
+        recv_rooms_list_thread_OBJECT.start()
+
     room_label = tk.Label(start_frame, text="Choose the room which you want to join!", font=font)
     room_label.grid(row=2, column=2, columnspan=3)
     ok_but_room_num = tk.Button(start_frame, text="Okay", font=font, command=lambda: ok_but_room_num_clkd())
@@ -80,6 +83,7 @@ def ask_room_num():
 class recv_rooms_list_thread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
+        recv_rooms_list_threaqd_running = True
 
     def run(self):
 
@@ -123,32 +127,32 @@ class recv_rooms_list_thread(threading.Thread):
             rooms_list = pickle.loads(client.recv(1024))
             print(rooms_list)
 
-            all_items = rooms_view.get_children()
-            print("ITEMS", all_items)
-
             if rooms_list in stat_list:
                 analyze_stat(rooms_list)
                 break
 
             elif rooms_list[0] == "room disbanded":
-                all_items = rooms_view.get_children()
-                print("ITEMS", items)
-                for child in all_items:
-                    item = peoples_view.focus(child)
-                    if item.values[1] == rooms_list[1]:
-                        rooms_view.delete(item)
-                        break
+                try:
+                    for child in rooms_view.get_children():
+                        print(child)
+                        if child == rooms_list[1]:
+                            rooms_view.delete(item)
+                            break
+                            # todo:
+                            #   what if after removal of a room there are no rooms existing
+                except:
+                    # it may happen as the client was sent the room disband msg before tree view childs were established
+                    pass
 
             else:
                 for room in rooms_list:
-
                     if room[0] not in noted_rooms:
 
                         stringvars.update({room[0]: tk.StringVar()})
                         stringvars[room[0]].set(str(room[2]))
                         # add data for the player in treeview
 
-                        rooms_view.insert(parent="", index="end", text="",
+                        rooms_view.insert(parent="", index="end", text="",iid=room[0],
                                           values=(room[0], room[1], stringvars[room[0]].get()))
 
                         # add the player in noted players so we do not double display the player
@@ -302,11 +306,10 @@ class recv_new_players_list_thread(threading.Thread):
                     break
 
                 elif new_players_list[0] == "player disconnected":
-                    items = people_view.get_children()
-                    print("ITEMS",items)
-                    for child in items:
-                        my_item = people_view.focus(child)
-                        if my_item.values[0] == new_players_list[0]:
+                    # delete the player disconnected
+                    # we save each child by its -name(as id)
+                    for child in people_view.get_children():
+                        if child == new_players_list[0]:
                             if my_item.values[1] == "host":
                                 people_view.grid_forget()
                                 show_room_disbanded_label()
@@ -342,7 +345,7 @@ class recv_new_players_list_thread(threading.Thread):
 
                             # add data for the player in treeview
                             # new_players_list.index(player) returns the index of the item in the list
-                            people_view.insert(parent="", index="end", text="",
+                            people_view.insert(parent="", index="end", text="",iid=player,
                                                values=(player, desig, new_players_list.index(player) + 1))
 
                             # add the player in noted players so we do not double display the player
