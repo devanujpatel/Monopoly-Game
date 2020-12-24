@@ -771,10 +771,10 @@ def get_dice_roll(new_pos, old_pos):
 class roll_dice_class:
 
     def __init__(self):
-        pass
+        self.end_btn_shown = False
 
     def show_dice_btn(self):
-
+        # to make testing easier the random process of rolling dice is removed so as to get more controll in dice rolled
         self.roll_dice_d = tk.Entry(main_frame)
         self.roll_dice_d.grid(row=6, column=6)
 
@@ -798,7 +798,6 @@ class roll_dice_class:
 
                 if t == 0:
                     self.timer_label['text'] = "You missed you chance!"
-                    self.timer_label['text'] = "You missed your chance!"
                     self.roll_dice_d.grid_forget()
                     self.okay.grid_forget()
                     container.after(3600 * 3, lambda: self.timer_label.grid_forget())
