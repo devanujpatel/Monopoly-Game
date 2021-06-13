@@ -1,4 +1,3 @@
-import random
 import socket, pickle, threading, time
 import tkinter as tk
 from prop_class_for_online_version import my_property_class, row_coordinates, column_coordinates, place_num, prop_id, \

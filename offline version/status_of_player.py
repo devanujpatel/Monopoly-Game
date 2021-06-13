@@ -1,12 +1,14 @@
 import tkinter as tk
 from initialising_everything import chance,chances, player_names
 
-def step_4(status_frame,sf_width,sf_height,n_players,playing_tokens, colors):
+def step_4(status_frame,sf_width,sf_height,n_players,playing_tokens, colors,properties_dicto,main_frame):
     class Status_of_player:
         def __init__(self, token_str, player_str):
             self.token_str = token_str
             self.player_str = player_str
+
         def display(self):
+
             self.inferior_status_frame = tk.LabelFrame(status_frame, text=self.player_str, bg=colors[self.token_str], relief="flat",
                                                        width=sf_width / n_players, height=sf_height, font=("white",11), bd=7)
 
@@ -50,3 +52,6 @@ def step_4(status_frame,sf_width,sf_height,n_players,playing_tokens, colors):
 
     global stat_objs
     stat_objs = [stat1, stat2,stat3, stat4,stat5, stat6,stat7, stat8]
+
+    import roll_dice
+    roll_dice.step_5(main_frame, n_players, properties_dicto , stat_objs)

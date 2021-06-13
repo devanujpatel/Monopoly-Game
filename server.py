@@ -862,13 +862,6 @@ class threaded_Client(threading.Thread):
     def waiting_mode(self):
         pass
 
-
-while True:
-    client, addr = server.accept()
-    client_thread_obj = threaded_Client(client, addr)
-    player_obj.update({client: client_thread_obj})
-    client_thread_obj.start()
-
 # TODO
 #   give timeouts so that you can reomove a person who is inactive for a long time like 120 seconds or 3 times inactive for 30 sec
 #   improve gui looks
