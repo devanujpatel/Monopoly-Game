@@ -846,6 +846,7 @@ class roll_dice_class:
         # display btns when necessary only
         self.end_turn_btn.grid_forget()
         client.send(pickle.dumps(("end my turn")))
+        my_property_class.grid_forget_buy_btn()
 
 container.mainloop()
 

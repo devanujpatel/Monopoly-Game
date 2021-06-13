@@ -87,6 +87,10 @@ class my_property_class:
         username = username_para
         self.property_manager(data_holder)
 
+    def grid_forget_buy_btn(self):
+        self.price_btn.grid_forget()
+        self.buy_btn.grid_forget()
+
     def property_manager(self, data_holder):
         self.show_details()
         self.buy_btn_shown = False
