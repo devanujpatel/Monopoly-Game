@@ -1,7 +1,8 @@
 import random
 import socket, pickle, threading, time
 import tkinter as tk
-from prop_class_for_online_version import my_property_class, row_coordinates, column_coordinates, place_num, prop_id,prop_info, place_id_place_to_pos
+from prop_class_for_online_version import my_property_class, row_coordinates, column_coordinates, place_num, prop_id, \
+    prop_info, place_id_place_to_pos
 from player_class_online_version import Player
 
 # importing the choosecolor package
@@ -33,6 +34,7 @@ tk.Frame(start_frame, width=width / 7, height=height / 7).grid(row=0, column=7)
 
 font = ("Courier", 13)
 
+
 def intro_ask_what_to_do():
     global two_btns_label, create_room_btn, join_room_btn
     two_btns_label = tk.Label(start_frame, text="What do you want to do?", font=font)
@@ -43,7 +45,9 @@ def intro_ask_what_to_do():
     join_room_btn = tk.Button(start_frame, text="Join Room", command=lambda: join_room())
     join_room_btn.grid(row=3, column=4)
 
+
 intro_ask_what_to_do()
+
 
 def create_room():
     global player_desig
@@ -67,9 +71,9 @@ def join_room():
 
 
 def ask_room_num():
-    global room_num_entry, ok_but_room_num, room_label#, room_num_display_frame
-    #room_num_display_frame = tk.Frame(container)
-    #room_num_display_frame.grid()
+    global room_num_entry, ok_but_room_num, room_label  # , room_num_display_frame
+    # room_num_display_frame = tk.Frame(container)
+    # room_num_display_frame.grid()
     if recv_rooms_list_threaqd_running == False:
         recv_rooms_list_thread_OBJECT = recv_rooms_list_thread()
         recv_rooms_list_thread_OBJECT.start()
@@ -109,7 +113,7 @@ class recv_rooms_list_thread(threading.Thread):
         rooms_view.heading("No. of Players", text="No. of Players", anchor="w")
 
         # pack to the screen
-        rooms_view.grid(row = 5, column = 3 )
+        rooms_view.grid(row=5, column=3)
 
         # we will add data as and when we recv stuff
 
@@ -136,7 +140,7 @@ class recv_rooms_list_thread(threading.Thread):
                     for child in rooms_view.get_children():
                         print(child)
                         if child == rooms_list[1]:
-                            rooms_view.delete(item)
+                            rooms_view.delete(child)
                             break
                             # todo:
                             #   what if after removal of a room there are no rooms existing
@@ -152,7 +156,7 @@ class recv_rooms_list_thread(threading.Thread):
                         stringvars[room[0]].set(str(room[2]))
                         # add data for the player in treeview
 
-                        rooms_view.insert(parent="", index="end", text="",iid=room[0],
+                        rooms_view.insert(parent="", index="end", text="", iid=room[0],
                                           values=(room[0], room[1], stringvars[room[0]].get()))
 
                         # add the player in noted players so we do not double display the player
@@ -174,6 +178,7 @@ class recv_rooms_list_thread(threading.Thread):
                             # this is not possible as we only send data when we have a change
                             pass
 
+
 def ok_but_room_num_clkd():
     try:
         s = rooms_view.selection()[0]
@@ -189,6 +194,7 @@ def ok_but_room_num_clkd():
 
     except IndexError:
         print("None selected")
+
 
 def analyze_stat(status):
     if str(status) == "error":
@@ -216,6 +222,7 @@ def analyze_stat(status):
     if str(status) == "room disbanded":
         show_room_disbanded_label()
         intro_ask_what_to_do()
+
 
 def ask_username():
     # ask for username
@@ -245,6 +252,7 @@ def ok_but_for_username_clicked():
         container.title(username)
         check_on_new_thread_npl = recv_new_players_list_thread()
         check_on_new_thread_npl.start()
+
 
 def show_room_disbanded_label():
     room_disbanded_label = tk.Label(start_frame,
@@ -280,7 +288,7 @@ class recv_new_players_list_thread(threading.Thread):
         people_view.heading("Chance", text="Chance", anchor="w")
 
         # pack to the screen
-        people_view.grid(row = 5, column = 3)
+        people_view.grid(row=5, column=3)
 
         # we will add data as and when we recv stuff
 
@@ -345,7 +353,7 @@ class recv_new_players_list_thread(threading.Thread):
 
                             # add data for the player in treeview
                             # new_players_list.index(player) returns the index of the item in the list
-                            people_view.insert(parent="", index="end", text="",iid=player,
+                            people_view.insert(parent="", index="end", text="", iid=player,
                                                values=(player, desig, new_players_list.index(player) + 1))
 
                             # add the player in noted players so we do not double display the player
@@ -362,6 +370,7 @@ def start_game_host():
     start_game_btn.grid_forget()
     client.send(pickle.dumps("start the game"))
 
+
 def recv_game_details():
     global data_holder
     print(threading.enumerate())
@@ -371,6 +380,7 @@ def recv_game_details():
     display_thread.start()
     cc_thread = threading.Thread(target=choose_color())
     cc_thread.start()
+
 
 def choose_color():
     # this blocks the execution of all the threads so a work around is made , u will see later
@@ -584,6 +594,7 @@ def display_game_screen():
                                  highlightbackground="black", highlightthickness=1, width=sf_width, height=sf_height)
     status_frame.grid(rowspan=4, columnspan=9, row=1, column=1)
 
+
 def final_stage_tweaks():
     global data_holder, rd_obj
     global data_holder, rd_obj, chance_label
@@ -639,9 +650,9 @@ def recv_data_updates():
 
             if data_update[1] == "coudn't buy":
                 print("couldnt buy")
-                #t = data_update[0] + " " + data_update[1] + "\n " + data_update[2] + " " + data_update[3]
-                #update_reader["text"] = t
-                #update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
+                # t = data_update[0] + " " + data_update[1] + "\n " + data_update[2] + " " + data_update[3]
+                # update_reader["text"] = t
+                # update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
 
             if data_update[2] == "update" and data_update[1] == "properties":
                 # means we have to add something of the dicto about properties
@@ -649,12 +660,12 @@ def recv_data_updates():
                     "houses": 0, }})
 
                 prop_info[data_update[3]]["owner"] = data_update[0]
-                #update_reader = tk.Label(main_frame, text=data_update[0] + " \nsuccessfully bought-\n" + data_update[3],
+                # update_reader = tk.Label(main_frame, text=data_update[0] + " \nsuccessfully bought-\n" + data_update[3],
                 #                         font=font,
                 #                         bg="light blue")
-                #update_reader.grid(columnspan=3, row=6, column=7)
-                #update_reader["text"] = data_update[0] + " \nsuccessfully bought-\n" + data_update[3]
-                #update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
+                # update_reader.grid(columnspan=3, row=6, column=7)
+                # update_reader["text"] = data_update[0] + " \nsuccessfully bought-\n" + data_update[3]
+                # update_reader.grid(columnspan=3, rowspan=3, row=6, column=7)
 
                 created_objs[data_update[0]].property_update(data_update)
                 created_objs[data_update[0]].prop_num_label["text"] = "Properties in hand: " + str(
@@ -678,8 +689,8 @@ def recv_data_updates():
                 if prop_id[new_pos].buy_btn_shown == True:
                     prop_id[new_pos].buy_btn.grid()
 
-                #update_reader.grid(row=6, column=8)
-                #update_reader.grid_forget()
+                # update_reader.grid(row=6, column=8)
+                # update_reader.grid_forget()
 
                 created_objs[call_to].rd_label.grid_forget()
 
@@ -689,10 +700,10 @@ def recv_data_updates():
                 # so that a new cylce of while loop
                 # thus a timeout can the be set for the player whose chance is next
                 client.send(pickle.dumps(None))
-                #chance_label["text"] = data_holder["inverted chances"][data_holder["chance"]] + " missed chance"
+                # chance_label["text"] = data_holder["inverted chances"][data_holder["chance"]] + " missed chance"
                 seek_chance()
 
-            #if data_update == ("RC"):
+            # if data_update == ("RC"):
             #    time.sleep(0.4)
             #    client.send(pickle.dumps(("RC")))
 
@@ -710,21 +721,22 @@ def recv_data_updates():
             if data_update[1] == "trade finalised":
                 created_objs[username].trade_finalised()
 
+
 def seek_chance():
     global chance_label
     if data_holder["chance"] == data_holder["player chances"][username]:
         print("My Chance")
-        #chance_label = tk.Label(main_frame, text="It's your chance", font=font)
-        #chance_label.grid(row=6, column=9, rowspan=2)
+        # chance_label = tk.Label(main_frame, text="It's your chance", font=font)
+        # chance_label.grid(row=6, column=9, rowspan=2)
         rd_obj.show_dice_btn()
         # other things will be handled by the server and our data update method
 
     else:
         print("not my chance")
-        #chance_label = tk.Label(main_frame,
+        # chance_label = tk.Label(main_frame,
         #                        text=str(data_holder["inverted chances"][data_holder["chance"]]) + "'s chance",
         #                        font=font)
-        #chance_label.grid(row=6, column=9, rowspan=2)
+        # chance_label.grid(row=6, column=9, rowspan=2)
 
 
 def update_caller(data_update):
@@ -741,14 +753,14 @@ def update_caller(data_update):
     if data_update[1] == "position":
         global new_pos
         global new_pos, chance_label
-        #chance_label.grid_forget()
+        # chance_label.grid_forget()
         new_pos = data_update[2]
         created_objs[call_to].update_data_holder(data_holder)
         created_objs[call_to].update_position(row_coordinates, column_coordinates, place_num, old_pos, data_update[2],
                                               place_id_place_to_pos, prop_id, data_update[0], username, client, rd_obj)
 
         # show end turn btns after token is moved and only if it is your chance ___ ofc
-        #if data_update[0] == username:
+        # if data_update[0] == username:
         #   rd_obj.show_end_turn_btns()
 
         # just this and our work is done
@@ -756,6 +768,7 @@ def update_caller(data_update):
     if data_update[1] == "money":
         time.sleep(0.4)
         created_objs[call_to].money_label["text"] = "Money: " + str(data_update[2])
+
 
 # use when needed , gets dice roll
 def get_dice_roll(new_pos, old_pos):
@@ -848,6 +861,5 @@ class roll_dice_class:
         client.send(pickle.dumps(("end my turn")))
         my_property_class.grid_forget_buy_btn()
 
+
 container.mainloop()
-
-
