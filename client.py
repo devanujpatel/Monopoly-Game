@@ -1,11 +1,14 @@
-import socket, pickle, threading, time
+import pickle
+import socket
+import threading
+import time
 import tkinter as tk
-from prop_class_for_online_version import my_property_class, row_coordinates, column_coordinates, place_num, prop_id, \
-    prop_info, place_id_place_to_pos
-from player_class_online_version import Player
-
 # importing the choosecolor package
 from tkinter import colorchooser, ttk
+
+from player_class_online_version import Player
+from prop_class_for_online_version import my_property_class, row_coordinates, column_coordinates, place_num, prop_id, \
+    prop_info, place_id_place_to_pos
 
 client = socket.socket()
 client.connect(("127.0.0.1", 9999))
